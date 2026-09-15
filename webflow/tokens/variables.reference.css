@@ -1,0 +1,26 @@
+/*!
+ * variables.reference.css — Designer'daki Webflow Variables koleksiyonunun
+ * okunabilir aynası.
+ *
+ * ⚠️ BU DOSYA SİTEDE YÜKLENMEZ. Build'e girmez, dist/'e çıkmaz, bir <link> ile
+ * referans verilmez.
+ *
+ * Neden: değişkenlerin gerçek kaynağı Designer. Bu dosya siteye yüklenirse
+ * buradaki değerler Designer'ın gerçek değerlerini ezer ve tasarımda sebebi
+ * anlaşılmayan renk/ölçü kaymaları başlar. Bu tuzağa daha önce düşüldü.
+ *
+ * Ne işe yarar: kod yazarken hangi token'ın var olduğunu görmek, kod
+ * incelemesinde "bu rengi nereden aldın" sorusuna cevap vermek ve değişken
+ * isimlerini tek bir yerde belgelemek.
+ *
+ * Designer'da değişken eklendiğinde/adı değiştiğinde buraya da yaz.
+ */
+
+:root {
+  /* Token listesi Designer'daki koleksiyon kurulduktan sonra buraya yazılacak.
+     Biçim:
+
+     --rc-color-brand-primary: #000000;   Designer adı: "Brand / Primary"
+     --rc-space-6: 1.5rem;                Designer adı: "Space / 6"
+  */
+}

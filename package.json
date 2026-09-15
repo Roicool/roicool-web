@@ -1,0 +1,26 @@
+{
+  "name": "roicool-web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Roicool Webflow sitesinin davranış, stil ve yapılandırılmış veri katmanı",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Roicool/roicool-web.git"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "build:seo": "node scripts/build-seo.mjs",
+    "test": "node --test src/**/*.test.js",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0",
+    "js-yaml": "^4.1.0",
+    "prettier": "^3.4.2"
+  }
+}
