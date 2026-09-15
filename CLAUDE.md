@@ -10,6 +10,10 @@ redirect haritası gibi şeyler burada değil — onların yeri Webflow.
 
 Kod yazımı henüz başlamadı. Bir şey yazmadan önce sahibine sor.
 
+**Webflow API kullanılmaz — asla.** Kod siteye tek yoldan girer: Site Settings ›
+Custom Code › Head alanına elle yapıştırılan `webflow/embeds/head.html`. Data
+API, registered scripts, MCP üzerinden siteye yazma — hiçbiri. Önerme bile.
+
 ## Değiştirilemez kurallar
 
 1. **JS asla içerik üretmez.** Metin, başlık, liste, tablo — hepsi HTML'de

@@ -6,6 +6,9 @@
 [`webflow/embeds/head.html`](../webflow/embeds/head.html) içeriğini yapıştır.
 İçinde yalnızca Webflow IX2 kapatıcı var.
 
+Kod siteye **yalnızca bu yoldan** girer. Webflow API, registered scripts ya da
+herhangi bir otomatik yazma yolu kullanılmaz — karar kesin.
+
 Bu bir karar: IX2 kapalıyken Designer'daki native interaction'lar çalışmaz.
 Animasyonların tamamı bu repo'dan yönetilecekse doğru; Designer'da interaction
 kullanılacaksa bloğu kaldır.
