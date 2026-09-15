@@ -1,0 +1,37 @@
+name: Quality
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Format
+        run: npm run format:check
+
+      - name: Test
+        run: npm test
+
+      # dist/ CDN'den servis edildiği için repo'daki hali kaynakla aynı olmak
+      # zorunda. Aksi halde site, src/'de duran koddan farklı bir kod çalıştırır.
+      - name: Build
+        run: npm run build
+
+      - name: dist/ kaynakla güncel mi
+        run: |
+          if ! git diff --exit-code --stat dist/; then
+            echo "::error::dist/ kaynakla uyuşmuyor. 'npm run build' çalıştırıp çıktıyı commit'le."
+            exit 1
+          fi

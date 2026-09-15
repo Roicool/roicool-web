@@ -35,12 +35,12 @@ animasyonları repo'dan, `.rc-js` kapısının arkasından gelecek.
 
 ## Gizlemenin doğru yolu
 
-| İhtiyaç                                  | Kullan                          | Kullanma                          |
-| ---------------------------------------- | ------------------------------- | --------------------------------- |
-| Kapalı panel — metin belgede kalsın      | `inert` + `.rc-js` altında CSS  | `display:none` (JS'siz de gizler) |
-| Yalnız ekran okuyucuya metin             | `.rc-sr-only`                   | `opacity:0`, `font-size:0`        |
-| Dekoratif eleman, botu ilgilendirmiyor   | `aria-hidden="true"`            | —                                 |
-| Görsel bir efektin başlangıç durumu      | `.rc-js` altında CSS            | Inline `style="opacity:0"`        |
+| İhtiyaç                                | Kullan                         | Kullanma                          |
+| -------------------------------------- | ------------------------------ | --------------------------------- |
+| Kapalı panel — metin belgede kalsın    | `inert` + `.rc-js` altında CSS | `display:none` (JS'siz de gizler) |
+| Yalnız ekran okuyucuya metin           | `.rc-sr-only`                  | `opacity:0`, `font-size:0`        |
+| Dekoratif eleman, botu ilgilendirmiyor | `aria-hidden="true"`           | —                                 |
+| Görsel bir efektin başlangıç durumu    | `.rc-js` altında CSS           | Inline `style="opacity:0"`        |
 
 ## Sayfa yapısı — Designer'da dikkat edilecekler
 

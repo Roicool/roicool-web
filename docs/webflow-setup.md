@@ -35,11 +35,11 @@ ibaret:
 URL'nin sonuna `?rc-debug` ekle; runtime hangi component'i ne zaman bağladığını
 konsola yazar.
 
-| Belirti                                  | Sebep                                                                                                       |
-| ---------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| Hiçbir şey olmuyor, konsol boş           | `head.html` yapıştırılmamış ya da sayfa yayınlanmamış                                                       |
-| `"x" could not be loaded`                | Component adı yanlış yazılmış, ya da o sürümde yok                                                          |
-| İçerik önce açık görünüp sonra kapanıyor | `head.html`'deki satır içi `rc-js` snippet'i eksik                                                          |
+| Belirti                                  | Sebep                                                                                                                   |
+| ---------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| Hiçbir şey olmuyor, konsol boş           | `head.html` yapıştırılmamış ya da sayfa yayınlanmamış                                                                   |
+| `"x" could not be loaded`                | Component adı yanlış yazılmış, ya da o sürümde yok                                                                      |
+| İçerik önce açık görünüp sonra kapanıyor | `head.html`'deki satır içi `rc-js` snippet'i eksik                                                                      |
 | Görünüm repo'daki CSS'i dinlemiyor       | Doğru davranış — LOOK kuralları sıfır specificity'de, Designer kazanıyor. Bkz. [`css-ownership.md`](./css-ownership.md) |
 
 ## Değişkenler

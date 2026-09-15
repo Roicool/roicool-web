@@ -57,6 +57,9 @@ export default function name(root) {
 Runtime, `[data-rc~="name"]` elemanını görünce chunk'ı getirir ve `init`'i bir
 kez çağırır. Kayıt defteri, manifest ya da init listesi güncellemen gerekmez.
 
+Bitirmeden önce: `npm run build` çalıştır ve `dist/` değişikliğini commit'e dahil
+et — CDN oradan servis ediyor.
+
 ## Commit
 
 - Konu satırı: `<alan>: <ne yapıldı>` — ör. `accordion: tek açılır mod ekle`.

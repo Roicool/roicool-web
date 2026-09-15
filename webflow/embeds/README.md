@@ -7,8 +7,8 @@ alanları sürüm geçmişi tutmaz; buradaki dosyalar o boşluğu doldurur.
 Designer'da bir şey değiştirdiysen aynı değişikliği buraya commit'le. Aksi halde
 altı ay sonra sitede ne çalıştığını kimse bilemez.
 
-| Dosya       | Nereye gider                       | İçinde ne var                |
-| ----------- | ---------------------------------- | ---------------------------- |
+| Dosya       | Nereye gider                       | İçinde ne var                 |
+| ----------- | ---------------------------------- | ----------------------------- |
 | `head.html` | Site Settings › Custom Code › Head | Webflow IX2 kapatıcı (inline) |
 
 Kütüphanenin yükleme zinciri (kritik CSS, async CSS, `rc.js`) ilk sürüm

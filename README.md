@@ -9,23 +9,32 @@ botların kolay taradığı yapı.
 
 ## Durum
 
-Klasör yapısı ve kurallar kuruldu; kod yazımı henüz başlamadı. Sitede çalışan
-tek kod [`webflow/embeds/head.html`](./webflow/embeds/head.html) içindeki
-Webflow IX2 kapatıcı.
+Klasör yapısı, kurallar ve build iskeleti kuruldu; kod yazımı henüz başlamadı.
+Sitede çalışan tek kod [`webflow/embeds/head.html`](./webflow/embeds/head.html)
+içindeki Webflow IX2 kapatıcı.
+
+## Geliştirme
+
+```bash
+npm install
+npm run build        # src/ → dist/  (dist/ commit'lenir, jsDelivr oradan servis eder)
+npm test
+npm run format
+```
 
 ## Klasörler
 
-| Klasör            | Ne var                                                              |
-| ----------------- | ------------------------------------------------------------------- |
-| `src/runtime/`    | `rc.js` çekirdeği — component keşfi, DOM sözleşmesi, hareket tercihi |
-| `src/a11y/`       | Paylaşılan erişilebilirlik yardımcıları (focus trap, live region)   |
-| `src/base/`       | Senkron yüklenen kritik CSS + global hareket politikası             |
-| `src/components/` | Her component kendi klasöründe: js + css + README                   |
-| `src/effects/`    | Tek başına duran görsel efektler (component'e bağlı olmayan)        |
-| `webflow/`        | Designer'a yapıştırılan kod ve değişken referansı                   |
-| `assets/`         | İkon, marka görselleri, lottie kaynakları                           |
-| `scripts/`        | Build araçları                                                      |
-| `dist/`           | **Üretilir ve commit'lenir** — CDN buradan servis eder (henüz yok)  |
+| Klasör            | Ne var                                                                |
+| ----------------- | --------------------------------------------------------------------- |
+| `src/runtime/`    | `rc.js` çekirdeği — component keşfi, DOM sözleşmesi, hareket tercihi  |
+| `src/a11y/`       | Paylaşılan erişilebilirlik yardımcıları (focus trap, live region)     |
+| `src/base/`       | Senkron yüklenen kritik CSS + global hareket politikası               |
+| `src/components/` | Her component kendi klasöründe: js + css + README                     |
+| `src/effects/`    | Tek başına duran görsel efektler (component'e bağlı olmayan)          |
+| `webflow/`        | Designer'a yapıştırılan kod ve değişken referansı                     |
+| `assets/`         | İkon, marka görselleri, lottie kaynakları                             |
+| `scripts/`        | Build araçları                                                        |
+| `dist/`           | **Üretilir ve commit'lenir** — CDN buradan servis eder                |
 | `docs/`           | Mimari, isimlendirme, CSS sahipliği, erişilebilirlik, tarama, kurulum |
 
 ## Okuma sırası
