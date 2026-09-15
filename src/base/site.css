@@ -1,0 +1,14 @@
+/*!
+ * site.css — site-wide CSS that deliberately lives in the repo instead of
+ * Designer.
+ *
+ * Designer owns appearance. This file is the documented exception, for what
+ * Designer cannot express: @supports, @keyframes, :has(), print styles,
+ * forced-colors mode.
+ *
+ * ONE RULE, and it is what keeps this file from turning into a junk drawer:
+ * every block carries a one-line comment saying why it is not in Designer.
+ * A block without that comment belongs in Designer.
+ *
+ * Boundary and reasoning: docs/css-ownership.md
+ */

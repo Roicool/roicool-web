@@ -4,7 +4,11 @@
   "trailingComma": "all",
   "overrides": [
     {
-      "files": "dist/**",
+      "files": [
+        "dist/**",
+        "webflow/embeds/head.html",
+        "webflow/embeds/head.template.html"
+      ],
       "options": { "requirePragma": true }
     }
   ]

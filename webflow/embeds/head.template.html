@@ -1,0 +1,40 @@
+<!-- roicool-web v{{version}} · üretildi: scripts/build.mjs · kaynak: webflow/embeds/head.template.html -->
+<script>
+  (function () {
+    function disableInteractions(body) {
+      body.setAttribute("data-wf-ix-vacation", "1");
+    }
+    if (document.body) {
+      disableInteractions(document.body);
+      return;
+    }
+    new MutationObserver(function (mutations, observer) {
+      if (!document.body) return;
+      disableInteractions(document.body);
+      observer.disconnect();
+    }).observe(document.documentElement, { childList: true });
+  })();
+</script>
+<script>
+  document.documentElement.classList.add("rc-js");
+</script>
+<style>{{critical-css}}</style>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+<link
+  rel="preload"
+  as="style"
+  crossorigin
+  href="https://cdn.jsdelivr.net/gh/roicool/roicool-web@v{{version}}/dist/rc.css"
+  onload="this.onload = null; this.rel = 'stylesheet'"
+/>
+<noscript>
+  <link
+    rel="stylesheet"
+    crossorigin
+    href="https://cdn.jsdelivr.net/gh/roicool/roicool-web@v{{version}}/dist/rc.css"
+  />
+</noscript>
+<script
+  type="module"
+  src="https://cdn.jsdelivr.net/gh/roicool/roicool-web@v{{version}}/dist/rc.js"
+></script>

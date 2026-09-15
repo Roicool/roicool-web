@@ -8,8 +8,6 @@ Bu repo yalnızca **kod** içerir: sitenin JS'i, davranışsal CSS'i ve Designer
 yapıştırılan snippet'ler. İçerik, metin, yapılandırılmış veri, `llms.txt`,
 redirect haritası gibi şeyler burada değil — onların yeri Webflow.
 
-Kod yazımı henüz başlamadı. Bir şey yazmadan önce sahibine sor.
-
 **Webflow API kullanılmaz — asla.** Kod siteye tek yoldan girer: Site Settings ›
 Custom Code › Head alanına elle yapıştırılan `webflow/embeds/head.html`. Data
 API, registered scripts, MCP üzerinden siteye yazma — hiçbiri. Önerme bile.
@@ -61,10 +59,23 @@ export default function name(root) {
 Runtime, `[data-rc~="name"]` elemanını görünce chunk'ı getirir ve `init`'i bir
 kez çağırır. Kayıt defteri, manifest ya da init listesi güncellemen gerekmez.
 
-Bitirmeden önce: `npm run build` çalıştır ve `dist/` değişikliğini commit'e dahil
-et — CDN oradan servis ediyor.
+Bitirmeden önce `npm run build` çalıştır. İki üretilen çıktı var ve ikisi de
+commit'e girer: `dist/` (CDN oradan servis ediyor) ve
+`webflow/embeds/head.html` (Webflow'a yapıştırılan şey). `head.html` elle
+düzenlenmez; kaynağı `head.template.html`.
 
 ## Commit
 
 - Konu satırı: `<alan>: <ne yapıldı>` — ör. `accordion: tek açılır mod ekle`.
-- `dist/` değişikliği aynı commit'te, ayrı commit'te değil.
+- `dist/` ve `head.html` değişikliği aynı commit'te, ayrı commit'te değil.
+
+## Sürüm
+
+```bash
+npm version minor        # package.json'ı yükseltir, build alır, commit + tag (vX.Y.Z)
+git push --follow-tags   # tag CDN'de anında yayında
+```
+
+Sonra `webflow/embeds/head.html` Webflow'a yapıştırılır ve site publish edilir.
+`patch` = düzeltme, `minor` = yeni component/özellik, `major` = attribute
+sözleşmesinde kırıcı değişiklik.

@@ -86,10 +86,11 @@ bilmez. Component component'i import etmez — ortak bir şey gerekiyorsa
 `src/` → `dist/`, esbuild ile. Her component ayrı bir chunk; paylaşılan kod
 (runtime, a11y) tek ortak chunk'a çıkar, component'lere kopyalanmaz.
 
-CSS'te iki çıktı: `rc.critical.css` (yalnız `src/base/critical.css`) ve
-`rc.css` (hareket politikası + tüm component CSS'leri). Component CSS'leri
-davranışsal olduğu için toplam küçük kalır; component başına ayrı istek
-açmaya değmez.
+CSS'te iki çıktı: `src/base/critical.css` minify edilip `head.html`'in içine
+`<style>` olarak gömülür (dosya olarak çıkmaz, ağdan istenmez); `rc.css`
+(hareket politikası + `site.css` + tüm component CSS'leri) `dist/`'e yazılır.
+Component CSS'leri davranışsal olduğu için toplam küçük kalır; component başına
+ayrı istek açmaya değmez.
 
 `dist/` commit'lenir. jsDelivr onu doğrudan repo'dan servis edeceği için build
 çıktısı repo'da bulunmak zorunda.
@@ -101,6 +102,12 @@ düzeltme hatası bu yüzden yoktur.
 
 ## Sürümleme
 
-Webflow head'i bir sürüm etiketine sabitlenir (`@v1.0.0`). `@main` kullanılmaz:
+Webflow head'i bir sürüm etiketine sabitlenir (`@v0.1.0`). `@main` kullanılmaz:
 repo'ya atılan her commit siteyi anında değiştirir, test edilmemiş kod
-ziyaretçiye gider. Yeni sürüm = tag atmak + head'deki etiketi güncellemek.
+ziyaretçiye gider; ayrıca jsDelivr `@main`'i ~12 saat cache'ler, tag'leri
+kalıcı.
+
+Sürüm tek komut: `npm version minor` → `package.json` yükselir → `version`
+lifecycle'ı build alır ve çıktıları stage'ler → npm commit'ler ve `vX.Y.Z`
+tag'ini atar. `git push --follow-tags` ile tag CDN'de anında yayında; sürüm
+numarası `head.html`'e build'de yazıldığı için elle düzeltilecek bir yer yok.

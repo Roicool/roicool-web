@@ -7,9 +7,24 @@ alanları sürüm geçmişi tutmaz; buradaki dosyalar o boşluğu doldurur.
 Designer'da bir şey değiştirdiysen aynı değişikliği buraya commit'le. Aksi halde
 altı ay sonra sitede ne çalıştığını kimse bilemez.
 
-| Dosya       | Nereye gider                       | İçinde ne var                 |
-| ----------- | ---------------------------------- | ----------------------------- |
-| `head.html` | Site Settings › Custom Code › Head | Webflow IX2 kapatıcı (inline) |
+| Dosya                | Ne                                                                |
+| -------------------- | ----------------------------------------------------------------- |
+| `head.template.html` | Kaynak — elle düzenlenen tek dosya                                |
+| `head.html`          | Build çıktısı — Site Settings › Custom Code › Head'e yapıştırılır |
+
+`head.html` elle düzenlenmez. Şablon düzenlenir, `npm run build` alınır, çıktı
+yapıştırılır. Build şablona iki şey yazar: `{{critical-css}}` yerine minify
+edilmiş `src/base/critical.css` (yorumsuz — her byte her ziyaretçiye gidiyor)
+ve `{{version}}` yerine `package.json` sürümü.
+
+`head.html` içinde sırayla:
+
+1. Webflow IX2 kapatıcı — inline, açıklaması aşağıda
+2. `html.rc-js` işareti — inline; gizleme kuralları bu sınıfa bağlı
+3. Kritik CSS — inline `<style>`; odak halkası, skip link, `.rc-sr-only`
+4. `preconnect` → jsDelivr
+5. `rc.css` — async (`preload` → `stylesheet`), `<noscript>` yedeğiyle
+6. `rc.js` — `type="module"`, deferred
 
 Dosyalarda açıklama yorumu tutulmaz: Webflow custom code'u olduğu gibi servis
 eder, her yorum satırı her ziyaretçiye gider. Açıklama burada.
@@ -38,8 +53,4 @@ içine taşınırsa gözlemciye gerek kalmaz, doğrudan basar.
 **Karar:** Designer'da native interaction kullanılacaksa bu blok kaldırılır;
 yoksa o interaction'lar sessizce çalışmaz.
 
-Kütüphane yayınlandığında `head.html`'i build üretecek: kaynak
-`head.template.html` olacak, build kritik CSS'i `<style>` olarak gömüp sürüm
-etiketini CDN linklerine yazacak. O noktadan sonra `head.html` elle
-düzenlenmez — şablon düzenlenir, build alınır, çıktı yapıştırılır. Plan:
-[`docs/architecture.md`](../../docs/architecture.md).
+Yükleme zincirinin gerekçesi: [`docs/architecture.md`](../../docs/architecture.md).

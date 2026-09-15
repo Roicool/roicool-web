@@ -9,9 +9,11 @@ botların kolay taradığı yapı.
 
 ## Durum
 
-Klasör yapısı, kurallar ve build iskeleti kuruldu; kod yazımı henüz başlamadı.
-Sitede çalışan tek kod [`webflow/embeds/head.html`](./webflow/embeds/head.html)
-içindeki Webflow IX2 kapatıcı.
+**v0.1.0 — runtime, component yok.** Siteye giren
+[`webflow/embeds/head.html`](./webflow/embeds/head.html): IX2 kapatıcı, `rc-js`
+işareti, inline kritik CSS (odak halkası, skip link, `.rc-sr-only`), async
+`rc.css` (hareket politikası), deferred `rc.js` (component keşfi). Runtime
+sayfayı tarıyor; bağlayacak component bir sonraki sürümle gelir.
 
 ## Geliştirme
 
