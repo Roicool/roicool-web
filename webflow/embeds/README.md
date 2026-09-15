@@ -11,6 +11,8 @@ altı ay sonra sitede ne çalıştığını kimse bilemez.
 | ----------- | ---------------------------------- | ----------------------------- |
 | `head.html` | Site Settings › Custom Code › Head | Webflow IX2 kapatıcı (inline) |
 
-Kütüphanenin yükleme zinciri (kritik CSS, async CSS, `rc.js`) ilk sürüm
-etiketlendiğinde `head.html`'e eklenecek — planı
+Kütüphane yayınlandığında `head.html`'i build üretecek: kaynak
+`head.template.html` olacak, build kritik CSS'i `<style>` olarak gömüp sürüm
+etiketini CDN linklerine yazacak. O noktadan sonra `head.html` elle
+düzenlenmez — şablon düzenlenir, build alınır, çıktı yapıştırılır. Plan:
 [`docs/architecture.md`](../../docs/architecture.md).

@@ -17,11 +17,13 @@ Webflow'un class isimlerini bilmez, Webflow kodun dosya adlarını bilmez.
 ## Yükleme zinciri
 
 ```
-<head>
-  0. inline script       Webflow IX2 kapatıcı                (ŞU AN SİTEDE OLAN TEK KOD)
-  1. inline script       html.rc-js sınıfını basar          (boyamadan önce)
-  2. preconnect          cdn.jsdelivr.net                    (DNS + TLS ısınması)
-  3. rc.critical.css     senkron, küçük                      (boyamayı bekletir — bilerek)
+<head>  — inline katman: ağ isteği yok
+  0. <script>            Webflow IX2 kapatıcı                (ŞU AN SİTEDE OLAN TEK KOD)
+  1. <script>            html.rc-js sınıfını basar          (boyamadan önce)
+  2. <style>             kritik CSS, 1-2 KB, build gömer     (ağ isteği yok)
+
+<head>  — CDN katmanı: hiçbiri boyamayı bekletmez
+  3. preconnect          cdn.jsdelivr.net                    (DNS + TLS ısınması)
   4. rc.css              async (preload → stylesheet)        (boyamayı bekletmez)
   5. rc.js               type="module" = deferred            (boyamayı bekletmez)
 
@@ -31,8 +33,15 @@ DOM hazır
   8. eleman görünüre yaklaşınca chunk'ı import eder ve init'i çağırır
 ```
 
-Senkron yüklenen tek dosya `rc.critical.css`. "Çizime engel olmama" hedefinin
-tamamı bu: başka hiçbir şey ilk boyamayı beklemez.
+Boyamayı bekleten hiçbir ağ isteği yok. Kritik CSS `<style>` olarak `head.html`'in
+içinde gelir; üçüncü taraf bir origin'e senkron bağımlılık kalmaz — jsDelivr
+yavaşlasa da erişilmez olsa da ilk boyama etkilenmez. "Çizime engel olmama"
+hedefinin tamamı bu.
+
+Kritik CSS'e ne girer: başlangıç durumunu belirleyen kurallar (kapalı panelin
+yüksekliği, reveal öncesi durum) ve erişilebilirlik temelleri (odak halkası,
+`.rc-sr-only`, skip link). Geçişler, hover, animasyon `rc.css`'e. Başlangıç
+durumu async dosyada kalırsa içerik önce açık görünüp sonra kapanır — flash.
 
 ## Neden tek script etiketi
 
@@ -84,6 +93,11 @@ açmaya değmez.
 
 `dist/` commit'lenir. jsDelivr onu doğrudan repo'dan servis edeceği için build
 çıktısı repo'da bulunmak zorunda.
+
+Build ayrıca `webflow/embeds/head.html`'i üretir: şablona (`head.template.html`)
+kritik CSS'i `<style>` olarak gömer ve `package.json`'daki sürümü CDN
+URL'lerine yazar. `head.html` el yazması değildir; sürüm numarasını elle
+düzeltme hatası bu yüzden yoktur.
 
 ## Sürümleme
 

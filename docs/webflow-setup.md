@@ -15,9 +15,10 @@ kullanılacaksa bloğu kaldır.
 
 ## Kütüphane yayınlandığında
 
-1. `head.html`'e yükleme zinciri eklenir (kritik CSS, async CSS, `rc.js`) —
-   plan [`architecture.md`](./architecture.md)'de. Sürüm etiketiyle sabitlenir,
-   `@main` kullanılmaz.
+1. `head.html`'i build üretir: kritik CSS `<style>` olarak içinde, CDN
+   linkleri (`rc.css`, `rc.js`) sürüm etiketiyle sabit — plan
+   [`architecture.md`](./architecture.md)'de. Her sürümde üretilen dosya
+   yeniden yapıştırılır; `@main` kullanılmaz.
 2. **Site Settings › SEO › robots.txt** → staging alan adında her şey kapalı,
    canlıda AI tarayıcıları engellenmez.
 3. **Designer** → body'nin ilk elemanı olarak skip link, `<main>` bölümüne
