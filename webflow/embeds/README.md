@@ -15,7 +15,8 @@ altı ay sonra sitede ne çalıştığını kimse bilemez.
 `head.html` elle düzenlenmez. Şablon düzenlenir, `npm run build` alınır, çıktı
 yapıştırılır. Build şablona iki şey yazar: `{{critical-css}}` yerine minify
 edilmiş `src/base/critical.css` (yorumsuz — her byte her ziyaretçiye gidiyor)
-ve `{{version}}` yerine `package.json` sürümü.
+ve `{{cdn-ref}}` yerine `package.json › config.cdnRef` (`main` ya da
+`v<sürüm>`).
 
 `head.html` içinde sırayla:
 

@@ -102,12 +102,22 @@ düzeltme hatası bu yüzden yoktur.
 
 ## Sürümleme
 
-Webflow head'i bir sürüm etiketine sabitlenir (`@v0.1.0`). `@main` kullanılmaz:
-repo'ya atılan her commit siteyi anında değiştirir, test edilmemiş kod
-ziyaretçiye gider; ayrıca jsDelivr `@main`'i ~12 saat cache'ler, tag'leri
-kalıcı.
+`head.html`'deki CDN URL'leri bir referansa bakar; hangisi olduğunu
+`package.json › config.cdnRef` belirler ve build URL'lere yazar. İki mod:
 
-Sürüm tek komut: `npm version minor` → `package.json` yükselir → `version`
-lifecycle'ı build alır ve çıktıları stage'ler → npm commit'ler ve `vX.Y.Z`
-tag'ini atar. `git push --follow-tags` ile tag CDN'de anında yayında; sürüm
-numarası `head.html`'e build'de yazıldığı için elle düzeltilecek bir yer yok.
+**Geliştirme — `"main"` (şu an).** Site canlı değilken. Her commit `main`'e
+gider, site oradan okur; tag yok, sürüm numarası yok, `head.html` şablon ya
+da kritik CSS değişmedikçe yeniden yapıştırılmaz. Bedeli: jsDelivr dal
+referanslarını 12 saate kadar cache'ler, bu yüzden bir push'u hemen görmek
+için `npm run purge` (jsDelivr'ın cache temizleme adresine istek atar).
+
+**Üretim — `"tag"`.** Site canlıya çıkınca. URL'ler `v<sürüm>`'e sabitlenir:
+o dosya bir daha değişmez, jsDelivr kalıcı cache'ler, dala atılan commit
+siteye gitmez, geri alma = eski `head.html`'i yapıştırmak. Sürüm tek komut:
+`npm version minor` → `package.json` yükselir → `version` lifecycle'ı build
+alır ve stage'ler → npm commit'ler ve `vX.Y.Z` tag'ini atar →
+`git push --follow-tags`. Sonra `head.html` yapıştırılır.
+
+`@main` üretimde kullanılmaz: repo'ya atılan her commit siteyi değiştirir ve
+"sitede hangi kod çalışıyor" sorusunun cevabı 12 saatlik cache yüzünden
+belirsizleşir.

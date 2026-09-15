@@ -23,10 +23,15 @@ herhangi bir otomatik yazma yolu kullanılmaz — karar kesin.
 çalışmaz. Animasyonların tamamı bu repo'dan yönetilecekse doğru; Designer'da
 interaction kullanılacaksa `head.template.html`'den o blok kaldırılır.
 
-## Her sürümde
+## Yayın
 
-`head.html` yeniden yapıştırılır — içindeki CDN linkleri sürüm etiketine sabit
-(`@v0.1.0`), yeni sürümde etiket değişir. Sürüm çıkarma:
+**Şu an geliştirme modu:** `head.html` `@main`'e bakar. Her commit `main`'e
+gider ve site oradan okur; `head.html` yalnız şablon ya da kritik CSS
+değişince yeniden yapıştırılır. jsDelivr dalı 12 saate kadar cache'lediği
+için bir push'u hemen görmek istersen `npm run purge`.
+
+Site canlıya çıkınca sürüm tag'lerine geçilir; o zaman her sürümde
+`head.html` yeniden yapıştırılır. İki modun tanımı:
 [`architecture.md › Sürümleme`](./architecture.md#sürümleme).
 
 ## Sayfaya component eklemek

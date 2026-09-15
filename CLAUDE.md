@@ -69,13 +69,19 @@ düzenlenmez; kaynağı `head.template.html`.
 - Konu satırı: `<alan>: <ne yapıldı>` — ör. `accordion: tek açılır mod ekle`.
 - `dist/` ve `head.html` değişikliği aynı commit'te, ayrı commit'te değil.
 
-## Sürüm
+## Yayın
 
-```bash
-npm version minor        # package.json'ı yükseltir, build alır, commit + tag (vX.Y.Z)
-git push --follow-tags   # tag CDN'de anında yayında
-```
+`package.json › config.cdnRef`, `head.html`'deki CDN URL'lerinin neye baktığını
+belirler:
 
-Sonra `webflow/embeds/head.html` Webflow'a yapıştırılır ve site publish edilir.
-`patch` = düzeltme, `minor` = yeni component/özellik, `major` = attribute
-sözleşmesinde kırıcı değişiklik.
+- **`"main"` — geliştirme modu (şu an).** Her commit `main`'e push edilir,
+  site oradan okur. jsDelivr dal referanslarını 12 saate kadar cache'ler;
+  değişikliği hemen görmek için `npm run purge`. `head.html` yalnız kritik CSS
+  ya da şablon değişince yeniden yapıştırılır.
+- **`"tag"` — üretim modu.** URL'ler `v<sürüm>`'e sabitlenir:
+  `npm version minor && git push --follow-tags`, sonra `head.html`
+  yapıştırılır. `patch` = düzeltme, `minor` = yeni component/özellik,
+  `major` = attribute sözleşmesinde kırıcı değişiklik.
+
+Mod değiştirmek = `cdnRef`'i değiştirip build almak; `head.html` yeniden
+yapıştırılır.

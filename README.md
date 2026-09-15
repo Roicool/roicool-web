@@ -13,15 +13,20 @@ botların kolay taradığı yapı.
 [`webflow/embeds/head.html`](./webflow/embeds/head.html): IX2 kapatıcı, `rc-js`
 işareti, inline kritik CSS (odak halkası, skip link, `.rc-sr-only`), async
 `rc.css` (hareket politikası), deferred `rc.js` (component keşfi). Runtime
-sayfayı tarıyor; bağlayacak component bir sonraki sürümle gelir.
+sayfayı tarıyor; bağlayacak component bir sonraki adımda gelir.
+
+**Geliştirme modunda:** `head.html` `@main`'e bakar, her commit yayın demek.
+Site canlıya çıkınca sürüm tag'lerine geçilir — bkz.
+[`docs/architecture.md › Sürümleme`](./docs/architecture.md#sürümleme).
 
 ## Geliştirme
 
 ```bash
 npm install
-npm run build        # src/ → dist/  (dist/ commit'lenir, jsDelivr oradan servis eder)
+npm run build        # src/ → dist/ + webflow/embeds/head.html (ikisi de commit'lenir)
 npm test
 npm run format
+npm run purge        # jsDelivr cache'ini temizle — push'u hemen görmek için (@main modunda)
 ```
 
 ## Klasörler

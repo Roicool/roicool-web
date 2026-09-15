@@ -27,6 +27,7 @@ import {
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 import * as esbuild from "esbuild";
+import { cdnRef } from "./cdn-ref.mjs";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
 const src = path.join(root, "src");
@@ -133,35 +134,36 @@ async function buildStylesheet(components) {
 }
 
 /**
- * head.html = head.template.html with the critical CSS inlined and the
- * package version stamped into every CDN URL. Both placeholders must be
- * present in the template; a silent no-op here would ship a broken head.
+ * head.html = head.template.html with the critical CSS inlined and the CDN
+ * ref stamped into every URL. Both placeholders must be present in the
+ * template; a silent no-op here would ship a broken head.
  */
 async function buildHead() {
   const template = await readFile(
     path.join(embeds, "head.template.html"),
     "utf8",
   );
-  const { version } = JSON.parse(
+  const manifest = JSON.parse(
     await readFile(path.join(root, "package.json"), "utf8"),
   );
+  const ref = cdnRef(manifest);
   const critical =
     (await minifyStyles([path.join(src, "base", "critical.css")], {
       keepHeaders: false,
     })) ?? "";
 
-  for (const placeholder of ["{{version}}", "{{critical-css}}"]) {
+  for (const placeholder of ["{{cdn-ref}}", "{{critical-css}}"]) {
     if (!template.includes(placeholder)) {
       throw new Error(`head.template.html is missing ${placeholder}`);
     }
   }
 
   const html = template
-    .replaceAll("{{version}}", version)
+    .replaceAll("{{cdn-ref}}", ref)
     .replace("{{critical-css}}", critical);
 
   await writeFile(path.join(embeds, "head.html"), html);
-  return { version, criticalBytes: critical.length };
+  return { ref, criticalBytes: critical.length };
 }
 
 /** Clear only what this script owns; anything else in dist/ survives. */
@@ -188,7 +190,7 @@ async function main() {
 
   console.log(
     [
-      `version         v${head.version}`,
+      `cdn ref         @${head.ref}`,
       `components      ${components.length} (${components.join(", ") || "none"})`,
       `js entries      ${scriptCount}`,
       report("rc.css", stylesheetBytes),
