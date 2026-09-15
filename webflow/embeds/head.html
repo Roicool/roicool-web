@@ -1,42 +1,13 @@
-<!--
-  Roicool — Webflow › Site Settings › Custom Code › Head
-
-  Şu an sitede çalışan tek kod aşağıdaki IX2 kapatıcı. Kütüphane (rc.js,
-  rc.css) yazılıp ilk sürüm etiketlendiğinde yükleme zinciri buraya eklenecek;
-  planı docs/architecture.md'de.
--->
-
-<!--
-  Webflow'un yerleşik Interactions motorunu (IX2) sayfa genelinde kapatır.
-
-  Neden: animasyonlar bu repo üzerinden yönetilecek. IX2 açık kalırsa Designer'da
-  yanlışlıkla bırakılmış bir interaction araya girer, bir kare oynar ve flash
-  yapar. Kapatmanın yolu <body>'ye data-wf-ix-vacation="1" basmak; Webflow'un
-  runtime'ı bu attribute'u görünce IX2'yi hiç başlatmaz.
-
-  Neden inline ve neden <head>'de: attribute, <body> oluştuğu ANDA üstünde
-  olmalı. Deferred bir script buna geç kalır — IX2 ilk kareyi çoktan oynatmış
-  olur. Bu yüzden bu blok <head>'in en üstünde, her şeyden önce durur.
-
-  Nasıl çalışıyor: <head> çalışırken <body> henüz yok. Bir MutationObserver
-  <html>'in çocuklarını izler, <body> eklenir eklenmez attribute'u basar ve
-  kendini kapatır. Script bir sebeple <body> içine taşınırsa gözlemciye gerek
-  kalmaz, doğrudan basar.
-
-  KARAR: Designer'da native interaction KULLANILACAKSA bu bloğu kaldır;
-  yoksa o interaction'lar sessizce çalışmaz.
--->
+<!-- roicool-web · webflow/embeds/head.html · Webflow IX2 kapatıcı -->
 <script>
   (function () {
     function disableInteractions(body) {
       body.setAttribute("data-wf-ix-vacation", "1");
     }
-
     if (document.body) {
       disableInteractions(document.body);
       return;
     }
-
     new MutationObserver(function (mutations, observer) {
       if (!document.body) return;
       disableInteractions(document.body);
