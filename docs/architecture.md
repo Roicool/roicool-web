@@ -1,51 +1,53 @@
 # Mimari
 
-## Sistem neyden oluşuyor
+> Durum: plan. Kod yazımı henüz başlamadı. Bu belge yazılacak şeyin nasıl
+> çalışacağını anlatır.
 
-İki taraf var ve aralarındaki sınır kasıtlı olarak keskin:
+## İki taraf, keskin sınır
 
-**Webflow Designer** — sayfa yapısı, görünüm, CMS, yayın. İçeriğin ve tasarımın
-sahibi.
+**Webflow Designer** — sayfa yapısı, görünüm, içerik, CMS, yayın.
 
-**Bu repo** — davranış (JS), davranışsal stil (CSS), yapılandırılmış veri
-(JSON-LD, `llms.txt`). Görünümün sahibi değil.
+**Bu repo** — davranış (JS), davranışsal stil (CSS), Designer'a yapıştırılan
+snippet'ler. Görünümün ve içeriğin sahibi değil.
 
 Buluşma noktası tek bir sözleşme: `data-rc-*` attribute'ları. Designer'da bir
-elemana `data-rc="accordion"` yazarsın, kod onu bulur. Başka bağ yok — kod
+elemana `data-rc="accordion"` yazılır, kod onu bulur. Başka bağ yok — kod
 Webflow'un class isimlerini bilmez, Webflow kodun dosya adlarını bilmez.
 
 ## Yükleme zinciri
 
 ```
 <head>
-  1. inline script       html.rc-js sınıfını basar          (~0ms, boyamadan önce)
+  0. inline script       Webflow IX2 kapatıcı                (ŞU AN SİTEDE OLAN TEK KOD)
+  1. inline script       html.rc-js sınıfını basar          (boyamadan önce)
   2. preconnect          cdn.jsdelivr.net                    (DNS + TLS ısınması)
   3. rc.critical.css     senkron, küçük                      (boyamayı bekletir — bilerek)
   4. rc.css              async (preload → stylesheet)        (boyamayı bekletmez)
   5. rc.js               type="module" = deferred            (boyamayı bekletmez)
 
 DOM hazır
-  6. registry DOM'u tarar, [data-rc] elemanlarını bulur
+  6. runtime DOM'u tarar, [data-rc] elemanlarını bulur
   7. her eleman için IntersectionObserver kurar
   8. eleman görünüre yaklaşınca chunk'ı import eder ve init'i çağırır
 ```
 
-Senkron yüklenen tek dosya `rc.critical.css`. Bu, "çizime engel olmama"
-hedefinin tamamı: başka hiçbir şey ilk boyamayı beklemez.
+Senkron yüklenen tek dosya `rc.critical.css`. "Çizime engel olmama" hedefinin
+tamamı bu: başka hiçbir şey ilk boyamayı beklemez.
 
 ## Neden tek script etiketi
 
-Alternatif — her component için Webflow head'ine ayrı bir `<script>` ve sonunda
-elle yazılmış bir init bloğu — üç yerde bozulur:
+Sestek'teki model — her component için head'e ayrı `<script>` + elle yazılmış
+init bloğu — üç yerde bozuluyor:
 
-1. Sayfaya component eklerken Designer'da kod düzenlemek gerekir; unutulur.
-2. Bir script yüklenemezse (kurumsal ağ, antivirüs, CDN edge sorunu) init
-   zinciri o noktada kopar ve **sonraki** component'ler de çalışmaz.
-3. Head'deki liste ile sayfadaki gerçek component'ler zamanla birbirinden ayrışır.
+1. Sayfaya component eklerken Designer'da kod düzenlemek gerekiyor; unutuluyor.
+2. Bir script yüklenemezse (kurumsal ağ, antivirüs, CDN edge) init zinciri o
+   noktada kopuyor ve **sonraki** component'ler de çalışmıyor. Bu gerçekten
+   yaşandı.
+3. Head'deki liste ile sayfadaki gerçek component'ler zamanla ayrışıyor.
 
-Keşif tabanlı yaklaşımda üçü de ortadan kalkar. Sayfanın kullanmadığı component
-hiç indirilmez; bir chunk gelmezse yalnızca o component sessizce devre dışı
-kalır (konsola tek satır uyarı düşer), sayfanın geri kalanı etkilenmez.
+Keşif tabanlı modelde üçü de yok. Sayfanın kullanmadığı component indirilmez;
+bir chunk gelmezse yalnız o component devre dışı kalır, sayfanın kalanı
+etkilenmez.
 
 ## Component sözleşmesi
 
@@ -56,8 +58,8 @@ export default function name(root) {
 }
 ```
 
-Runtime `init`'i her kök için **bir kez** çağırır. Kayıt defteri, manifest ya da
-import listesi yoktur — klasörü oluşturup build almak yeterli.
+Runtime `init`'i her kök için bir kez çağırır. Kayıt defteri, manifest, import
+listesi yok — klasörü oluşturup build almak yeter.
 
 ## Katmanlar ve bağımlılık yönü
 
@@ -67,26 +69,24 @@ components/  →  a11y/  →  runtime/
 ```
 
 Ok tek yönlü. `runtime/` hiçbir component'i bilmez, `a11y/` hiçbir component'i
-bilmez. Bir component başka bir component'i import etmez — ortak bir şey
-gerekiyorsa `runtime/` ya da `a11y/` içine çıkar.
+bilmez. Component component'i import etmez — ortak bir şey gerekiyorsa
+`runtime/` ya da `a11y/` içine çıkar.
 
 ## Build
 
-`npm run build` → esbuild, `src/` içindeki her component'i ayrı bir chunk'a,
-runtime'ı `rc.js`'e derler. Paylaşılan kod (runtime, a11y) `splitting` ile tek
-bir ortak chunk'a çıkar; her component'e kopyalanmaz.
+`src/` → `dist/`, esbuild ile. Her component ayrı bir chunk; paylaşılan kod
+(runtime, a11y) tek ortak chunk'a çıkar, component'lere kopyalanmaz.
 
-CSS tarafında iki çıktı var: `rc.critical.css` (yalnızca `src/base/critical.css`)
-ve `rc.css` (hareket politikası + site geneli istisnalar + tüm component
-CSS'leri). Component CSS'leri davranışsal olduğu için toplamları küçük kalır;
-component başına ayrı istek açmaya değmez.
+CSS'te iki çıktı: `rc.critical.css` (yalnız `src/base/critical.css`) ve
+`rc.css` (hareket politikası + tüm component CSS'leri). Component CSS'leri
+davranışsal olduğu için toplam küçük kalır; component başına ayrı istek
+açmaya değmez.
 
-`dist/` commit'lenir. jsDelivr onu doğrudan repo'dan servis ettiği için build
+`dist/` commit'lenir. jsDelivr onu doğrudan repo'dan servis edeceği için build
 çıktısı repo'da bulunmak zorunda.
 
 ## Sürümleme
 
-Webflow head'i bir sürüm etiketine sabitlenir (`@v0.1.0`). `@main` kullanılmaz:
-repo'ya atılan her commit siteyi anında değiştirir ve test edilmemiş kod
-ziyaretçiye gider. Yeni sürüm yayınlamak = tag atmak + head'deki etiketi
-güncellemek.
+Webflow head'i bir sürüm etiketine sabitlenir (`@v1.0.0`). `@main` kullanılmaz:
+repo'ya atılan her commit siteyi anında değiştirir, test edilmemiş kod
+ziyaretçiye gider. Yeni sürüm = tag atmak + head'deki etiketi güncellemek.

@@ -1,25 +1,24 @@
-# GEO — yanıt motorları ve tarayıcı botları için yapı
+# GEO — botların tarayabildiği HTML
 
-GEO (Generative Engine Optimization), sitenin bir yanıt motoru tarafından
-**anlaşılıp alıntılanabilir** olmasıdır. Klasik SEO sıralamayı hedefler; GEO
-cümlenin kaynak olarak gösterilmesini hedefler. İkisi çelişmez, ama GEO daha
-katı: bot sayfayı okuyamıyorsa sıralama tartışması başlamıyor bile.
+GEO (Generative Engine Optimization): sitenin bir yanıt motoru tarafından
+**okunup anlaşılabilir** olması. Bu belge yalnızca kodun ve HTML yapısının
+payını anlatır; metin yazımı, `llms.txt`, yapılandırılmış veri gibi içerik
+işleri bu repo'nun kapsamında değil, Webflow tarafında yürür.
 
 ## Demir kural: JS içerik üretmez
 
-Metin, başlık, liste, tablo, fiyat, SSS cevabı — hepsi ilk HTML yanıtında
-bulunur. JS yalnızca davranış ekler.
+Metin, başlık, liste, tablo — hepsi ilk HTML yanıtında bulunur. JS yalnızca
+davranış ekler.
 
 Gerekçe pratik: Googlebot JavaScript çalıştırır ama render kuyruğu gecikmelidir;
 GPTBot, ClaudeBot, PerplexityBot ve benzerleri **çoğunlukla çalıştırmaz**. JS ile
 enjekte edilen bir cümle bu motorlar için yoktur.
 
-Uygulamadaki karşılığı: bir şeyi gizleyen her CSS kuralı `.rc-js` önekiyle
-yazılır. JS çalışmazsa içerik açık kalır. Accordion component'i bunun örneğidir
-— kapalı panel `inert` alır ama metni belgede durur.
+Kodda karşılığı: bir şeyi gizleyen her CSS kuralı `.rc-js` önekiyle yazılır.
+JS çalışmazsa içerik açık kalır.
 
 ```css
-/* Doğru */
+/* Doğru — JS yoksa panel açık */
 .rc-js [data-rc~="accordion"] [data-rc-part="panel"] {
   grid-template-rows: 0fr;
 }
@@ -30,78 +29,36 @@ yazılır. JS çalışmazsa içerik açık kalır. Accordion component'i bunun �
 }
 ```
 
-## Sayfa yapısı
+Aynı sebeple Webflow IX2 kapatılıyor: IX2'nin "başlangıçta opacity 0" deseni,
+JS çalışmayan her ziyaretçi ve bot için içeriği görünmez yapar. Reveal
+animasyonları repo'dan, `.rc-js` kapısının arkasından gelecek.
+
+## Gizlemenin doğru yolu
+
+| İhtiyaç                                  | Kullan                          | Kullanma                          |
+| ---------------------------------------- | ------------------------------- | --------------------------------- |
+| Kapalı panel — metin belgede kalsın      | `inert` + `.rc-js` altında CSS  | `display:none` (JS'siz de gizler) |
+| Yalnız ekran okuyucuya metin             | `.rc-sr-only`                   | `opacity:0`, `font-size:0`        |
+| Dekoratif eleman, botu ilgilendirmiyor   | `aria-hidden="true"`            | —                                 |
+| Görsel bir efektin başlangıç durumu      | `.rc-js` altında CSS            | Inline `style="opacity:0"`        |
+
+## Sayfa yapısı — Designer'da dikkat edilecekler
+
+Kod bunları üretmez ama bunlara güvenir; component README'leri bu yapıyı ister.
 
 - Sayfa başına **tek `<h1>`**, sonra atlamasız `h2` → `h3`.
 - Landmark'lar gerçek etiketlerle: `<header>`, `<nav>`, `<main id="main">`,
-  `<aside>`, `<footer>`. Designer'da bir div'i section yapmak bir tık.
-- Her bölüm bir başlıkla açılır. Başlıksız bölüm, bir yanıt motoru için bağlamı
-  olmayan metindir.
+  `<aside>`, `<footer>`. Designer'da bir div'in etiketini değiştirmek bir tık.
+- Tıklanan her şey `<button>` ya da `<a>`. Tıklama olayı bağlanmış bir div,
+  bot için de klavye için de düğme değildir.
 - Görseller: anlam taşıyorsa açıklayıcı `alt`, dekoratifse `alt=""`.
 - Bağlantı metni tek başına anlamlı: "Fiyatlandırmayı incele", "buraya tıkla"
   değil.
 
-## Yazım — tanım önce
+## Yayın öncesi kontrol
 
-Her bölüm ilk cümlede soruyu yanıtlar, özneyi tekrar eder ve bağlam gerektirmez.
-Bir yanıt motoru paragrafı bağlamından kopararak alıntılar; o cümle tek başına
-ayakta durmalı.
-
-|     |                                                                                              |
-| --- | -------------------------------------------------------------------------------------------- |
-| ✅  | "Pazarlama analitiği, reklam harcamasının hangi gelire dönüştüğünü ölçen veri çalışmasıdır." |
-| ❌  | "Bunu biz sizin için yapıyoruz."                                                             |
-
-Sayı, tarih ve kaynak, alıntılanma olasılığını belirgin biçimde artırır. "Çok
-sayıda müşteri" yerine "40 müşteri"; "geçen yıl" yerine "2025".
-
-## Yapılandırılmış veri
-
-Her sayfada, `<head>` içinde, statik `<script type="application/ld+json">`:
-
-| Kapsam                | Tür                                                           |
-| --------------------- | ------------------------------------------------------------- |
-| Her sayfa             | `Organization` (site geneli) + `BreadcrumbList`               |
-| Hizmet sayfası        | `Service`                                                     |
-| Blog / makale         | `Article` — `author`, `datePublished`, `dateModified` zorunlu |
-| SSS bölümü olan sayfa | `FAQPage`                                                     |
-
-Bloklar `content/` içinden üretilir (`npm run build:seo`), elle yazılmaz.
-Gerekçe: yapılandırılmış veri ile görünen sayfanın çelişmesi Google yönergelerine
-aykırıdır ve yanıt motorlarında güven kaybettirir. Tek kaynaktan üretilirse
-çelişemezler.
-
-## URL ve dil
-
-- Kalıcı, okunabilir, kısa yollar. Tarih ve id yok.
-- Dil öneki yol üzerinde: `/tr/...`, `/en/...`.
-- Her sayfada tek `canonical`, kendi diline işaret eder.
-- Diller arasında `hreflang` + `x-default`.
-- **Taşımada:** eski sitedeki her yol `content/redirects.csv` içinde bir satır
-  alır. Taşıma sonrası trafik kaybının birinci sebebi eksik 301'dir.
-
-## robots.txt ve llms.txt
-
-**robots.txt** — Webflow › Site Settings › SEO › robots.txt. Yanıt motorlarında
-görünmek istiyorsak AI tarayıcıları açıkça engellenmez (varsayılan davranış
-zaten izin vermektir; yanlışlıkla eklenmiş bir `Disallow` olmadığından emin ol).
-Staging alan adı (`*.webflow.io`) tamamen kapalı olmalı — aksi halde staging
-kopyası gerçek siteyle çift içerik üretir.
-
-**llms.txt** — sitenin ne olduğunu ve önemli sayfaların nerede olduğunu düz
-metinle anlatan, kök dizinde (`/llms.txt`) durması gereken dosya.
-
-> ⚠️ **Açık konu.** Webflow kök dizine rastgele dosya koymaya izin vermiyor.
-> `/llms.txt` yayınlamak için ya sitenin önüne bir proxy (Cloudflare Worker) ya
-> da bir Webflow Cloud app gerekiyor. Şu anki kapsamda ikisi de yok. Dosya
-> `content/`'ten üretilebilir durumda tutulacak, yayın yolu ayrı bir karar.
-
-## Sayfa yayına çıkmadan önce
-
+- [ ] JS kapalıyken tüm metin okunabiliyor (DevTools › Settings › Disable JavaScript)
 - [ ] Tek `h1`, hiyerarşik başlıklar
 - [ ] `<main id="main">` var ve skip link ona gidiyor
-- [ ] JS kapalıyken tüm metin okunabiliyor
-- [ ] `canonical` + `hreflang` doğru
-- [ ] JSON-LD var ve sayfadaki metinle birebir uyuşuyor
-- [ ] Görsellerde `alt`
-- [ ] Eski URL varsa `content/redirects.csv`'de satırı var
+- [ ] Görünmeyen içerik `.rc-js` kapısının arkasında, inline `opacity:0` yok
+- [ ] Staging (`*.webflow.io`) robots.txt'te kapalı, canlı açık

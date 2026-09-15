@@ -1,79 +1,46 @@
 <!--
   Roicool — Webflow › Site Settings › Custom Code › Head
 
-  Siteye giren TEK kurulum bloğu budur. Sayfa bazında ekleme gerekmez;
-  component'ler DOM'daki data-rc attribute'larından bulunur.
-
-  SÜRÜM: aşağıdaki @v0.1.0 etiketini her yayında güncelle. @main KULLANMA —
-  repo'ya atılan her commit siteyi anında değiştirir, test edilmemiş kod
-  ziyaretçiye gider.
+  Şu an sitede çalışan tek kod aşağıdaki IX2 kapatıcı. Kütüphane (rc.js,
+  rc.css) yazılıp ilk sürüm etiketlendiğinde yükleme zinciri buraya eklenecek;
+  planı docs/architecture.md'de.
 -->
 
 <!--
-  1) JS'in var olduğunu ilk boyamadan ÖNCE işaretle.
+  Webflow'un yerleşik Interactions motorunu (IX2) sayfa genelinde kapatır.
 
-  Bir şeyi gizleyen her CSS kuralı .rc-js önekiyle yazılıyor. Bu satır
-  olmazsa kapalı gelmesi gereken içerik önce açık görünüp sonra kapanır
-  (flash). rc.js deferred olduğu için bu işi o yapamaz — bu yüzden burada.
+  Neden: animasyonlar bu repo üzerinden yönetilecek. IX2 açık kalırsa Designer'da
+  yanlışlıkla bırakılmış bir interaction araya girer, bir kare oynar ve flash
+  yapar. Kapatmanın yolu <body>'ye data-wf-ix-vacation="1" basmak; Webflow'un
+  runtime'ı bu attribute'u görünce IX2'yi hiç başlatmaz.
+
+  Neden inline ve neden <head>'de: attribute, <body> oluştuğu ANDA üstünde
+  olmalı. Deferred bir script buna geç kalır — IX2 ilk kareyi çoktan oynatmış
+  olur. Bu yüzden bu blok <head>'in en üstünde, her şeyden önce durur.
+
+  Nasıl çalışıyor: <head> çalışırken <body> henüz yok. Bir MutationObserver
+  <html>'in çocuklarını izler, <body> eklenir eklenmez attribute'u basar ve
+  kendini kapatır. Script bir sebeple <body> içine taşınırsa gözlemciye gerek
+  kalmaz, doğrudan basar.
+
+  KARAR: Designer'da native interaction KULLANILACAKSA bu bloğu kaldır;
+  yoksa o interaction'lar sessizce çalışmaz.
 -->
 <script>
-  document.documentElement.classList.add("rc-js");
+  (function () {
+    function disableInteractions(body) {
+      body.setAttribute("data-wf-ix-vacation", "1");
+    }
+
+    if (document.body) {
+      disableInteractions(document.body);
+      return;
+    }
+
+    new MutationObserver(function (mutations, observer) {
+      if (!document.body) return;
+      disableInteractions(document.body);
+      observer.disconnect();
+    }).observe(document.documentElement, { childList: true });
+  })();
 </script>
-
-<!-- 2) CDN'e DNS + TLS ısınması -->
-<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
-
-<!-- 3) Senkron yüklenen TEK stil dosyası — küçük tutuluyor -->
-<link
-  rel="stylesheet"
-  href="https://cdn.jsdelivr.net/gh/roicool/roicool-web@v0.1.0/dist/rc.critical.css"
-/>
-
-<!-- 4) Geri kalan stil async — ilk boyamayı beklet-me-z -->
-<link
-  rel="preload"
-  as="style"
-  href="https://cdn.jsdelivr.net/gh/roicool/roicool-web@v0.1.0/dist/rc.css"
-  onload="this.rel = 'stylesheet'"
-/>
-<noscript>
-  <link
-    rel="stylesheet"
-    href="https://cdn.jsdelivr.net/gh/roicool/roicool-web@v0.1.0/dist/rc.css"
-  />
-</noscript>
-
-<!-- 5) Runtime. type="module" tanımı gereği deferred; defer yazmaya gerek yok -->
-<script
-  type="module"
-  src="https://cdn.jsdelivr.net/gh/roicool/roicool-web@v0.1.0/dist/rc.js"
-></script>
-
-<!--
-  OPSİYONEL — GSAP.
-  Yalnızca gerçekten GSAP kullanan bir component siteye girdiğinde aç.
-  Hiçbir component GSAP'in varlığına bel bağlamaz; yoksa animasyonsuz çalışır.
-
-  <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js" defer></script>
-  <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js" defer></script>
--->
-
-<!--
-  OPSİYONEL — Webflow IX2 (native Interactions) kapatma.
-
-  KARAR GEREKTİRİR. Designer'da native interaction kullanıyorsanız BU BLOĞU
-  AÇMAYIN; açarsanız o animasyonlar sessizce ölür. Animasyonların tamamı bu
-  repo üzerinden yönetilecekse açın: IX2'nin araya girip çakışma/flash
-  yapmasını engeller.
-
-  <script>
-    (function () {
-      var observer = new MutationObserver(function (mutations, self) {
-        if (!document.body) return;
-        document.body.setAttribute("data-wf-ix-vacation", "1");
-        self.disconnect();
-      });
-      observer.observe(document, { childList: true, subtree: true });
-    })();
-  </script>
--->

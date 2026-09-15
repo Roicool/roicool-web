@@ -1,18 +1,27 @@
 # Webflow kurulumu
 
-## Bir kereye mahsus
+## Şu an
 
-1. **Site Settings › Custom Code › Head** →
-   [`webflow/embeds/head.html`](../webflow/embeds/head.html) içeriğini yapıştır.
-   Sürüm etiketini (`@v0.1.0`) yayınlanmış son tag ile değiştir.
-2. **Site Settings › SEO › robots.txt** → staging alan adında her şeyi kapat,
-   canlıda AI tarayıcılarını engelleme. Ayrıntı: [`geo.md`](./geo.md).
-3. **Designer** → body'nin ilk elemanı olarak skip link ekle, `<main>`
-   bölümüne `id="main"` ve `tabindex="-1"` ver.
+**Site Settings › Custom Code › Head** →
+[`webflow/embeds/head.html`](../webflow/embeds/head.html) içeriğini yapıştır.
+İçinde yalnızca Webflow IX2 kapatıcı var.
 
-Sayfa bazında ek kurulum yok. Component eklemek attribute yazmaktan ibaret.
+Bu bir karar: IX2 kapalıyken Designer'daki native interaction'lar çalışmaz.
+Animasyonların tamamı bu repo'dan yönetilecekse doğru; Designer'da interaction
+kullanılacaksa bloğu kaldır.
 
-## Sayfaya component eklemek
+## Kütüphane yayınlandığında
+
+1. `head.html`'e yükleme zinciri eklenir (kritik CSS, async CSS, `rc.js`) —
+   plan [`architecture.md`](./architecture.md)'de. Sürüm etiketiyle sabitlenir,
+   `@main` kullanılmaz.
+2. **Site Settings › SEO › robots.txt** → staging alan adında her şey kapalı,
+   canlıda AI tarayıcıları engellenmez.
+3. **Designer** → body'nin ilk elemanı olarak skip link, `<main>` bölümüne
+   `id="main"` ve `tabindex="-1"`.
+
+Sayfa bazında ek kurulum olmayacak. Component eklemek attribute yazmaktan
+ibaret:
 
 1. Designer'da elemanı seç.
 2. Settings paneli (D) → Custom attributes.
@@ -21,31 +30,17 @@ Sayfa bazında ek kurulum yok. Component eklemek attribute yazmaktan ibaret.
 5. Preview'da değil, **yayınlanmış sayfada** test et — custom code Designer
    önizlemesinde çalışmaz.
 
-## Sorun giderme
+## Sorun giderme (kütüphane geldiğinde)
 
-URL'nin sonuna `?rc-debug` ekle. Runtime hangi component'i ne zaman bağladığını
+URL'nin sonuna `?rc-debug` ekle; runtime hangi component'i ne zaman bağladığını
 konsola yazar.
 
-| Belirti                                  | Sebep                                                                                                                                  |
-| ---------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| Hiçbir şey olmuyor, konsol boş           | `head.html` yapıştırılmamış ya da sayfa yayınlanmamış                                                                                  |
-| `"x" could not be loaded`                | Component adı yanlış yazılmış, ya da o sürümde yok                                                                                     |
-| `has no [data-rc-part="item"] children`  | Parça attribute'ları eksik                                                                                                             |
-| İçerik önce açık görünüp sonra kapanıyor | `head.html`'deki satır içi `rc-js` snippet'i eksik                                                                                     |
-| Görünüm repo'daki CSS'i dinlemiyor       | Doğru davranış — LOOK kuralları `:where()` ile sıfır specificity'de, Designer kazanıyor. Bkz. [`css-ownership.md`](./css-ownership.md) |
-
-## Yeni sürüm yayınlamak
-
-```bash
-npm run build
-git add -A && git commit -m "…"
-git tag v0.2.0 && git push --tags
-```
-
-Sonra Webflow head'indeki üç URL'de `@v0.1.0` → `@v0.2.0` ve siteyi publish et.
-
-`@main` kullanma. Repo'ya atılan her commit siteyi anında değiştirir; test
-edilmemiş kod ziyaretçiye gider.
+| Belirti                                  | Sebep                                                                                                       |
+| ---------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| Hiçbir şey olmuyor, konsol boş           | `head.html` yapıştırılmamış ya da sayfa yayınlanmamış                                                       |
+| `"x" could not be loaded`                | Component adı yanlış yazılmış, ya da o sürümde yok                                                          |
+| İçerik önce açık görünüp sonra kapanıyor | `head.html`'deki satır içi `rc-js` snippet'i eksik                                                          |
+| Görünüm repo'daki CSS'i dinlemiyor       | Doğru davranış — LOOK kuralları sıfır specificity'de, Designer kazanıyor. Bkz. [`css-ownership.md`](./css-ownership.md) |
 
 ## Değişkenler
 

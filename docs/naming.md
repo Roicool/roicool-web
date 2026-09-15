@@ -4,7 +4,7 @@
 
 - Klasör ve dosya adları: `kebab-case`, İngilizce, tekil.
 - Kod — değişken, fonksiyon, yorum: İngilizce.
-- Dokümanlar ve içerik: Türkçe.
+- Dokümanlar: Türkçe.
 - Kısaltma yok. `navigation`, `nav` değil. `button`, `btn` değil. `image`,
   `img` değil. Tek istisna sektörde tek anlamı olanlar: `url`, `id`, `css`, `js`.
 - Şu adlarda klasör veya dosya açılmaz: `misc`, `utils`, `helpers`, `common`,
@@ -43,8 +43,7 @@ yükler. Ekranın üst kısmındaki component'lerde (navigasyon, hero) kullanıl
 ### İç içe component'ler
 
 Parçalar her zaman **en yakın** `[data-rc]` köküne aittir. Bir accordion'ın
-içindeki video component'inin parçaları accordion'a sızmaz; bu kural
-`src/runtime/dom.js` içindeki `parts()` fonksiyonunda uygulanır.
+içindeki video component'inin parçaları accordion'a sızmaz.
 
 ## CSS sınıfları
 
@@ -72,11 +71,6 @@ geldiğini görür.
 Webflow Variables'tan gelen tasarım token'ları da `--rc-` öneklidir ve
 [`webflow/tokens/variables.reference.css`](../webflow/tokens/variables.reference.css)
 içinde belgelenir — ama o dosya sitede yüklenmez.
-
-## İçerik dosyaları
-
-`content/<dil>/<tür>/<slug>.yml`. Dosya adı slug'dır, slug URL'dir. Türkçe
-slug'larda Türkçe karakter kullanılmaz: `pazarlama-analitigi`.
 
 ## Commit mesajı
 

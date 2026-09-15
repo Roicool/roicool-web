@@ -26,22 +26,36 @@ gördüğün şey gerçeği yansıtmamaya başlar, bu da en pahalı hata türü.
 
 ## Çakışmayı mimariyle önlüyoruz
 
-Component CSS'leri iki tür kural içerir ve ikisi kasıtlı olarak farklı
-davranır:
+Component CSS'leri iki tür kural içerecek ve ikisi kasıtlı olarak farklı
+davranacak:
 
 **MECHANIC** — normal specificity, kazanmak zorunda. Bunları Designer'dan
-ezersen component bozulur. CSS dosyasında `MECHANIC` etiketiyle işaretli.
+ezersen component bozulur. CSS dosyasında `MECHANIC` etiketiyle işaretlenir.
 
 **LOOK** — `:where()` içine sarılır, specificity'si sıfırdır. Aynı elemana
 Designer'dan verdiğin herhangi bir class, `!important` gerekmeden bunu ezer.
 Yani repo'daki görünüm kuralları **varsayılandır, dayatma değil**.
+
+```css
+/* MECHANIC — kazanmak zorunda */
+.rc-js [data-rc~="accordion"] [data-rc-part="panel"] {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows var(--rc-accordion-duration) ease;
+}
+
+/* LOOK — Designer istediği gibi ezer */
+:where([data-rc~="accordion"] [data-rc-part="trigger"]) {
+  width: 100%;
+  cursor: pointer;
+}
+```
 
 Ayarlanabilir her değer bir CSS değişkenidir:
 
 ```css
 [data-rc~="accordion"] {
   --rc-accordion-duration: 200ms;
-  --rc-accordion-easing: ease-out;
 }
 ```
 
@@ -63,10 +77,10 @@ taşınmak üzere işaretlenir.
 
 ## Yükleme sırası ve specificity
 
-Webflow'un kendi CSS'i `<head>`'de, `rc.css` ondan sonra async geliyor. Yani
-kaynak sırası bizim lehimize — ama biz buna **güvenmiyoruz**, çünkü async
-yükleme sırası garanti değil. Kazanan tarafı her zaman specificity belirliyor:
-MECHANIC kuralları normal specificity'de, LOOK kuralları `:where()` ile sıfırda.
-Bu yüzden `!important` kullanmıyoruz — tek istisna `motion.css`'teki
+Webflow'un kendi CSS'i `<head>`'de, `rc.css` ondan sonra async gelecek. Kaynak
+sırası bizim lehimize — ama buna **güvenmiyoruz**, çünkü async yükleme sırası
+garanti değil. Kazanan tarafı her zaman specificity belirler: MECHANIC
+kuralları normal specificity'de, LOOK kuralları `:where()` ile sıfırda. Bu
+yüzden `!important` kullanılmaz — tek istisna `motion.css`'teki
 `prefers-reduced-motion` bloğu, ki o da Designer'da elle yazılmış geçişleri
 durdurmak için var.

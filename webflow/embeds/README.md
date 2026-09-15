@@ -7,10 +7,10 @@ alanları sürüm geçmişi tutmaz; buradaki dosyalar o boşluğu doldurur.
 Designer'da bir şey değiştirdiysen aynı değişikliği buraya commit'le. Aksi halde
 altı ay sonra sitede ne çalıştığını kimse bilemez.
 
-| Dosya       | Nereye gider                       |
-| ----------- | ---------------------------------- |
-| `head.html` | Site Settings › Custom Code › Head |
+| Dosya       | Nereye gider                       | İçinde ne var                |
+| ----------- | ---------------------------------- | ---------------------------- |
+| `head.html` | Site Settings › Custom Code › Head | Webflow IX2 kapatıcı (inline) |
 
-Sayfa bazında JSON-LD blokları `dist/seo/` altında üretilir (`npm run build:seo`)
-ve ilgili sayfanın Page Settings › Custom Code › Head alanına yapıştırılır.
-Onlar üretilen çıktı oldukları için burada tutulmaz.
+Kütüphanenin yükleme zinciri (kritik CSS, async CSS, `rc.js`) ilk sürüm
+etiketlendiğinde `head.html`'e eklenecek — planı
+[`docs/architecture.md`](../../docs/architecture.md).

@@ -17,7 +17,8 @@ yanıt motorunun da anlayabildiği sayfadır. İkisi için ayrı iş yapılmıyo
   oraya inmez.
 - Landmark'lar gerçek etiketlerle: `header`, `nav`, `main`, `aside`, `footer`.
 - Odak halkası görünür. `src/base/critical.css` bunu `:focus-visible` ile
-  garanti eder ve `:where()` kullandığı için tasarımın kasıtlı override'ı kazanır.
+  garanti edecek ve `:where()` kullanacağı için tasarımın kasıtlı override'ı
+  kazanır.
 - Metin/zemin kontrastı en az 4.5:1 (büyük metinde 3:1). Bu Designer'da,
   renk seçilirken kontrol edilir.
 
@@ -42,19 +43,17 @@ yanıt motorunun da anlayabildiği sayfadır. İkisi için ayrı iş yapılmıyo
 7. **Otomatik hareket durdurulabilir.** 5 saniyeden uzun süren otomatik
    kaydırma/slider'ın durdurma kontrolü olur (WCAG 2.2.2).
 
-## Paylaşılan katman
+## Paylaşılan katman — `src/a11y/`
 
-Her component kendi focus trap'ini yazmaz. `src/a11y/` altındakiler kullanılır:
+Her component kendi focus trap'ini yazmaz. Planlanan dosyalar:
 
-| Dosya            | Ne zaman                                                   |
-| ---------------- | ---------------------------------------------------------- |
-| `focus-trap.js`  | Sayfayı kapatan her katman — modal, drawer, tam ekran menü |
-| `live-region.js` | Metinle duyurulması gereken her değişiklik                 |
+| Dosya                | Ne zaman                                                       |
+| -------------------- | -------------------------------------------------------------- |
+| `focus-trap.js`      | Sayfayı kapatan her katman — modal, drawer, tam ekran menü     |
+| `live-region.js`     | Metinle duyurulması gereken her değişiklik                     |
+| `roving-tabindex.js` | Tek Tab durağı olup ok tuşlarıyla gezilen desenler — tab, menü |
 
 Yeni bir ortak ihtiyaç çıkarsa component'in içine değil, buraya yazılır.
-
-Henüz yok, gerektiğinde eklenecek: `roving-tabindex.js` (tab listesi, toolbar,
-menü gibi tek Tab durağı olup ok tuşlarıyla gezilen desenler için).
 
 ## Test
 

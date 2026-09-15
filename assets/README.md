@@ -11,15 +11,9 @@ tutmaz ve dosyaları yeniden adlandırır; buradaki kopya orijinaldir.
 
 ## İkon kuralları
 
-- 24×24 `viewBox`, üzerinde çizim 20×20 alana oturur.
-- Renk `currentColor` — SVG içinde sabit renk yok. Metin rengini almaları
-  gerekiyor.
+- 24×24 `viewBox`, çizim 20×20 alana oturur.
+- Renk `currentColor` — SVG içinde sabit renk yok; metin rengini alır.
 - `width`/`height` attribute'u yok, yalnız `viewBox`. Boyut CSS'ten verilir.
-- `id` yok. Aynı sayfada iki kez kullanılan ikon, çakışan id üretir.
+- `id` yok. Aynı sayfada iki kez kullanılan ikon çakışan id üretir.
 - Dosya adı ne çizdiğini söyler, nerede kullanıldığını değil:
   `arrow-right.svg` ✅, `hero-icon-2.svg` ❌.
-
-## Görseller
-
-Webflow'a yüklemeden önce boyutlandır ve sıkıştır — Webflow otomatik
-`srcset` üretir ama kaynağı küçültmez. Fotoğraf için genişlik en fazla 2400px.

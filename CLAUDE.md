@@ -2,6 +2,14 @@
 
 Bu dosya hem geliştirici hem ajan içindir. Kod yazmadan önce oku.
 
+## Kapsam
+
+Bu repo yalnızca **kod** içerir: sitenin JS'i, davranışsal CSS'i ve Designer'a
+yapıştırılan snippet'ler. İçerik, metin, yapılandırılmış veri, `llms.txt`,
+redirect haritası gibi şeyler burada değil — onların yeri Webflow.
+
+Kod yazımı henüz başlamadı. Bir şey yazmadan önce sahibine sor.
+
 ## Değiştirilemez kurallar
 
 1. **JS asla içerik üretmez.** Metin, başlık, liste, tablo — hepsi HTML'de
@@ -48,9 +56,6 @@ export default function name(root) {
 
 Runtime, `[data-rc~="name"]` elemanını görünce chunk'ı getirir ve `init`'i bir
 kez çağırır. Kayıt defteri, manifest ya da init listesi güncellemen gerekmez.
-
-Bitirmeden önce: `npm run build` çalıştır ve `dist/` değişikliğini commit'e dahil
-et — CDN oradan servis ediyor.
 
 ## Commit
 
