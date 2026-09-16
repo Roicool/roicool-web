@@ -75,14 +75,18 @@ animasyon aynen çalışır.
 
 ## Ayarlar (kökte)
 
-| Attribute                 | Değer   | Ne yapar                                                      |
-| ------------------------- | ------- | ------------------------------------------------------------- |
-| `data-rc-eager`           | —       | **Her zaman ekle** — ekranın üstünde, beklemesin              |
-| `data-rc-rise`            | `10rem` | İkinci başlık kelimelerinin yükselme mesafesi; mobilde `6rem` |
-| `data-rc-poster-portrait` | URL     | ≤767px'te video poster'ı                                      |
-| `data-rc-priority`        | `10`    | ScrollTrigger refreshPriority; başka pin varsa                |
+| Attribute                 | Değer | Ne yapar                                         |
+| ------------------------- | ----- | ------------------------------------------------ |
+| `data-rc-eager`           | —     | **Her zaman ekle** — ekranın üstünde, beklemesin |
+| `data-rc-poster-portrait` | URL   | ≤767px'te video poster'ı                         |
+| `data-rc-priority`        | `10`  | ScrollTrigger refreshPriority; başka pin varsa   |
 
-CSS değişkenleri (Designer'dan):
+İkinci başlığın yükselme mesafesi sabit formül: `min(10rem, 20svh)` — masaüstünde
+10rem, kısa ekranda viewport'un %20'si. CSS ve JS aynı formülü kullanır; ayar
+yok, breakpoint derdi yok.
+
+CSS değişkenleri (Designer style paneli özel değişken yazamaz; gerekirse sayfa
+custom code'una bir `<style>` ile):
 
 ```css
 --rc-hero-brightness: 0.75; /* karartma: siyah (1 − değer) */
@@ -96,12 +100,12 @@ CSS değişkenleri (Designer'dan):
 
 ## Koreografi (0 → 1 = 60svh kaydırma)
 
-| Aralık   | Ne                                                     |
-| -------- | ------------------------------------------------------ |
-| 0 → .35  | h1 kelimeleri + CTA: opacity .2→1, 2rem yükselir       |
-| .3 → .7  | media kırpılır + %90'a küçülür; h1/CTA solar           |
-| .4 → .9  | h2 kelimeleri: opacity .2→1, `--rc-hero-rise` yükselir |
-| .4 → .86 | tile'lar: scale .25→1 + görünür; iç img 1.5→1          |
+| Aralık   | Ne                                                        |
+| -------- | --------------------------------------------------------- |
+| 0 → .35  | h1 kelimeleri + CTA: opacity .2→1, 2rem yükselir          |
+| .3 → .7  | media kırpılır + %90'a küçülür; h1/CTA solar              |
+| .4 → .9  | h2 kelimeleri: opacity .2→1, `min(10rem, 20svh)` yükselir |
+| .4 → .86 | tile'lar: scale .25→1 + görünür; iç img 1.5→1             |
 
 Video ilk açılışı saf CSS (`@starting-style`): opacity 3s + radial mask 20s.
 

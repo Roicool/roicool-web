@@ -58,6 +58,18 @@ function initVideo(root) {
   ).observe(video);
 }
 
+/**
+ * How far the secondary heading rises: 10rem, capped at 20% of the viewport
+ * so short screens keep it in view. Must match the start state in
+ * hero.critical.css, which uses the same formula in CSS.
+ */
+function secondaryRise() {
+  const rem = Number.parseFloat(
+    getComputedStyle(document.documentElement).fontSize,
+  );
+  return Math.min(10 * rem, 0.2 * window.innerHeight);
+}
+
 function splitWords(SplitText, element) {
   if (!element) return [];
   return new SplitText(element, {
@@ -106,7 +118,6 @@ export default async function hero(root) {
     clearProps: "opacity,transform",
   });
 
-  const rise = option(root, "rise", "10rem");
   const timeline = gsap.timeline({
     defaults: { ease: "none" },
     scrollTrigger: {
@@ -157,7 +168,7 @@ export default async function hero(root) {
     )
     .fromTo(
       headingWords,
-      { opacity: 0.2, y: rise },
+      { opacity: 0.2, y: secondaryRise() },
       {
         opacity: 1,
         y: 0,

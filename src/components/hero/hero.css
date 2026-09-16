@@ -11,9 +11,9 @@
   --rc-hero-media-inset: 12%;
 }
 
-/* MECHANIC — the media stack: video below, shade and grain on top. */
-[data-rc~="hero"] [data-rc-part="media"] {
-  position: relative;
+/* LOOK — Designer positions the media layer (absolute, inset 0, z 1); these
+   are only sensible defaults it may override. */
+:where([data-rc~="hero"] [data-rc-part="media"]) {
   overflow: hidden;
   background: #000;
 }

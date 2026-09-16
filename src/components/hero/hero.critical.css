@@ -66,7 +66,9 @@
     [data-rc-part="secondary"]
     :is(h2, h3) {
     opacity: 0.2;
-    transform: translateY(var(--rc-hero-rise, 10rem));
+    /* Same formula as secondaryRise() in hero.js: 10rem, capped on short
+       viewports so the heading never starts below the fold. */
+    transform: translateY(min(10rem, 20svh));
   }
 
   .rc-js [data-rc~="hero"]:not([data-rc-state="static"]) [data-rc-part="tile"] {
