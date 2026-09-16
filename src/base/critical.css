@@ -65,11 +65,24 @@
  * Designer.
  */
 html {
-  /* The scrollbar's space is reserved up front, so the page does not shift
-     when it becomes scrollable or when a modal locks scrolling. */
+  /* Where a native bar shows, its space is reserved up front, so the page
+     does not shift when it becomes scrollable or when a modal locks it. */
   scrollbar-gutter: stable;
   /* Native form controls and UI follow the site's light scheme. */
   color-scheme: light;
+}
+
+/* On mouse and trackpad devices the native scrollbar is replaced by a thumb
+   floating over the content (runtime/scrollbar.js). Hidden here, before the
+   first paint, so the takeover shifts nothing. Touch keeps its own bars. */
+@media (hover: hover) and (pointer: fine) {
+  html.rc-js {
+    scrollbar-width: none;
+  }
+
+  html.rc-js::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 body {

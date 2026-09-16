@@ -97,6 +97,13 @@ anında import edilir. Sürüm tek yerde sabittir: ilgili dosyanın başındaki
   Designer tarafı: `<body data-rc-scroll="native">` sayfayı dışarıda bırakır;
   kendi içinde kayan elemana (modal gövdesi, kod bloğu, harita)
   `data-lenis-prevent`. Gerekli CSS `src/base/scroll.css`'te, `rc.css`'e girer.
+- **Kaydırma çubuğu** — `runtime/scrollbar.js`, kütüphane değil. Fare ve
+  trackpad cihazlarda yerel çubuk kritik CSS'te ilk boyamadan gizlenir
+  (`html.rc-js`, kayma olmasın diye), içeriğin üstünde kanalsız ince bir thumb
+  yüzer: sayfa hareket ederken ve kenara yaklaşınca görünür, boşta solar,
+  sürüklenir, kanala tıklanınca oraya kayar (Lenis üzerinden). Dokunmatikte
+  devreye girmez; tarayıcının kendi çubuğu kalır. `aria-hidden`, klavye ve
+  tekerlek etkilenmez.
 
 ## Build
 

@@ -5,7 +5,8 @@
  *
  * Module scripts are deferred by definition, so this never blocks the first
  * paint and needs no `defer` attribute. It discovers components (the work is
- * in registry.js) and starts site-wide smooth scrolling (scroll.js).
+ * in registry.js), starts site-wide smooth scrolling (scroll.js) and the
+ * floating scrollbar (scrollbar.js).
  *
  * `html.rc-js` is NOT set here on purpose. It is stamped by an inline snippet
  * in the Webflow head (webflow/embeds/head.html) so it lands before the first
@@ -15,11 +16,13 @@
 
 import { scan } from "./registry.js";
 import { startSmoothScroll, smoothScroll } from "./scroll.js";
+import { startOverlayScrollbar } from "./scrollbar.js";
 import { debug } from "./log.js";
 
 debug("runtime ready");
 scan();
 startSmoothScroll();
+startOverlayScrollbar();
 
 /** The one global this library defines. */
 globalThis.rc = Object.freeze({

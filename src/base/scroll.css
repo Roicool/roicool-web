@@ -35,3 +35,42 @@ html.lenis body {
   transition-duration: 1ms;
   transition-behavior: allow-discrete;
 }
+
+/*
+ * Floating page scrollbar (runtime/scrollbar.js). The native bar is hidden
+ * from the first paint by critical.css; this thumb floats over the content
+ * with no gutter, shows while the page moves or the pointer is near the
+ * edge, and fades when idle. The track is the transparent strip itself.
+ */
+.rc-scrollbar {
+  position: fixed;
+  inset: 0 0 0 auto;
+  z-index: 9998;
+  width: 14px;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.rc-scrollbar[data-rc-state] {
+  opacity: 1;
+}
+
+.rc-scrollbar__thumb {
+  position: absolute;
+  top: 0;
+  right: 4px;
+  left: 4px;
+  border-radius: 999px;
+  background-color: var(--rc-scrollbar-thumb, rgb(0 0 0 / 0.35));
+  cursor: grab;
+  transition: background-color 0.2s ease;
+}
+
+.rc-scrollbar:hover .rc-scrollbar__thumb,
+.rc-scrollbar[data-rc-state="dragging"] .rc-scrollbar__thumb {
+  background-color: var(--rc-scrollbar-thumb-hover, currentColor);
+}
+
+.rc-scrollbar[data-rc-state="dragging"] .rc-scrollbar__thumb {
+  cursor: grabbing;
+}
