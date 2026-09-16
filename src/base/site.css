@@ -3,8 +3,8 @@
  * Designer.
  *
  * Designer owns appearance. This file is the documented exception, for what
- * Designer cannot express: @supports, @keyframes, :has(), print styles,
- * forced-colors mode.
+ * Designer cannot express: pseudo-elements, @supports, :has(), element-type
+ * defaults, custom properties, print and forced-colors modes.
  *
  * ONE RULE, and it is what keeps this file from turning into a junk drawer:
  * every block carries a one-line comment saying why it is not in Designer.
@@ -12,3 +12,86 @@
  *
  * Boundary and reasoning: docs/css-ownership.md
  */
+
+/* Brand hooks: Webflow's tokens with fallbacks, so a renamed token degrades
+   instead of breaking. Not in Designer: custom properties on :root. */
+:root {
+  --rc-brand: var(--brand-primary--500, oklch(57.1% 0.236 260.3));
+  --rc-focus-ring: var(--rc-brand);
+  --rc-selection-background: var(--rc-brand);
+  --rc-selection-color: var(--neutral--0, #fff);
+  --rc-scrollbar-thumb: var(--neutral--300, oklch(80% 0.015 260));
+  --rc-scrollbar-thumb-hover: var(--rc-brand);
+  /* How far below a sticky header an in-page target stops. */
+  --rc-anchor-offset: 5rem;
+  /* Lets height: auto animate (accordions, disclosures) where supported. */
+  interpolate-size: allow-keywords;
+}
+
+/* Selected text in the brand colour. Not in Designer: ::selection. */
+::selection {
+  background-color: var(--rc-selection-background);
+  color: var(--rc-selection-color);
+}
+
+/* Scrollbars: slim rounded thumb, transparent track, brand on hover. Not in
+   Designer. Chromium and WebKit take the ::-webkit-scrollbar rules, Firefox
+   the standard properties — never both: Chromium ignores the pseudo-elements
+   once scrollbar-color is set. */
+@supports not selector(::-webkit-scrollbar) {
+  html {
+    scrollbar-width: thin;
+    scrollbar-color: var(--rc-scrollbar-thumb) transparent;
+  }
+}
+
+::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+::-webkit-scrollbar-track,
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--rc-scrollbar-thumb);
+  border: 4px solid transparent;
+  border-radius: 999px;
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--rc-scrollbar-thumb-hover);
+}
+
+/* The flash mobile browsers paint on tap; button states and the focus ring
+   already carry that feedback. Not in Designer: -webkit-tap-highlight-color. */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Placeholder text follows the field's own colour, dimmed. Not in Designer. */
+::placeholder {
+  color: inherit;
+  opacity: 0.5;
+}
+
+/* Everything that acts like a button gets the hand cursor. Not in Designer:
+   element types, not classes. */
+:where(button, [role="button"], label[for], select, summary) {
+  cursor: pointer;
+}
+
+/* Underlines sit a touch below the baseline. Not in Designer:
+   text-underline-offset. */
+:where(a) {
+  text-underline-offset: 0.15em;
+}
+
+/* In-page targets (skip link, anchors) stop clear of a sticky header. Not in
+   Designer: scroll-margin. */
+:where([id]) {
+  scroll-margin-top: var(--rc-anchor-offset);
+}

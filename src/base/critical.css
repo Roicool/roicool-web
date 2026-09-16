@@ -58,3 +58,36 @@
 [tabindex="-1"]:focus:not(:focus-visible) {
   outline: none;
 }
+
+/*
+ * Rendering defaults that must hold from the first paint: arriving later they
+ * would re-render every glyph or shift the layout. None is settable in
+ * Designer.
+ */
+html {
+  /* The scrollbar's space is reserved up front, so the page does not shift
+     when it becomes scrollable or when a modal locks scrolling. */
+  scrollbar-gutter: stable;
+  /* Native form controls and UI follow the site's light scheme. */
+  color-scheme: light;
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Long Turkish words and URLs wrap instead of widening their container;
+   headings balance their lines, paragraphs avoid a lone last word. */
+:where(p, li, dd, td, th, blockquote, figcaption) {
+  overflow-wrap: break-word;
+}
+
+:where(h1, h2, h3, h4, h5, h6) {
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+
+:where(p) {
+  text-wrap: pretty;
+}
