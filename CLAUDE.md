@@ -8,9 +8,14 @@ Bu repo yalnızca **kod** içerir: sitenin JS'i, davranışsal CSS'i ve Designer
 yapıştırılan snippet'ler. İçerik, metin, yapılandırılmış veri, `llms.txt`,
 redirect haritası gibi şeyler burada değil — onların yeri Webflow.
 
-**Webflow API kullanılmaz — asla.** Kod siteye tek yoldan girer: Site Settings ›
-Custom Code › Head alanına elle yapıştırılan `webflow/embeds/head.html`. Data
-API, registered scripts, MCP üzerinden siteye yazma — hiçbiri. Önerme bile.
+**Kod siteye API ile girmez — asla.** Tek yol: Site Settings › Custom Code ›
+Head alanına elle yapıştırılan `webflow/embeds/head.html`. Registered scripts,
+custom code API'si, sayfa head'ine script yazmak — hiçbiri. Önerme bile.
+
+Webflow MCP ile **eleman kurmak** (DOM yapısı, class, attribute) bundan ayrı:
+sahibi isterse serbest. Sitenin kendi agent kuralı da var:
+`rules/roicool-web.md` (Webflow › agent instructions) — bu dosyayla tutarlı
+tutulur.
 
 ## Değiştirilemez kurallar
 
