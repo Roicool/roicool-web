@@ -15,6 +15,7 @@
     "cdnRef": "main"
   },
   "scripts": {
+    "prebuild": "prettier --write src scripts --log-level warn",
     "build": "node scripts/build.mjs",
     "purge": "node scripts/purge-cdn.mjs",
     "version": "npm run build && git add -A",
