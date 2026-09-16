@@ -28,6 +28,7 @@ import {
   setState,
 } from "../../runtime/dom.js";
 import { prefersReducedMotion } from "../../runtime/motion.js";
+import { scan } from "../../runtime/registry.js";
 import { warn } from "../../runtime/log.js";
 
 /** Seconds between autoplay steps when `data-rc-interval` is not set. */
@@ -108,7 +109,13 @@ export default function carousel(root) {
     Math.max(1, Math.ceil((cover + widest) / setWidth)),
   );
   for (let copy = 1; copy < copies; copy++) {
-    for (const item of originals) track.append(cloneItem(item));
+    for (const item of originals) {
+      const clone = cloneItem(item);
+      track.append(clone);
+      // Components inside the card exist in the clone too; the runtime
+      // only knows the originals.
+      scan(clone);
+    }
   }
 
   const items = Array.from(track.children);

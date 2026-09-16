@@ -39,7 +39,9 @@ aynı olmalı:
 
 Kod ne yapar: List'i bir kez klonlar (`aria-hidden`, odaklanamaz), Wrapper'ın
 içine ekler, genişliği ölçer, hızdan süreyi hesaplar, `data-rc-state="running"`
-basar. Görseller yüklendikçe yeniden ölçer.
+basar. Görseller yüklendikçe yeniden ölçer. Item'ların içindeki component'ler
+(ör. [`hover-reveal`](../hover-reveal/README.md) kartı) klonda da çalışır:
+kod kopyayı runtime'a yeniden taratır.
 
 ## Ayarlar (Wrapper'da)
 
@@ -47,7 +49,7 @@ basar. Görseller yüklendikçe yeniden ölçer.
 | ------------------------ | ------------------ | ------------------------------------------------------ |
 | `data-rc-speed`          | px/saniye, `70`    | Kayma hızı. Site genelinde aynı tut                    |
 | `data-rc-direction`      | `left` / `right`   | Yön. Varsayılan sola                                   |
-| `data-rc-pause-on-hover` | —                  | Fare üstündeyken durur (yalnız fare; parmak değil)     |
+| `data-rc-pause-on-hover` | —                  | Fare üstündeyken yavaşlayıp durur (yalnız fare)        |
 | `data-rc-drag`           | `false`            | Sürüklemeyi kapatır; yoksa açık                        |
 | `data-rc-fade`           | `10%`, `4rem`, `0` | Kenar solması genişliği; `0` kapatır. Varsayılan `10%` |
 | `data-rc-eager`          | —                  | Görünüre girmeyi beklemeden yükle                      |
@@ -69,6 +71,9 @@ transform yok, animasyona geri devir yok.
   (`touch-action: pan-y`).
 - Durdurma sebepleri (hover, odak, basış) tek kümede tutulur; küme boşalınca
   akar. Hover'da basıp bırakınca fare üstündeyken durmaya devam eder.
+- Hover ve odak şeridi 450 ms'de yavaşlatarak durdurur, kalkınca aynı sürede
+  hıza çıkarır (animasyonun `playbackRate`'i tween'lenir). Yalnız basış anında
+  durdurur: işaretçi şeridi tutuyor.
 
 ## Kenar solması
 

@@ -31,8 +31,9 @@ Designer'da ayarlanacaklar:
   Genişlik, `overflow`, `cursor` verme; kod yönetiyor.
 
 Kod ne yapar: kartları ölçer, şerit ekranı rahatça kaplayana kadar item'ları
-klonlar (`aria-hidden`, odaklanamaz), ilk kartı ortalar, her kartı transform
-ile taşır ve bir kenardan çıkanı öbür kenara sarar. `data-rc-state="running"`
+klonlar (`aria-hidden`, odaklanamaz; içlerindeki component'ler klonda da
+çalışır), ilk kartı ortalar, her kartı transform ile taşır ve bir kenardan
+çıkanı öbür kenara sarar. `data-rc-state="running"`
 basar; ortadaki karta (ve klonlarına) `data-rc-active` yazar — özel CSS'te
 `[data-rc-active]` ile aktif kartı öne çıkarabilirsin.
 

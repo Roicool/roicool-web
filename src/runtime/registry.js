@@ -15,8 +15,17 @@
 import { ROOT_SELECTOR, names, flagOption } from "./dom.js";
 import { debug, warn, error } from "./log.js";
 
-/** Chunks sit next to this module: dist/rc.js → dist/components/<name>.js */
-const CHUNK_BASE = new URL("./components/", import.meta.url);
+/**
+ * Where the component chunks live: dist/components/<name>.js. Set once by
+ * rc.js, which knows its own URL; this module cannot use import.meta.url
+ * because components import it too, and the bundler then places it in a
+ * shared chunk under dist/chunks/.
+ */
+let chunkBase = null;
+
+export function locateChunks(base) {
+  chunkBase = base;
+}
 
 /** Start loading before the root is on screen, so mounting is not visible. */
 const PRELOAD_MARGIN = "200px";
@@ -43,7 +52,10 @@ function onIntersect(entries) {
 function loadComponent(name) {
   let pending = modules.get(name);
   if (!pending) {
-    pending = import(new URL(`${name}.js`, CHUNK_BASE).href).then(
+    if (!chunkBase) {
+      return Promise.reject(new Error("locateChunks() was not called."));
+    }
+    pending = import(new URL(`${name}.js`, chunkBase).href).then(
       (module) => module.default,
     );
     modules.set(name, pending);
@@ -92,9 +104,12 @@ function schedule(root) {
 }
 
 /**
- * Discover every component root inside `scope`. Called once on load; call it
- * again through `window.rc.scan(container)` after injecting markup yourself.
+ * Discover every component root inside `scope` (and `scope` itself, when it
+ * is one). Called once on load; called again by a component that clones
+ * markup, and through `window.rc.scan(container)` after injecting markup
+ * yourself. A root that was mounted before is left alone.
  */
 export function scan(scope = document) {
+  if (scope.matches?.(ROOT_SELECTOR)) schedule(scope);
   for (const root of scope.querySelectorAll(ROOT_SELECTOR)) schedule(root);
 }

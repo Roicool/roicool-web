@@ -1,0 +1,71 @@
+/*!
+ * hover-reveal.css — behavioural styles only. The card's size, radius,
+ * background and everything drawn on top of the picture come from Designer.
+ */
+
+/* MECHANIC — the card is the box the picture is clipped to and the stacking
+   context it sits at the bottom of. `clip`, not `hidden`: a hidden overflow
+   is a scroll container, and focus inside could scroll it. */
+[data-rc~="hover-reveal"] {
+  position: relative;
+  isolation: isolate;
+  overflow: clip;
+}
+
+/* MECHANIC — the picture fills the card underneath its content. A negative
+   z-index inside the isolated card paints above the card's own background
+   and below everything else in it, so the logo and text need no z-index. */
+[data-rc~="hover-reveal"] [data-rc-part="media"] {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+[data-rc~="hover-reveal"] [data-rc-part="media"] > img,
+[data-rc~="hover-reveal"] [data-rc-part="media"] > video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* MECHANIC — with JS on the way the picture waits folded behind one edge
+   (--rc-hover-reveal-inset, set by the JS from the pointer's position) and a
+   touch too large; `active` unfolds it from that edge and settles the zoom.
+   Gated on .rc-js, not on the state: the chunk loads as the card nears the
+   viewport, and until then the picture must not show. */
+.rc-js [data-rc~="hover-reveal"] [data-rc-part="media"] {
+  clip-path: inset(var(--rc-hover-reveal-inset, 100% 0 0 0));
+  transform: scale(var(--rc-hover-reveal-zoom, 1.12));
+  transition:
+    clip-path var(--rc-hover-reveal-duration, 0.6s)
+      var(--rc-hover-reveal-easing, cubic-bezier(0.22, 1, 0.36, 1)),
+    transform var(--rc-hover-reveal-duration, 0.6s)
+      var(--rc-hover-reveal-easing, cubic-bezier(0.22, 1, 0.36, 1)),
+    opacity var(--rc-hover-reveal-duration, 0.6s)
+      var(--rc-hover-reveal-easing, cubic-bezier(0.22, 1, 0.36, 1));
+}
+
+.rc-js
+  [data-rc~="hover-reveal"][data-rc-state="active"]
+  [data-rc-part="media"] {
+  clip-path: inset(0);
+  transform: scale(1);
+}
+
+/* MECHANIC — data-rc-effect="fade": a plain cross-fade instead of the
+   directional wipe. The zoom stays. */
+.rc-js [data-rc~="hover-reveal"][data-rc-effect="fade"] [data-rc-part="media"] {
+  clip-path: none;
+  opacity: 0;
+}
+
+.rc-js
+  [data-rc~="hover-reveal"][data-rc-effect="fade"][data-rc-state="active"]
+  [data-rc-part="media"] {
+  opacity: 1;
+}

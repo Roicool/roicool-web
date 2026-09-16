@@ -14,12 +14,14 @@
  * flash open first.
  */
 
-import { scan } from "./registry.js";
+import { locateChunks, scan } from "./registry.js";
 import { startSmoothScroll, smoothScroll } from "./scroll.js";
 import { startOverlayScrollbar } from "./scrollbar.js";
 import { debug } from "./log.js";
 
 debug("runtime ready");
+// Chunks sit next to this module: dist/rc.js → dist/components/<name>.js
+locateChunks(new URL("./components/", import.meta.url));
 scan();
 startSmoothScroll();
 startOverlayScrollbar();

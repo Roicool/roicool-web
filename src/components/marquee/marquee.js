@@ -10,6 +10,8 @@
  * Everything that changes its play state — hover, keyboard focus, a press —
  * goes through the Web Animations API, and dragging simply scrubs the same
  * animation's current time: no inline transforms, nothing to hand back.
+ * Hover and focus ease the strip to a stop and back up to speed; only a
+ * press stops it dead, because the pointer is holding it.
  *
  * Without JavaScript the list simply renders once, static and fully visible.
  * With reduced motion the code does nothing at all — no clone, no animation —
@@ -26,10 +28,14 @@ import {
   setState,
 } from "../../runtime/dom.js";
 import { prefersReducedMotion } from "../../runtime/motion.js";
+import { scan } from "../../runtime/registry.js";
 import { warn } from "../../runtime/log.js";
 
 /** Pixels per second when `data-rc-speed` is not set. */
 const DEFAULT_SPEED = 70;
+
+/** Milliseconds the strip takes to ease to a stop, and back up to speed. */
+const EASE = 450;
 
 /** A press that travels less than this stays a click. */
 const DRAG_THRESHOLD = 4;
@@ -41,6 +47,8 @@ const FRICTION = 0.94;
 const REST_VELOCITY = 0.02;
 
 const ANIMATION_NAME = "rc-marquee";
+
+const smoothstep = (t) => t * t * (3 - 2 * t);
 
 function findTrack(root) {
   // Explicit part first; fall back to Webflow's own list class so a plain
@@ -161,6 +169,9 @@ export default function marquee(root) {
 
   const copy = cloneTrack(track);
   root.append(copy);
+  // Components inside the items (a card that reveals on hover, say) exist
+  // in the copy too; the runtime only knows the originals.
+  scan(copy);
 
   // One loop = one track width plus the gap that separates it from its copy.
   // Duration follows from the configured speed so every marquee on the site
@@ -186,6 +197,7 @@ export default function marquee(root) {
 
   // Why the loop is not running right now; empty means it runs.
   const holds = new Set();
+  let ramp = 0;
   const loop = {
     hold(reason) {
       holds.add(reason);
@@ -196,11 +208,37 @@ export default function marquee(root) {
       loop.sync();
     },
     sync() {
-      for (const a of animations()) holds.size ? a.pause() : a.play();
+      // A press stops the strip dead — the pointer is holding it. Anything
+      // else eases it to a stop, and letting go eases it back up to speed.
+      loop.ease(holds.size ? 0 : 1, holds.has("drag") ? 0 : EASE);
       setState(
         root,
         holds.has("drag") ? "dragging" : holds.size ? "paused" : "running",
       );
+    },
+    /**
+     * Tween the playback rate to `rate` over `ms`. At 0 the animations are
+     * paused as well, so a scrub while held moves nothing but the scrub.
+     */
+    ease(rate, ms) {
+      cancelAnimationFrame(ramp);
+      const list = animations();
+      if (list.length === 0) return;
+      const from = list[0].playbackRate;
+      if (rate > 0) for (const a of list) a.play();
+      const start = performance.now();
+      const step = (now) => {
+        const t = ms > 0 ? Math.min(1, (now - start) / ms) : 1;
+        const value = from + (rate - from) * smoothstep(t);
+        for (const a of list) a.playbackRate = value;
+        if (t < 1) {
+          ramp = requestAnimationFrame(step);
+          return;
+        }
+        if (rate === 0) for (const a of list) a.pause();
+      };
+      if (ms > 0) ramp = requestAnimationFrame(step);
+      else step(start);
     },
     /**
      * Move the strip by `dx` pixels. Speed is px per second, so the time to
