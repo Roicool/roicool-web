@@ -7,15 +7,24 @@
  *     flashes resolved and then jumps back.
  *
  * Every start state is gated three ways: JS confirmed (.rc-js), motion not
- * reduced, and GSAP not reported missing (data-rc-state="static").
+ * reduced, and the root carrying no data-rc-state yet. hero.js stamps a state
+ * as its last step — "armed" once every animated element holds its start
+ * values inline, "static" when GSAP never arrived — and either releases these
+ * rules. Without that the title and heading would stay dimmed underneath
+ * their animated words.
  */
 
 [data-rc~="hero"] {
-  --rc-hero-track: 160svh;
+  --rc-hero-track: 200svh;
   --rc-hero-stage: 100svh;
   position: relative;
-  min-height: var(--rc-hero-track);
   overflow-x: clip;
+}
+
+/* LOOK — the track is the scroll distance (track − stage). Designer may set
+   min-height on the section instead; this rule has no specificity. */
+:where([data-rc~="hero"]) {
+  min-height: var(--rc-hero-track);
 }
 
 [data-rc~="hero"] > [data-rc-part="stage"] {
@@ -52,17 +61,14 @@
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  .rc-js [data-rc~="hero"]:not([data-rc-state="static"]) [data-rc-part="title"],
-  .rc-js
-    [data-rc~="hero"]:not([data-rc-state="static"])
-    [data-rc-part="actions"]
-    > * {
+  .rc-js [data-rc~="hero"]:not([data-rc-state]) [data-rc-part="title"],
+  .rc-js [data-rc~="hero"]:not([data-rc-state]) [data-rc-part="actions"] > * {
     opacity: 0.2;
     transform: translateY(2rem);
   }
 
   .rc-js
-    [data-rc~="hero"]:not([data-rc-state="static"])
+    [data-rc~="hero"]:not([data-rc-state])
     [data-rc-part="secondary"]
     :is(h2, h3) {
     opacity: 0.2;
@@ -71,14 +77,14 @@
     transform: translateY(min(10rem, 20svh));
   }
 
-  .rc-js [data-rc~="hero"]:not([data-rc-state="static"]) [data-rc-part="tile"] {
+  .rc-js [data-rc~="hero"]:not([data-rc-state]) [data-rc-part="tile"] {
     opacity: 0;
     visibility: hidden;
     transform: scale(0.25);
   }
 
   .rc-js
-    [data-rc~="hero"]:not([data-rc-state="static"])
+    [data-rc~="hero"]:not([data-rc-state])
     [data-rc-part="tile"]
     img:not([src$=".svg"]) {
     transform: scale(1.5);

@@ -7,9 +7,10 @@
  *
  * Progressive by design:
  *   – the start states (dimmed words, shrunken tiles) come from
- *     hero.critical.css, inline in the head, gated on .rc-js and on
- *     prefers-reduced-motion: no-preference — no JS or reduced motion means
- *     everything is simply visible from the first paint;
+ *     hero.critical.css, inline in the head, gated on .rc-js, on
+ *     prefers-reduced-motion: no-preference and on the root not carrying a
+ *     data-rc-state yet — no JS or reduced motion means everything is simply
+ *     visible from the first paint;
  *   – GSAP is fetched on demand (runtime/motion.js). If it never arrives the
  *     hero stamps data-rc-state="static", which releases the start states, and
  *     the page reads as a normal static section.
@@ -80,6 +81,30 @@ function splitWords(SplitText, element) {
   }).words;
 }
 
+/**
+ * Where the media ends up: clipped to the centre tile's box, so the video
+ * becomes one tile of the mosaic while the others scale in around it. The
+ * corner radius is the tile's own. Measured again on every ScrollTrigger
+ * refresh (invalidateOnRefresh), so breakpoints, resizes and late fonts keep
+ * it aligned. Without a tile-center part the media shrinks to a centred window.
+ */
+function mediaExitClip(media, tileCenter) {
+  const frame = media.getBoundingClientRect();
+  const box = tileCenter?.getBoundingClientRect();
+  if (!box?.width) {
+    const x = frame.width * 0.12;
+    const y = frame.height * 0.12;
+    return `inset(${y}px ${x}px ${y}px ${x}px round 32px)`;
+  }
+  const radius =
+    Number.parseFloat(getComputedStyle(tileCenter).borderTopLeftRadius) || 0;
+  const top = box.top - frame.top;
+  const right = frame.right - box.right;
+  const bottom = frame.bottom - box.bottom;
+  const left = box.left - frame.left;
+  return `inset(${top}px ${right}px ${bottom}px ${left}px round ${radius}px)`;
+}
+
 export default async function hero(root) {
   const stage = part(root, "stage");
   if (!stage) {
@@ -105,6 +130,7 @@ export default async function hero(root) {
   const title = part(root, "title");
   const actions = part(root, "actions");
   const media = part(root, "media");
+  const tileCenter = part(root, "tile-center");
   const heading = part(root, "secondary")?.querySelector("h2, h3");
   const tiles = parts(root, "tile");
   const tileImages = tiles
@@ -113,10 +139,6 @@ export default async function hero(root) {
 
   const titleWords = splitWords(SplitText, title);
   const headingWords = splitWords(SplitText, heading);
-  // Once split, the words carry the dim state; the title itself must not.
-  gsap.set([title, heading].filter(Boolean), {
-    clearProps: "opacity,transform",
-  });
 
   const timeline = gsap.timeline({
     defaults: { ease: "none" },
@@ -130,6 +152,9 @@ export default async function hero(root) {
       pinSpacing: false,
       scrub: true,
       anticipatePin: 1,
+      // Function-based values (the media's target clip) are measured again on
+      // every refresh: resize, orientation change, fonts arriving.
+      invalidateOnRefresh: true,
       refreshPriority: numberOption(root, "priority", 10),
     },
   });
@@ -147,16 +172,14 @@ export default async function hero(root) {
       { opacity: 1, y: 0, duration: PRIMARY.end, stagger: PRIMARY.stagger },
       0,
     )
-    // Reconstructed, not captured: the source's primary layer leaves as the
-    // secondary arrives (its CSS resolves clip-path and scale on the media).
-    // Tune with --rc-hero-media-inset / --rc-hero-container-radius.
+    // The media leaves by being clipped down to the centre tile's box: the
+    // video turns into one tile of the mosaic. Content is not scaled, only
+    // cropped, so it stays sharp and the tile shows exactly what was there.
     .fromTo(
-      media,
-      { clipPath: "inset(0% round 0px)", scale: 1 },
+      media ?? [],
+      { clipPath: "inset(0px 0px 0px 0px round 0px)" },
       {
-        clipPath:
-          "inset(var(--rc-hero-media-inset, 12%) round var(--rc-hero-container-radius, 2rem))",
-        scale: 0.9,
+        clipPath: () => mediaExitClip(media, tileCenter),
         duration: MEDIA_EXIT.duration,
       },
       MEDIA_EXIT.start,
@@ -196,5 +219,11 @@ export default async function hero(root) {
       TILES.start,
     );
 
+  // Every animated element now carries its start values inline. Stamping the
+  // state releases the CSS start states, so the title and heading themselves
+  // — whose words took over the dimming — render at full opacity.
   setState(root, "armed");
+
+  // The grid settles once web fonts are in; measure the media's target again.
+  document.fonts?.ready.then(() => ScrollTrigger.refresh());
 }

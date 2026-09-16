@@ -7,8 +7,6 @@
   --rc-hero-brightness: 0.75;
   --rc-hero-grain-opacity: 0.5;
   --rc-hero-grain-size: 80px;
-  --rc-hero-container-radius: 2rem;
-  --rc-hero-media-inset: 12%;
 }
 
 /* LOOK — Designer positions the media layer (absolute, inset 0, z 1); these

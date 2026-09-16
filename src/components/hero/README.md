@@ -6,7 +6,7 @@ HomePageV3Hero — aynı başlangıç durumları, aynı zamanlama, pin ile.
 ## Designer'daki yapı
 
 ```
-Section   [data-rc="hero" data-rc-eager]                      ← track, 160svh (kod verir)
+Section   [data-rc="hero" data-rc-eager]                      ← track, 200svh (kod verir; Designer min-height ile ezer)
   Div     [data-rc-part="stage"]                              ← pin edilir, 100svh; position: relative
     Div   [data-rc-part="media"]                              ← video katmanı, stage'i doldurur (absolute inset 0)
       Embed  <video …>                                        ← aşağıda
@@ -18,8 +18,8 @@ Section   [data-rc="hero" data-rc-eager]                      ← track, 160svh 
     Div   [data-rc-part="footer"]                             ← alta yapışır; içine marquee (data-rc="marquee")
     Div   [data-rc-part="secondary"]                          ← stage'i doldurur, grid; aşağıda
       H2
-      Div [data-rc-part="tile"] ×17  +  Div [data-rc-part="tile-center"] ×1
-        Image
+      Div [data-rc-part="tile"] ×17                              ← her birinde Image
+      Div [data-rc-part="tile-center"] ×1                        ← BOŞ; video buraya kırpılır
 ```
 
 **Katman sırası** (z-index, Designer'da): media 1 · secondary 2 · primary 3 ·
@@ -56,8 +56,15 @@ değiştirir. Bu, "Embed kullanmıyoruz" kuralının bilinçli tek istisnası.
 
 `secondary` → Grid, **9 kolon × 5 satır**, `place-items: center`, satır 3'te
 başlık (`grid-column: 1 / -1`). 18 tile tuğla dizilimiyle, satır 1-2-4-5;
-merkez = satır 4 kolon 5 → o tile'a `tile-center` (hep görünür). Kare:
-`aspect-ratio: 1/1`, `overflow: clip`, image `object-fit: cover`.
+merkez = satır 4 kolon 5 → o tile `tile-center`: **boş bırak**, içine görsel
+koyma. Kod, media katmanını scroll'da tam bu kutuya kırpar (`clip-path`);
+video mozaiğin merkez tile'ı olur. Köşe yuvarlaklığını tile'ın kendi
+`border-radius`'undan okur. Kare: `aspect-ratio: 1/1`, `overflow: clip`,
+image `object-fit: cover`.
+
+Webflow Grid Child › Manual alanları çizgi değil **kapsayıcı hücre** numarası:
+kolon 8 için `8 / 8`, satır 1 için `1 / 1`. Başlık: kolon `1 / 9`, satır
+`3 / 3`.
 
 ```
         c1 c2 c3 c4 c5 c6 c7 c8 c9
@@ -68,7 +75,8 @@ row4:    ■  .  ■  .  ■  .  ■  .  ■      tile 10-14  (kolon 1,3,5,7,9) 
 row5:    .  ■  .  ■  .  ■  .  ■  .      tile 15-18  (kolon 2,4,6,8)
 ```
 
-Tile numaraları DOM sırası (Navigator'daki sıra). 12. tile `is-center`.
+Tile numaraları DOM sırası (Navigator'daki sıra). 12. tile `is-center` +
+`tile-center`, boş.
 
 Mobilde kadraj: `secondary` genişliği breakpoint'e göre **250% → 225% →
 200% → 150% → 100%** (≤374 / ≤740 / ≤1024 / ≤1280 / üstü), yatayda
@@ -84,6 +92,11 @@ animasyon aynen çalışır.
 | `data-rc-poster-portrait` | URL   | ≤767px'te video poster'ı                         |
 | `data-rc-priority`        | `10`  | ScrollTrigger refreshPriority; başka pin varsa   |
 
+**Kaydırma mesafesi** = track − stage. Varsayılan track 200svh, stage 100svh:
+koreografi 100svh kaydırmada tamamlanır. Uzatmak ya da kısaltmak için section'a
+Designer'da `min-height` ver (ör. `250svh`); kodun değeri `:where()` ile
+yazıldığından class kazanır. Stage 100svh sabittir (pin boyu).
+
 İkinci başlığın yükselme mesafesi sabit formül: `min(10rem, 20svh)` — masaüstünde
 10rem, kısa ekranda viewport'un %20'si. CSS ve JS aynı formülü kullanır; ayar
 yok, breakpoint derdi yok.
@@ -95,26 +108,25 @@ custom code'una bir `<style>` ile):
 --rc-hero-brightness: 0.75; /* karartma: siyah (1 − değer) */
 --rc-hero-grain-opacity: 0.5;
 --rc-hero-grain-size: 80px;
---rc-hero-container-radius: 2rem; /* media çıkarken köşe */
---rc-hero-media-inset: 12%; /* media çıkarken kırpma */
---rc-hero-track: 160svh;
+--rc-hero-track: 200svh; /* ya da section'a min-height */
 --rc-hero-stage: 100svh;
 ```
 
-## Koreografi (0 → 1 = 60svh kaydırma)
+## Koreografi (0 → 1 = track − stage, varsayılan 100svh kaydırma)
 
 | Aralık   | Ne                                                        |
 | -------- | --------------------------------------------------------- |
 | 0 → .35  | h1 kelimeleri + CTA: opacity .2→1, 2rem yükselir          |
-| .3 → .7  | media kırpılır + %90'a küçülür; h1/CTA solar              |
+| .3 → .7  | media merkez tile'ın kutusuna kırpılır; h1/CTA solar      |
 | .4 → .9  | h2 kelimeleri: opacity .2→1, `min(10rem, 20svh)` yükselir |
 | .4 → .86 | tile'lar: scale .25→1 + görünür; iç img 1.5→1             |
 
 Video ilk açılışı saf CSS (`@starting-style`): opacity 3s + radial mask 20s.
 
-**Yeniden kurulan kısım:** kaynak sitede primary katmanın nasıl çekildiği
-yakalanamadı (CSS'te çözülmüş değerler var, hareketi yok). `.3 → .7` satırı
-buna göre kuruldu; `--rc-hero-media-inset` ve radius ile ayarlanır.
+**Yeniden kurulan kısım:** kaynak sitede media'nın çıkışı CSS'te çözülmüş
+değerlerle duruyordu, hareketi yakalanamadı. Burada her ScrollTrigger
+refresh'inde (`invalidateOnRefresh`) merkez tile'ın kutusu ölçülür ve media
+oraya kırpılır; breakpoint değişimi ve font yüklenmesi hizayı bozmaz.
 
 ## JS yoksa, hareket azaltılmışsa, GSAP gelmezse
 
