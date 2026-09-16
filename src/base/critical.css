@@ -90,6 +90,16 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Links carry no underline by default: the site draws its own where it
+   wants one (button-text's gradient line, a Designer hover state). Here and
+   not in rc.css, so links never flash underlined before the async stylesheet
+   lands. Zero specificity: a Designer class or the All Links tag style still
+   wins. This block comes after Webflow's own CSS in the head, so it also
+   beats Webflow's and the browser's `a` default without !important. */
+:where(a) {
+  text-decoration: none;
+}
+
 /* Long Turkish words and URLs wrap instead of widening their container;
    headings balance their lines, paragraphs avoid a lone last word. */
 :where(p, li, dd, td, th, blockquote, figcaption) {
