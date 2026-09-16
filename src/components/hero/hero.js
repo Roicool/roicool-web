@@ -225,6 +225,10 @@ export default async function hero(root) {
       duration: INTRO.duration,
       stagger: INTRO.stagger,
       ease: INTRO.ease,
+      // The CTAs must end with no inline styles: an inline transform would
+      // override the buttons' own :hover and :active transforms from Designer.
+      onComplete: () =>
+        gsap.set(actionItems, { clearProps: "opacity,transform" }),
     },
   );
 
