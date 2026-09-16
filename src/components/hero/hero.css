@@ -16,6 +16,15 @@
   background: #000;
 }
 
+/* LOOK — rounded tiles. The video lands in the centre tile with the same
+   corner: hero.js reads the tile's border-radius. Designer's radius on the
+   tile class wins over this. */
+:where([data-rc~="hero"] [data-rc-part="tile"]),
+:where([data-rc~="hero"] [data-rc-part="tile-center"]) {
+  border-radius: var(--rc-hero-tile-radius, 1rem);
+  overflow: clip;
+}
+
 [data-rc~="hero"] [data-rc-part="shade"],
 [data-rc~="hero"] [data-rc-part="grain"] {
   position: absolute;

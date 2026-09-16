@@ -31,6 +31,7 @@ DOM hazır
   6. runtime DOM'u tarar, [data-rc] elemanlarını bulur
   7. her eleman için IntersectionObserver kurar
   8. eleman görünüre yaklaşınca chunk'ı import eder ve init'i çağırır
+  9. runtime Lenis'i CDN'den getirir, yumuşak kaydırmayı başlatır (boyamadan sonra)
 ```
 
 Boyamayı bekleten hiçbir ağ isteği yok. Kritik CSS `<style>` olarak `head.html`'in
@@ -80,6 +81,22 @@ components/  →  a11y/  →  runtime/
 Ok tek yönlü. `runtime/` hiçbir component'i bilmez, `a11y/` hiçbir component'i
 bilmez. Component component'i import etmez — ortak bir şey gerekiyorsa
 `runtime/` ya da `a11y/` içine çıkar.
+
+## Dış kütüphaneler: GSAP ve Lenis
+
+İkisi de paketlenmez, head'e girmez; jsDelivr'dan ES modül olarak, ihtiyaç
+anında import edilir. Sürüm tek yerde sabittir: ilgili dosyanın başındaki
+`*_BASE` sabiti.
+
+- **GSAP** (+ ScrollTrigger, SplitText) — `runtime/motion.js`. Yalnız isteyen
+  component indirir; gelmezse component statik kalır.
+- **Lenis** — `runtime/scroll.js`. Runtime her sayfada başlatır (site geneli
+  yumuşak kaydırma); gelmezse sayfa doğal kaydırılır. Reduced motion'ı kendisi
+  tanır: yumuşatma kapanır, kaydırma girdiyi 1:1 izler. ScrollTrigger
+  yüklendiğinde Lenis'in konumunu anında okuması `motion.js`'te bağlanır.
+  Designer tarafı: `<body data-rc-scroll="native">` sayfayı dışarıda bırakır;
+  kendi içinde kayan elemana (modal gövdesi, kod bloğu, harita)
+  `data-lenis-prevent`. Gerekli CSS `src/base/scroll.css`'te, `rc.css`'e girer.
 
 ## Build
 

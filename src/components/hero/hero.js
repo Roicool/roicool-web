@@ -1,9 +1,11 @@
 /**
  * hero.js — the scroll-choreographed, pinned home hero.
  *
- * Reconstructed from squareup.com's HomePageV3Hero: the start states and the
- * timing live in CSS + this file, the scroll progress is GSAP ScrollTrigger
- * with the stage pinned for the length of the track.
+ * Reconstructed from squareup.com's HomePageV3Hero. Two movements:
+ *   – on load, the title words and CTAs rise into place (time-based);
+ *   – on scroll, with the stage pinned for the length of the track, the video
+ *     is clipped down into the centre tile of a mosaic that scales in around
+ *     it while the second heading rises (GSAP ScrollTrigger, scrubbed).
  *
  * Progressive by design:
  *   – the start states (dimmed words, shrunken tiles) come from
@@ -28,15 +30,31 @@ import {
 import { prefersReducedMotion, loadGsap } from "../../runtime/motion.js";
 import { warn } from "../../runtime/log.js";
 
-/** Progress timeline, 0 → 1 over the track. Values follow the source site. */
-const PRIMARY = { end: 0.35, rise: "2rem", stagger: 0.014 };
+/** Entrance on load: title words and CTAs rise into place. Not scroll-bound. */
+const INTRO = { duration: 1, stagger: 0.05, rise: "2rem", ease: "power3.out" };
+
+/** Scroll timeline, 0 → 1 over the track. Values follow the source site. */
+const MEDIA_EXIT = { start: 0.3, duration: 0.4, ease: "power2.inOut" };
+const FOOTER_EXIT = {
+  start: 0.3,
+  duration: 0.24,
+  scale: 0.7,
+  ease: "power2.in",
+};
 const SECONDARY_WORDS = { start: 0.4, duration: 0.5, stagger: 0.015 };
 const TILES = { start: 0.4, duration: 0.46, stagger: 0.023 };
-const MEDIA_EXIT = { start: 0.3, duration: 0.4 };
+
+/** Scrub lag in seconds: the timeline eases towards the scroll position. */
+const SCRUB = 0.5;
 
 const PORTRAIT = "(max-width: 767px)";
 
-/** Autoplay only while on screen; portrait poster on small screens. */
+/**
+ * The video plays whenever any part of the hero is on screen, and pauses
+ * off screen to save power. Anything else that pauses it while on screen —
+ * the pin moving the stage in the DOM, a tab switch — is undone on the next
+ * frame. Portrait poster on small screens.
+ */
 function initVideo(root) {
   const video = part(root, "media")?.querySelector("video");
   if (!video) return;
@@ -48,15 +66,24 @@ function initVideo(root) {
 
   video.muted = true;
   video.playsInline = true;
+
+  let onScreen = false;
+  const play = () => {
+    if (onScreen && !document.hidden && video.paused) {
+      video.play().catch(() => {});
+    }
+  };
+
   new IntersectionObserver(
-    (entries) => {
-      for (const entry of entries) {
-        if (entry.isIntersecting) video.play().catch(() => {});
-        else video.pause();
-      }
+    ([entry]) => {
+      onScreen = entry.isIntersecting;
+      if (onScreen) play();
+      else video.pause();
     },
-    { threshold: 0.05 },
-  ).observe(video);
+    { threshold: 0 },
+  ).observe(root);
+  video.addEventListener("pause", () => requestAnimationFrame(play));
+  document.addEventListener("visibilitychange", play);
 }
 
 /**
@@ -81,6 +108,13 @@ function splitWords(SplitText, element) {
   }).words;
 }
 
+/** The element's top-left corner radius in px; a percentage is of its width. */
+function cornerRadius(element, box) {
+  const value = getComputedStyle(element).borderTopLeftRadius;
+  const number = Number.parseFloat(value) || 0;
+  return value.endsWith("%") ? (number / 100) * box.width : number;
+}
+
 /**
  * Where the media ends up: clipped to the centre tile's box, so the video
  * becomes one tile of the mosaic while the others scale in around it. The
@@ -96,8 +130,7 @@ function mediaExitClip(media, tileCenter) {
     const y = frame.height * 0.12;
     return `inset(${y}px ${x}px ${y}px ${x}px round 32px)`;
   }
-  const radius =
-    Number.parseFloat(getComputedStyle(tileCenter).borderTopLeftRadius) || 0;
+  const radius = cornerRadius(tileCenter, box);
   const top = box.top - frame.top;
   const right = frame.right - box.right;
   const bottom = frame.bottom - box.bottom;
@@ -129,7 +162,9 @@ export default async function hero(root) {
 
   const title = part(root, "title");
   const actions = part(root, "actions");
+  const actionItems = actions ? Array.from(actions.children) : [];
   const media = part(root, "media");
+  const footer = part(root, "footer");
   const tileCenter = part(root, "tile-center");
   const heading = part(root, "secondary")?.querySelector("h2, h3");
   const tiles = parts(root, "tile");
@@ -139,6 +174,21 @@ export default async function hero(root) {
 
   const titleWords = splitWords(SplitText, title);
   const headingWords = splitWords(SplitText, heading);
+
+  // Entrance. The words and CTAs sit dimmed and low from the critical CSS;
+  // from here they rise into place. A visitor who arrives already scrolled
+  // simply sees the exit below take over.
+  gsap.fromTo(
+    [...titleWords, ...actionItems],
+    { opacity: 0.2, y: INTRO.rise },
+    {
+      opacity: 1,
+      y: 0,
+      duration: INTRO.duration,
+      stagger: INTRO.stagger,
+      ease: INTRO.ease,
+    },
+  );
 
   const timeline = gsap.timeline({
     defaults: { ease: "none" },
@@ -150,7 +200,7 @@ export default async function hero(root) {
       // The root is already taller than the stage; that height is the scroll
       // distance, so no spacer must be added.
       pinSpacing: false,
-      scrub: true,
+      scrub: SCRUB,
       anticipatePin: 1,
       // Function-based values (the media's target clip) are measured again on
       // every refresh: resize, orientation change, fonts arriving.
@@ -159,19 +209,10 @@ export default async function hero(root) {
     },
   });
 
+  // Every exit is a fromTo with an explicit "from": its start value must not
+  // be read from the page, which may still be showing the CSS start states
+  // or, on a reload mid-way down, a state from further along.
   timeline
-    .fromTo(
-      titleWords,
-      { opacity: 0.2, y: PRIMARY.rise },
-      { opacity: 1, y: 0, duration: PRIMARY.end, stagger: PRIMARY.stagger },
-      0,
-    )
-    .fromTo(
-      actions ? Array.from(actions.children) : [],
-      { opacity: 0.2, y: PRIMARY.rise },
-      { opacity: 1, y: 0, duration: PRIMARY.end, stagger: PRIMARY.stagger },
-      0,
-    )
     // The media leaves by being clipped down to the centre tile's box: the
     // video turns into one tile of the mosaic. Content is not scaled, only
     // cropped, so it stays sharp and the tile shows exactly what was there.
@@ -181,13 +222,28 @@ export default async function hero(root) {
       {
         clipPath: () => mediaExitClip(media, tileCenter),
         duration: MEDIA_EXIT.duration,
+        ease: MEDIA_EXIT.ease,
       },
       MEDIA_EXIT.start,
     )
-    .to(
+    .fromTo(
       [title, actions].filter(Boolean),
+      { opacity: 1 },
       { opacity: 0, duration: MEDIA_EXIT.duration },
       MEDIA_EXIT.start,
+    )
+    // The footer strip shrinks into the leaving video and is gone before the
+    // clip reaches it.
+    .fromTo(
+      footer ?? [],
+      { opacity: 1, scale: 1, transformOrigin: "50% 100%" },
+      {
+        opacity: 0,
+        scale: FOOTER_EXIT.scale,
+        duration: FOOTER_EXIT.duration,
+        ease: FOOTER_EXIT.ease,
+      },
+      FOOTER_EXIT.start,
     )
     .fromTo(
       headingWords,

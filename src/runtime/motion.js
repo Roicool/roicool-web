@@ -7,6 +7,8 @@
  * see — autoplay, scroll-driven effects, anything started from code.
  */
 
+import { bindScrollTrigger } from "./scroll.js";
+
 const query = window.matchMedia("(prefers-reduced-motion: reduce)");
 
 /** True when the visitor asked the system for reduced motion. */
@@ -60,6 +62,8 @@ export async function loadGsap(pluginNames = []) {
         result[name] = module[name];
         gsap.registerPlugin(module[name]);
       }
+      // Scroll-driven work must read the smoothed scroll position.
+      if (result.ScrollTrigger) bindScrollTrigger(gsap, result.ScrollTrigger);
       return result;
     } catch {
       return null;

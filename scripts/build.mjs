@@ -120,6 +120,7 @@ async function buildStylesheet(components) {
   const code = await minifyStyles(
     [
       path.join(src, "base", "motion.css"),
+      path.join(src, "base", "scroll.css"),
       path.join(src, "base", "site.css"),
       ...components.map((name) =>
         path.join(src, "components", name, `${name}.css`),

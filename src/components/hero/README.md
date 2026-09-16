@@ -15,7 +15,7 @@ Section   [data-rc="hero" data-rc-eager]                      ← track, 200svh 
     Div   [data-rc-part="primary"]                            ← h1 + CTA, stage'i doldurur, ortalanmış
       H1  [data-rc-part="title"]
       Div [data-rc-part="actions"]                            ← içine butonlar
-    Div   [data-rc-part="footer"]                             ← alta yapışır; içine marquee (data-rc="marquee")
+    Div   [data-rc-part="footer"]                             ← alta yapışır; içine marquee; scroll'da küçülüp kaybolur
     Div   [data-rc-part="secondary"]                          ← stage'i doldurur, grid; aşağıda
       H2
       Div [data-rc-part="tile"] ×17                              ← her birinde Image
@@ -108,18 +108,25 @@ custom code'una bir `<style>` ile):
 --rc-hero-brightness: 0.75; /* karartma: siyah (1 − değer) */
 --rc-hero-grain-opacity: 0.5;
 --rc-hero-grain-size: 80px;
+--rc-hero-tile-radius: 1rem; /* tile ve video köşesi; tile class'ındaki border-radius kazanır */
 --rc-hero-track: 200svh; /* ya da section'a min-height */
 --rc-hero-stage: 100svh;
 ```
 
-## Koreografi (0 → 1 = track − stage, varsayılan 100svh kaydırma)
+## Koreografi
 
-| Aralık   | Ne                                                        |
-| -------- | --------------------------------------------------------- |
-| 0 → .35  | h1 kelimeleri + CTA: opacity .2→1, 2rem yükselir          |
-| .3 → .7  | media merkez tile'ın kutusuna kırpılır; h1/CTA solar      |
-| .4 → .9  | h2 kelimeleri: opacity .2→1, `min(10rem, 20svh)` yükselir |
-| .4 → .86 | tile'lar: scale .25→1 + görünür; iç img 1.5→1             |
+**Açılış (zamana bağlı, GSAP gelir gelmez):** h1 kelimeleri + CTA'lar opacity
+.2→1, 2rem yükselir; 1 sn, öğe başına 0.05 sn gecikme, `power3.out`. Scroll'a
+bağlı değil; sayfa kaydırılmış açılırsa aşağıdaki çıkış devralır.
+
+**Scroll (0 → 1 = track − stage, varsayılan 100svh; scrub 0.5 sn gecikmeli):**
+
+| Aralık   | Ne                                                                    |
+| -------- | --------------------------------------------------------------------- |
+| .3 → .7  | media merkez tile'ın kutusuna kırpılır (`power2.inOut`); h1/CTA solar |
+| .3 → .54 | footer alt-ortadan %70'e küçülür ve solar (`power2.in`)               |
+| .4 → .9  | h2 kelimeleri: opacity .2→1, `min(10rem, 20svh)` yükselir             |
+| .4 → .86 | tile'lar: scale .25→1 + görünür; iç img 1.5→1                         |
 
 Video ilk açılışı saf CSS (`@starting-style`): opacity 3s + radial mask 20s.
 
@@ -142,8 +149,10 @@ oraya kırpılır; breakpoint değişimi ve font yüklenmesi hizayı bozmaz.
 - SplitText `aria: "auto"`: h1/h2 tam metni `aria-label` olarak taşır,
   kelime span'ları `aria-hidden`. Ekran okuyucu bölünmemiş metni okur; bot
   HTML'de bölünmemiş metni görür (bölme yalnız istemcide).
-- Video `muted` + `playsinline`; yalnız görünürken oynar. `aria-hidden` verme
-  — poster ve video dekoratif, `media` div'ine `aria-hidden="true"` Designer'da.
+- Video `muted` + `playsinline`; hero'nun herhangi bir parçası ekrandayken
+  hep oynar (pin'in DOM taşıması ya da sekme değişimi durdurursa bir sonraki
+  karede yeniden başlar), ekran dışında durur. `aria-hidden` verme — poster ve
+  video dekoratif, `media` div'ine `aria-hidden="true"` Designer'da.
 - Tile görsellerinde `alt`: anlam taşıyorsa açıklama, dekoratifse boş.
 - 5 sn'den uzun otomatik video için WCAG 2.2.2 durdurma kontrolü — şu an yok;
   marquee'deki açık konuyla birlikte ele alınacak.
@@ -152,3 +161,5 @@ oraya kırpılır; breakpoint değişimi ve font yüklenmesi hizayı bozmaz.
 
 GSAP 3.13 + ScrollTrigger + SplitText, `runtime/motion.js` üzerinden
 jsDelivr'dan dinamik import. Head'e eklenmez; yalnız hero olan sayfa indirir.
+Yumuşak kaydırma (Lenis) runtime'ın işi (`runtime/scroll.js`); ScrollTrigger
+ona `motion.js`'te bağlanır, hero'nun bilmesi gerekmez.
