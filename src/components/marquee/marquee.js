@@ -37,6 +37,13 @@ const DEFAULT_SPEED = 70;
 /** Milliseconds the strip takes to ease to a stop, and back up to speed. */
 const EASE = 450;
 
+/**
+ * The slowest playback rate the ease reaches before the animation is paused
+ * outright, and the rate it restarts from. Never 0: a running animation at
+ * rate 0 has no usable current time to resume from.
+ */
+const MINIMUM_RATE = 0.02;
+
 /** A press that travels less than this stays a click. */
 const DRAG_THRESHOLD = 4;
 
@@ -173,14 +180,33 @@ export default function marquee(root) {
   // in the copy too; the runtime only knows the originals.
   scan(copy);
 
+  /** The two CSS animations (track and copy), always scrubbed together. */
+  const animations = () =>
+    [track, copy].flatMap((el) =>
+      el.getAnimations().filter((a) => a.animationName === ANIMATION_NAME),
+    );
+
+  const durationOf = (a) => a.effect.getComputedTiming().duration || 0;
+
   // One loop = one track width plus the gap that separates it from its copy.
   // Duration follows from the configured speed so every marquee on the site
   // moves at the same pace whatever its length.
   function measure() {
     const gap = Number.parseFloat(getComputedStyle(root).columnGap) || 0;
     const distance = track.getBoundingClientRect().width + gap;
+    // A new duration would leave each animation at its old current time, at
+    // a different point of the loop: keep the fraction travelled instead, so
+    // a resize re-scales the strip in place rather than jumping it.
+    const progress = animations().map((a) => {
+      const duration = durationOf(a);
+      return [a, duration ? (a.currentTime ?? 0) / duration : 0];
+    });
     root.style.setProperty("--rc-marquee-distance", `${distance}px`);
     root.style.setProperty("--rc-marquee-duration", `${distance / speed}s`);
+    for (const [a, fraction] of progress) {
+      const duration = durationOf(a);
+      if (duration) a.currentTime = fraction * duration;
+    }
   }
 
   // Images load late and fonts swap; the track's width settles over time.
@@ -188,12 +214,6 @@ export default function marquee(root) {
   measure();
 
   setState(root, "running");
-
-  /** The two CSS animations (track and copy), always scrubbed together. */
-  const animations = () =>
-    [track, copy].flatMap((el) =>
-      el.getAnimations().filter((a) => a.animationName === ANIMATION_NAME),
-    );
 
   // Why the loop is not running right now; empty means it runs.
   const holds = new Set();
@@ -217,28 +237,47 @@ export default function marquee(root) {
       );
     },
     /**
-     * Tween the playback rate to `rate` over `ms`. At 0 the animations are
-     * paused as well, so a scrub while held moves nothing but the scrub.
+     * Tween the playback rate to `rate` over `ms`; `ms` 0 switches at once.
+     * Rate 0 ends in pause(), so a scrub while held moves nothing but the
+     * scrub. Rates change through updatePlaybackRate(), never the setter:
+     * the setter re-syncs a compositor-driven animation on the spot and the
+     * strip visibly jumps.
      */
     ease(rate, ms) {
       cancelAnimationFrame(ramp);
       const list = animations();
       if (list.length === 0) return;
-      const from = list[0].playbackRate;
-      if (rate > 0) for (const a of list) a.play();
+      if (ms <= 0) {
+        for (const a of list) {
+          if (rate > 0) {
+            a.updatePlaybackRate(rate);
+            a.play();
+          } else a.pause();
+        }
+        return;
+      }
+      // A paused strip restarts from a crawl, whatever rate it stopped at.
+      const paused = list[0].playState === "paused";
+      const from = paused ? MINIMUM_RATE : list[0].playbackRate;
+      const to = Math.max(rate, MINIMUM_RATE);
+      if (rate > 0) {
+        for (const a of list) {
+          if (paused) a.updatePlaybackRate(MINIMUM_RATE);
+          a.play();
+        }
+      }
       const start = performance.now();
       const step = (now) => {
-        const t = ms > 0 ? Math.min(1, (now - start) / ms) : 1;
-        const value = from + (rate - from) * smoothstep(t);
-        for (const a of list) a.playbackRate = value;
+        const t = Math.min(1, (now - start) / ms);
+        const value = from + (to - from) * smoothstep(t);
+        for (const a of list) a.updatePlaybackRate(value);
         if (t < 1) {
           ramp = requestAnimationFrame(step);
           return;
         }
         if (rate === 0) for (const a of list) a.pause();
       };
-      if (ms > 0) ramp = requestAnimationFrame(step);
-      else step(start);
+      ramp = requestAnimationFrame(step);
     },
     /**
      * Move the strip by `dx` pixels. Speed is px per second, so the time to

@@ -72,8 +72,13 @@ transform yok, animasyona geri devir yok.
 - Durdurma sebepleri (hover, odak, basış) tek kümede tutulur; küme boşalınca
   akar. Hover'da basıp bırakınca fare üstündeyken durmaya devam eder.
 - Hover ve odak şeridi 450 ms'de yavaşlatarak durdurur, kalkınca aynı sürede
-  hıza çıkarır (animasyonun `playbackRate`'i tween'lenir). Yalnız basış anında
-  durdurur: işaretçi şeridi tutuyor.
+  hıza çıkarır. Hız `updatePlaybackRate()` ile değişir, `playbackRate`
+  setter'ı ile değil: setter compositor'daki animasyonu o an yeniden
+  senkronlar ve şerit zıplar. Durmadan önce hız `0.02`'ye iner, sonra
+  `pause()`; kalkınca aynı hızdan başlar. Yalnız basış anında durdurur:
+  işaretçi şeridi tutuyor.
+- Şerit yeniden ölçülünce (görsel gelince, pencere değişince) süre ve mesafe
+  değişir; kod animasyonun kat ettiği oranı korur, konum sıçramaz.
 
 ## Kenar solması
 
