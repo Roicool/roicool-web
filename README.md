@@ -13,7 +13,8 @@ botların kolay taradığı yapı.
 [`webflow/embeds/head.html`](./webflow/embeds/head.html): IX2 kapatıcı, `rc-js`
 işareti, inline kritik CSS (odak halkası, skip link, `.rc-sr-only`, hero
 başlangıç durumları), async `rc.css`, deferred `rc.js` (component keşfi,
-site geneli yumuşak kaydırma). Component'ler: `marquee`, `hero`.
+site geneli yumuşak kaydırma, yüzen kaydırma çubuğu). Component'ler:
+`marquee`, `hero`, `carousel`.
 
 **Geliştirme modunda:** `head.html` `@main`'e bakar, her commit yayın demek
 (`raw.githack.com` üzerinden, en geç 5 dakikada). Site canlıya çıkınca sürüm

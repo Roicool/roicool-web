@@ -1,0 +1,59 @@
+/*!
+ * carousel.css — behavioural styles only. Card width, gap, alignment and
+ * every look come from the Designer classes on the Collection List.
+ */
+
+/* Without JS, or with reduced motion (no data-rc-state): a plain scrollable
+   row that snaps each card to the centre when scrolling stops. */
+[data-rc~="carousel"]:not([data-rc-state]) {
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+
+[data-rc~="carousel"]:not([data-rc-state])::-webkit-scrollbar {
+  display: none;
+}
+
+[data-rc~="carousel"]:not([data-rc-state]) > [data-rc-part="track"] > * {
+  scroll-snap-align: center;
+}
+
+/* MECHANIC — running: the strip is moved by transforms and the wrapper
+   clips. `clip`, not `hidden`: a hidden overflow is still a scroll
+   container, and focusing a card would let the browser scroll it sideways
+   underneath the transforms. A horizontal swipe belongs to the strip, a
+   vertical one to the page. */
+[data-rc~="carousel"][data-rc-state] {
+  overflow: clip;
+  touch-action: pan-y;
+}
+
+[data-rc~="carousel"][data-rc-state] > [data-rc-part="track"] {
+  flex-wrap: nowrap;
+}
+
+[data-rc~="carousel"][data-rc-state] > [data-rc-part="track"] > * {
+  flex: none;
+}
+
+/* LOOK — the strip can be grabbed. */
+:where([data-rc~="carousel"][data-rc-state]) {
+  cursor: grab;
+}
+
+/* MECHANIC — while dragging nothing gets selected and the hand closes. */
+[data-rc~="carousel"][data-rc-state="dragging"] {
+  cursor: grabbing;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* LOOK — full bleed from inside a container: data-rc-bleed pulls the wrapper
+   out to the viewport's edges. Not needed when the wrapper is already full
+   width. */
+:where([data-rc~="carousel"][data-rc-bleed]) {
+  width: 100vw;
+  margin-inline: calc(50% - 50vw);
+}
