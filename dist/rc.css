@@ -18,4 +18,10 @@
  * A block without that comment belongs in Designer.
  *
  * Boundary and reasoning: docs/css-ownership.md
- */
+ *//*!
+ * marquee.css — behavioural styles only. Item size, gap and colour come from
+ * the Designer classes on the Collection List.
+ *
+ * Every rule is gated on data-rc-state, which only the JS stamps: a list
+ * without JS (or with reduced motion) keeps whatever layout Designer gave it.
+ */[data-rc~=marquee][data-rc-state]{display:flex;overflow:hidden}[data-rc~=marquee][data-rc-state]>[data-rc-part=track],[data-rc~=marquee][data-rc-state]>[aria-hidden=true]{flex:none;animation:rc-marquee var(--rc-marquee-duration, 20s) linear infinite}[data-rc~=marquee][data-rc-direction=right][data-rc-state]>*{animation-direction:reverse}[data-rc~=marquee][data-rc-state=paused]>*,[data-rc~=marquee][data-rc-state]:focus-within>*{animation-play-state:paused}@media(hover:hover){[data-rc~=marquee][data-rc-pause-on-hover][data-rc-state]:hover>*{animation-play-state:paused}}@keyframes rc-marquee{to{transform:translate(calc(-1 * var(--rc-marquee-distance, 100%)))}}
