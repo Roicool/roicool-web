@@ -28,7 +28,14 @@ interaction kullanılacaksa `head.template.html`'den o blok kaldırılır.
 **Şu an geliştirme modu:** `head.html` `@main`'e bakar. Her commit `main`'e
 gider ve site oradan okur; `head.html` yalnız şablon ya da kritik CSS
 değişince yeniden yapıştırılır. jsDelivr dalı 12 saate kadar cache'lediği
-için bir push'u hemen görmek istersen `npm run purge`.
+için bir push'u hemen görmek istersen `npm run purge` — `dist/` değişen her
+`main` push'unda Actions bunu zaten otomatik yapıyor.
+
+**Tarayıcı da 12 saat tutar.** jsDelivr dal dosyalarına `max-age` 12 saat
+veriyor; purge CDN'i temizler, senin tarayıcındaki kopyayı temizlemez. Test
+ederken DevTools › Network › **Disable cache** açık olsun, yoksa eski
+`rc.css`/`rc.js` ile bakarsın ve "çalışmıyor" sanırsın. Yaşandı: marquee JS'i
+bağlanmış, CSS'i eski dosyada yoktu.
 
 Site canlıya çıkınca sürüm tag'lerine geçilir; o zaman her sürümde
 `head.html` yeniden yapıştırılır. İki modun tanımı:
