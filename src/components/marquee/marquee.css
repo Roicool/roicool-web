@@ -4,12 +4,48 @@
  *
  * Every rule is gated on data-rc-state, which only the JS stamps: a list
  * without JS (or with reduced motion) keeps whatever layout Designer gave it.
+ * Play state (pause on hover, focus, drag) is not here — marquee.js drives it
+ * through the Web Animations API, and a CSS animation-play-state would be
+ * ignored once that API has touched the animation.
  */
 
-/* MECHANIC — the two tracks sit side by side and the wrapper clips. */
+/* MECHANIC — the two tracks sit side by side and the wrapper clips. A
+   horizontal swipe belongs to the strip, a vertical one to the page. */
 [data-rc~="marquee"][data-rc-state] {
   display: flex;
   overflow: hidden;
+  touch-action: pan-y;
+}
+
+/* LOOK — the strip fades in and out at the edges. --rc-marquee-fade is set
+   from data-rc-fade (a length or a percentage); "0" turns the fade off. */
+:where([data-rc~="marquee"][data-rc-state]) {
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent,
+    #000 var(--rc-marquee-fade, 10%),
+    #000 calc(100% - var(--rc-marquee-fade, 10%)),
+    transparent
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    #000 var(--rc-marquee-fade, 10%),
+    #000 calc(100% - var(--rc-marquee-fade, 10%)),
+    transparent
+  );
+}
+
+/* LOOK — the strip can be dragged unless data-rc-drag="false". */
+:where([data-rc~="marquee"][data-rc-state]:not([data-rc-drag="false"])) {
+  cursor: grab;
+}
+
+/* MECHANIC — while dragging nothing gets selected and the hand closes. */
+[data-rc~="marquee"][data-rc-state="dragging"] {
+  cursor: grabbing;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 /* MECHANIC — each track keeps its natural width and slides by exactly one
@@ -23,18 +59,6 @@
 
 [data-rc~="marquee"][data-rc-direction="right"][data-rc-state] > * {
   animation-direction: reverse;
-}
-
-/* Pause: explicit state, keyboard focus inside, or hover when asked for. */
-[data-rc~="marquee"][data-rc-state="paused"] > *,
-[data-rc~="marquee"][data-rc-state]:focus-within > * {
-  animation-play-state: paused;
-}
-
-@media (hover: hover) {
-  [data-rc~="marquee"][data-rc-pause-on-hover][data-rc-state]:hover > * {
-    animation-play-state: paused;
-  }
 }
 
 @keyframes rc-marquee {

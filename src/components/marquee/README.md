@@ -33,15 +33,38 @@ basar. Görseller yüklendikçe yeniden ölçer.
 
 ## Ayarlar (Wrapper'da)
 
-| Attribute                | Değer            | Ne yapar                                        |
-| ------------------------ | ---------------- | ----------------------------------------------- |
-| `data-rc-speed`          | px/saniye, `70`  | Kayma hızı. Site genelinde aynı tut             |
-| `data-rc-direction`      | `left` / `right` | Yön. Varsayılan sola                            |
-| `data-rc-pause-on-hover` | —                | Fare üstündeyken durur (yalnız pointer:fine'da) |
-| `data-rc-eager`          | —                | Görünüre girmeyi beklemeden yükle               |
+| Attribute                | Değer              | Ne yapar                                               |
+| ------------------------ | ------------------ | ------------------------------------------------------ |
+| `data-rc-speed`          | px/saniye, `70`    | Kayma hızı. Site genelinde aynı tut                    |
+| `data-rc-direction`      | `left` / `right`   | Yön. Varsayılan sola                                   |
+| `data-rc-pause-on-hover` | —                  | Fare üstündeyken durur (yalnız fare; parmak değil)     |
+| `data-rc-drag`           | `false`            | Sürüklemeyi kapatır; yoksa açık                        |
+| `data-rc-fade`           | `10%`, `4rem`, `0` | Kenar solması genişliği; `0` kapatır. Varsayılan `10%` |
+| `data-rc-eager`          | —                  | Görünüre girmeyi beklemeden yükle                      |
 
 Süre otomatik: `mesafe ÷ hız`. 1500px'lik bir şerit 70 px/s'de ~21 saniyede
 döner — Square'in ölçtüğü değer.
+
+## Sürükleme
+
+Basınca şerit durur, parmak/fare ne kadar giderse şerit o kadar kayar,
+bırakınca sürtünmeyle süzülür ve durunca kendiliğinden yeniden akar. Mekanik:
+CSS animasyonu yerinde kalır, kod yalnız animasyonun `currentTime`'ını kaydırır
+(hız px/s olduğundan `Δt = dx ÷ hız`, şerit uzunluğundan bağımsız). Inline
+transform yok, animasyona geri devir yok.
+
+- 4px'ten az hareket eden basış tıklamadır: içerideki linkler çalışır. Sürükleme
+  sonrası ilk tıklama yutulur (yanlışlıkla link açılmasın).
+- Dokunmatikte yatay kaydırma şeride, dikey kaydırma sayfaya gider
+  (`touch-action: pan-y`).
+- Durdurma sebepleri (hover, odak, basış) tek kümede tutulur; küme boşalınca
+  akar. Hover'da basıp bırakınca fare üstündeyken durmaya devam eder.
+
+## Kenar solması
+
+Wrapper'a `mask-image` ile iki uçta saydamlık: `--rc-marquee-fade` genişliğinde
+(varsayılan `10%`). `data-rc-fade` değeri sayı ise yüzde, birimli ise olduğu
+gibi. `:where()` ile yazıldığından Designer'daki bir mask onu ezer.
 
 ## JS yoksa, hareket azaltılmışsa
 
@@ -54,8 +77,11 @@ döner — Square'in ölçtüğü değer.
 
 - Klon `aria-hidden="true"`; içindeki linkler `tabindex="-1"`. Ekran okuyucu
   ve klavye yalnız orijinal listeyi görür.
-- Şeridin içindeki bir link odak alınca şerit **durur** (`:focus-within`) —
-  klavye kullanıcısı hareket eden hedefi kovalamaz.
+- Şeridin içindeki bir link **klavyeyle** odak alınca (`:focus-visible`) şerit
+  durur, odak çıkınca sürer — klavye kullanıcısı hareket eden hedefi kovalamaz.
+  Fareyle basınca oluşan odak durdurmaz; yoksa sürükleme sonrası şerit başka
+  bir yere tıklanana kadar dururdu.
+- Sürükleme yalnız işaretçi içindir; klavye için gerekmez, içerik zaten döner.
 - Logolar için Collection Item içindeki `img`'e anlamlı `alt` (marka adı).
   Dekoratif sayılıyorsa `alt=""`.
 
