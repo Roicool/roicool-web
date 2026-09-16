@@ -54,18 +54,21 @@ değiştirir. Bu, "Embed kullanmıyoruz" kuralının bilinçli tek istisnası.
 
 ### Tile grid (Designer'da)
 
-`secondary` → Grid, **11 kolon × 5 satır**, `place-items: center`, satır 3'te
-başlık (`grid-column: 1 / -1`). Tile'lar tek kolonlarda, satır 1-2-4-5;
-merkez = satır 4 kolon 6 → o tile'a `tile-center` (hep görünür). Kare:
+`secondary` → Grid, **9 kolon × 5 satır**, `place-items: center`, satır 3'te
+başlık (`grid-column: 1 / -1`). 18 tile tuğla dizilimiyle, satır 1-2-4-5;
+merkez = satır 4 kolon 5 → o tile'a `tile-center` (hep görünür). Kare:
 `aspect-ratio: 1/1`, `overflow: clip`, image `object-fit: cover`.
 
 ```
-row1:  .  ■  .  ■  .  ■  .  ■  .  ■  .
-row2:  ■  .  ■  .  ■  .  ■  .  ■  .  ■
-row3:  ─────────── h2 ───────────
-row4:  ■  .  ■  .  ■  .  ■  .  ■  .  ■      ← kolon 6 = tile-center
-row5:  .  ■  .  ■  .  ■  .  ■  .  ■  .
+        c1 c2 c3 c4 c5 c6 c7 c8 c9
+row1:    .  ■  .  ■  .  ■  .  ■  .      tile 1-4    (kolon 2,4,6,8)
+row2:    ■  .  ■  .  ■  .  ■  .  ■      tile 5-9    (kolon 1,3,5,7,9)
+row3:    ──────────── h2 ────────────
+row4:    ■  .  ■  .  ■  .  ■  .  ■      tile 10-14  (kolon 1,3,5,7,9) — 12 = merkez
+row5:    .  ■  .  ■  .  ■  .  ■  .      tile 15-18  (kolon 2,4,6,8)
 ```
+
+Tile numaraları DOM sırası (Navigator'daki sıra). 12. tile `is-center`.
 
 Mobilde kadraj: `secondary` genişliği breakpoint'e göre **250% → 225% →
 200% → 150% → 100%** (≤374 / ≤740 / ≤1024 / ≤1280 / üstü), yatayda
