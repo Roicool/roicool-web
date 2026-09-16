@@ -28,6 +28,23 @@ API, registered scripts, MCP üzerinden siteye yazma — hiçbiri. Önerme bile.
    çalışmaya devam eder.
 6. **Tek global:** `window.rc`. Başka global yok, `window` kirletilmez.
 
+## Webflow kısıtları
+
+**Collection List üç katmandır ve araya hiçbir şey konamaz:**
+
+```
+Collection List Wrapper   .w-dyn-list
+  Collection List         .w-dyn-items
+    Collection Item       .w-dyn-item
+```
+
+Designer bu üçünün arasına eleman eklemeye izin vermez; sarmalayıcı div,
+track div, ara katman — hiçbiri. CMS'ten beslenen her component bu yapıyı
+olduğu gibi kabul etmek zorunda: kök attribute wrapper'a, parça attribute'ları
+list ve item'a gider; kod ek bir sarmalayıcı gerekiyorsa onu **kendisi**
+oluşturur (klonlama, sibling ekleme), Designer'dan istemez. Wrapper'ın altında
+`.w-dyn-empty` (boş durum) div'i de bulunabilir — list'i seçerken ona takılma.
+
 ## İsimlendirme
 
 Ayrıntı [`docs/naming.md`](./docs/naming.md)'de. Özet:
