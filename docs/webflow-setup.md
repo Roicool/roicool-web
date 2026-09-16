@@ -46,6 +46,25 @@ Site canlıya çıkınca sürüm tag'lerine geçilir; o zaman her sürümde
 `head.html` yeniden yapıştırılır. İki modun tanımı:
 [`architecture.md › Sürümleme`](./architecture.md#sürümleme).
 
+## Performans — Webflow tarafı
+
+PageSpeed'de bizim dosyalarımız boyamayı bekletmez; bekleten şeyler Webflow'un
+kendi yükleridir. Elimizdekiler:
+
+- **Font.** Google Fonts seçiliyse Webflow `webfont.js` + Google CSS + woff2
+  zincirini render-blocking yükler ve font değişince metin zıplar (CLS). Fonts
+  ayarından fontu **özel font** olarak yükle (woff2, yalnız kullanılan
+  ağırlıklar), Google Fonts girdisini kaldır. Webflow özel fontu kendi CSS'inden
+  `font-display: swap` ile verir; iki origin ve bir script zincirden düşer.
+- **jQuery + `webflow.js`** Webflow'un runtime'ıdır (form, dropdown, tabs).
+  Kaldırılamaz; küçük ve cache'lenir.
+- **Preconnect sayısı.** Webflow kendi CDN'leri için ekliyor; biz dist origin'i
+  ve `cdn.jsdelivr.net` (GSAP, Lenis) için ekliyoruz. Google Fonts gidince
+  ikisi düşer.
+- **Görseller.** Her `img`'de `width`/`height` (Webflow CMS görsellerinde
+  otomatik), `loading="lazy"` ekran dışındakilere; hero video `poster`'ı
+  `preload="metadata"` ile.
+
 ## Sayfaya component eklemek
 
 Sayfa bazında custom code yok. Component eklemek attribute yazmaktan ibaret:

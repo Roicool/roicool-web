@@ -12,7 +12,8 @@ Section   [data-rc="hero" data-rc-eager]                      ← track, 300svh 
       Embed  <video …>                                        ← aşağıda
       Div [data-rc-part="shade"]                              ← boş div, karartma
       Div [data-rc-part="grain"]                              ← boş div, grain
-    Div   [data-rc-part="primary"]                            ← h1 + CTA, stage'i doldurur, ortalanmış
+    Div   [data-rc-part="primary"]                            ← tag + h1 + CTA, stage'i doldurur, ortalanmış
+      Div [data-rc-part="tag"]                                ← isteğe bağlı küçük etiket, h1'in üstünde
       H1  [data-rc-part="title"]
       Div [data-rc-part="actions"]                            ← içine butonlar
     Div   [data-rc-part="footer"]                             ← alta yapışır; içine marquee; scroll'da küçülüp kaybolur
@@ -25,6 +26,11 @@ Section   [data-rc="hero" data-rc-eager]                      ← track, 300svh 
 **Katman sırası** (z-index, Designer'da): media 1 · secondary 2 · primary 3 ·
 footer 4. Secondary media'nın üstünde ama primary'nin altında; scroll'da media
 küçülüp kırpılırken ve primary solarken secondary altından çıkar.
+
+**Düzen kayması:** `media`, `primary`, `secondary` ve `footer` Designer'da
+`position: absolute` olsun (footer: `bottom: 0; left: 0; width: 100%`). Kod
+footer, shade ve grain için bunu kritik CSS'te de verir; verilmediğinde footer
+`rc.css` gelene kadar stage'in tepesinde durup sonra alta zıplıyordu (CLS 0.3).
 
 **Pin kuralı:** `stage`'in hiçbir üst elemanında `transform`, `filter`,
 `perspective`, `will-change: transform` olmasın (page wrapper'lar dahil).
@@ -122,19 +128,21 @@ custom code'una bir `<style>` ile):
 
 ## Koreografi
 
-**Açılış (zamana bağlı, GSAP gelir gelmez):** h1 kelimeleri + CTA'lar opacity
-.2→1, 2rem yükselir; 1 sn, öğe başına 0.05 sn gecikme, `power3.out`. Scroll'a
-bağlı değil; sayfa kaydırılmış açılırsa aşağıdaki çıkış devralır.
+**Açılış (zamana bağlı, GSAP gelir gelmez):** `tag`, `title` ve `actions` üç
+blok halinde, sırayla: opacity 0→1, 1.5rem yükselir; blok başına 0.9 sn, 0.12
+sn arayla, `power3.out`. Kelime kelime değil; h1 bölünmez. Scroll'a bağlı
+değil; sayfa kaydırılmış açılırsa aşağıdaki çıkış devralır. Bitince üç
+elemanda inline stil kalmaz (butonların Designer'daki hover'ı ezilmesin).
 
 **Scroll (0 → 1 = track − stage, varsayılan 200svh; scrub 0.6 sn gecikmeli):**
 
-| Aralık   | Ne                                                                    |
-| -------- | --------------------------------------------------------------------- |
-| .3 → .36 | media'nın köşeleri tile yarıçapına yuvarlanır (kırpma başlamadan)     |
-| .36 → .7 | media merkez tile'ın kutusuna kırpılır (`power2.inOut`); h1/CTA solar |
-| .3 → .54 | footer alt-ortadan %70'e küçülür ve solar (`power2.in`)               |
-| .4 → .9  | h2 kelimeleri: opacity .2→1, `min(10rem, 20svh)` yükselir             |
-| .4 → .86 | tile'lar: scale .25→1 + görünür; iç img 1.5→1                         |
+| Aralık   | Ne                                                                     |
+| -------- | ---------------------------------------------------------------------- |
+| .3 → .36 | media'nın köşeleri tile yarıçapına yuvarlanır (kırpma başlamadan)      |
+| .36 → .7 | media merkez tile'ın kutusuna kırpılır (`power2.inOut`); primary solar |
+| .3 → .54 | footer alt-ortadan %70'e küçülür ve solar (`power2.in`)                |
+| .4 → .9  | h2 kelimeleri: opacity .2→1, `min(10rem, 20svh)` yükselir              |
+| .4 → .86 | tile'lar: scale .25→1 + görünür; iç img 1.5→1                          |
 
 Video ilk açılışı saf CSS (`@starting-style`): opacity 3s + radial mask 20s.
 
@@ -147,6 +155,9 @@ oraya kırpılır; breakpoint değişimi ve font yüklenmesi hizayı bozmaz.
 
 - **JS yok:** başlangıç durumları `.rc-js`'e bağlı → her şey görünür, düz
   section. Video poster'ıyla durur.
+- **`rc.js` gelmezse** (CDN kesik): `.rc-js` var ama durum basılmaz; kritik
+  CSS'teki `rc-hero-reveal` animasyonu 3 sn sonra her şeyi saf CSS ile açar.
+  Hiçbir şey bir script uğruna gizli kalmaz.
 - **Reduced motion:** başlangıç durumları `no-preference` içinde → hiçbir şey
   gizli başlamaz; kod timeline kurmaz, yalnız videoyu yönetir.
 - **GSAP CDN'den gelmezse:** kök `data-rc-state="static"` alır, başlangıç
@@ -154,9 +165,9 @@ oraya kırpılır; breakpoint değişimi ve font yüklenmesi hizayı bozmaz.
 
 ## Erişilebilirlik
 
-- SplitText `aria: "auto"`: h1/h2 tam metni `aria-label` olarak taşır,
-  kelime span'ları `aria-hidden`. Ekran okuyucu bölünmemiş metni okur; bot
-  HTML'de bölünmemiş metni görür (bölme yalnız istemcide).
+- Yalnız h2 bölünür (SplitText `aria: "auto"`: tam metin `aria-label`'da,
+  kelime span'ları `aria-hidden`). h1 olduğu gibi kalır. Ekran okuyucu
+  bölünmemiş metni okur; bot HTML'de bölünmemiş metni görür.
 - Video `muted` + `playsinline`; hero'nun herhangi bir parçası ekrandayken
   hep oynar (pin'in DOM taşıması ya da sekme değişimi durdurursa bir sonraki
   karede yeniden başlar), ekran dışında durur. `aria-hidden` verme — poster ve

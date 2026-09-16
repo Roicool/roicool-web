@@ -25,12 +25,7 @@
   overflow: clip;
 }
 
-[data-rc~="hero"] [data-rc-part="shade"],
-[data-rc~="hero"] [data-rc-part="grain"] {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-}
+/* Shade and grain are positioned in hero.critical.css (first paint). */
 
 /* Darkening layer: black at (1 − brightness). */
 [data-rc~="hero"] [data-rc-part="shade"] {
@@ -56,12 +51,4 @@
 [data-rc~="hero"][data-rc-state="armed"] [data-rc-part="media"],
 [data-rc~="hero"][data-rc-state="armed"] [data-rc-part="grain"] {
   pointer-events: none;
-}
-
-/* LOOK — the marquee slot sits at the bottom edge of the stage. */
-:where([data-rc~="hero"] [data-rc-part="footer"]) {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
 }

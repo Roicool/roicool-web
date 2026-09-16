@@ -3,15 +3,15 @@
  *
  * Inlined into the head by the build. Two groups:
  *   – track and stage heights, so the pin later adds no layout shift;
- *   – start states of everything the scroll timeline animates, so nothing
- *     flashes resolved and then jumps back.
+ *   – start states of everything the entrance and the scroll timeline
+ *     animate, so nothing flashes resolved and then jumps back.
  *
  * Every start state is gated three ways: JS confirmed (.rc-js), motion not
  * reduced, and the root carrying no data-rc-state yet. hero.js stamps a state
  * as its last step — "armed" once every animated element holds its start
  * values inline, "static" when GSAP never arrived — and either releases these
- * rules. Without that the title and heading would stay dimmed underneath
- * their animated words.
+ * rules. Should rc.js itself never arrive, the rc-hero-reveal animation lets
+ * everything in after three seconds: nothing stays hidden for want of a script.
  */
 
 [data-rc~="hero"] {
@@ -42,6 +42,25 @@
   object-fit: cover;
 }
 
+/* Layers that must sit where they belong from the first paint. These live
+   here rather than in rc.css: arriving with the stylesheet, the footer alone
+   jumped a full viewport (a 0.3 layout shift). */
+[data-rc~="hero"] [data-rc-part="shade"],
+[data-rc~="hero"] [data-rc-part="grain"] {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* LOOK — the marquee slot at the bottom edge of the stage; Designer's own
+   positioning on the class wins. */
+:where([data-rc~="hero"] [data-rc-part="footer"]) {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+}
+
 /* First-paint video reveal — opacity and a radial mask that opens. */
 [data-rc~="hero"] [data-rc-part="media"] video {
   opacity: 1;
@@ -61,10 +80,13 @@
 }
 
 @media (prefers-reduced-motion: no-preference) {
+  /* Entrance: tag, title and CTAs come in as three blocks (hero.js). */
+  .rc-js [data-rc~="hero"]:not([data-rc-state]) [data-rc-part="tag"],
   .rc-js [data-rc~="hero"]:not([data-rc-state]) [data-rc-part="title"],
-  .rc-js [data-rc~="hero"]:not([data-rc-state]) [data-rc-part="actions"] > * {
-    opacity: 0.2;
-    transform: translateY(2rem);
+  .rc-js [data-rc~="hero"]:not([data-rc-state]) [data-rc-part="actions"] {
+    opacity: 0;
+    transform: translateY(1.5rem);
+    animation: rc-hero-reveal 0.6s 3s both;
   }
 
   .rc-js
@@ -75,12 +97,14 @@
     /* Same formula as secondaryRise() in hero.js: 10rem, capped on short
        viewports so the heading never starts below the fold. */
     transform: translateY(min(10rem, 20svh));
+    animation: rc-hero-reveal 0.6s 3s both;
   }
 
   .rc-js [data-rc~="hero"]:not([data-rc-state]) [data-rc-part="tile"] {
     opacity: 0;
     visibility: hidden;
     transform: scale(0.25);
+    animation: rc-hero-reveal 0.6s 3s both;
   }
 
   .rc-js
@@ -88,5 +112,14 @@
     [data-rc-part="tile"]
     img:not([src$=".svg"]) {
     transform: scale(1.5);
+    animation: rc-hero-reveal 0.6s 3s both;
+  }
+
+  @keyframes rc-hero-reveal {
+    to {
+      opacity: 1;
+      visibility: visible;
+      transform: none;
+    }
   }
 }

@@ -27,6 +27,16 @@ Designer'da ayarlanacaklar:
   görünür.
 - Wrapper'a genişlik verme; sayfa genişliğinde durur ve taşanı kırpar.
 
+**Düzen kayması (CLS) olmasın diye**, JS'ten önceki görünüm JS'ten sonrakiyle
+aynı olmalı:
+
+- Wrapper Designer'da da `display: flex`, `overflow: hidden` olsun; kod aynı
+  değerleri basar, hiçbir şey kımıldamaz.
+- List `flex-wrap: nowrap`, item'lar `flex-shrink: 0` (utility: `flex-0`).
+- Her logo `img`'inde `width` ve `height` attribute'ları bulunsun (CMS
+  görsellerinde Webflow ekler; elle konan görselde kontrol et). Yoksa görsel
+  gelene kadar item 0px, gelince genişler — kayma.
+
 Kod ne yapar: List'i bir kez klonlar (`aria-hidden`, odaklanamaz), Wrapper'ın
 içine ekler, genişliği ölçer, hızdan süreyi hesaplar, `data-rc-state="running"`
 basar. Görseller yüklendikçe yeniden ölçer.

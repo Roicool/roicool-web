@@ -2,7 +2,8 @@
  * hero.js — the scroll-choreographed, pinned home hero.
  *
  * Reconstructed from squareup.com's HomePageV3Hero. Two movements:
- *   – on load, the title words and CTAs rise into place (time-based);
+ *   – on load, the tag, the title and the CTAs rise into place as three
+ *     blocks (time-based);
  *   – on scroll, with the stage pinned for the length of the track, the video
  *     is clipped down into the centre tile of a mosaic that scales in around
  *     it while the second heading rises (GSAP ScrollTrigger, scrubbed).
@@ -31,8 +32,16 @@ import {
 import { prefersReducedMotion, loadGsap } from "../../runtime/motion.js";
 import { warn } from "../../runtime/log.js";
 
-/** Entrance on load: title words and CTAs rise into place. Not scroll-bound. */
-const INTRO = { duration: 1, stagger: 0.05, rise: "2rem", ease: "power3.out" };
+/**
+ * Entrance on load: tag, title and CTAs rise into place one block after the
+ * other. Not scroll-bound. Start values match hero.critical.css.
+ */
+const INTRO = {
+  duration: 0.9,
+  stagger: 0.12,
+  rise: "1.5rem",
+  ease: "power3.out",
+};
 
 /**
  * Scroll timeline, 0 → 1 over the track. Values follow the source site.
@@ -195,9 +204,10 @@ export default async function hero(root) {
   // the pin on every such resize makes it jump.
   ScrollTrigger.config({ ignoreMobileResize: true });
 
+  const primary = part(root, "primary");
+  const tag = part(root, "tag");
   const title = part(root, "title");
   const actions = part(root, "actions");
-  const actionItems = actions ? Array.from(actions.children) : [];
   const media = part(root, "media");
   const footer = part(root, "footer");
   const tileCenter = part(root, "tile-center");
@@ -207,28 +217,29 @@ export default async function hero(root) {
     .map((tile) => tile.querySelector("img:not([src$='.svg'])"))
     .filter(Boolean);
 
-  const titleWords = splitWords(SplitText, title);
+  // Only the second heading is split: its words rise with the scroll. The
+  // title moves as one block and keeps its markup untouched.
   const headingWords = splitWords(SplitText, heading);
 
   // Snapping is on unless the root says data-rc-snap="false".
   const snapOn = option(root, "snap") === null || flagOption(root, "snap");
 
-  // Entrance. The words and CTAs sit dimmed and low from the critical CSS;
-  // from here they rise into place. A visitor who arrives already scrolled
-  // simply sees the exit below take over.
+  // Entrance. Tag, title and CTAs sit invisible and low from the critical
+  // CSS; from here they rise into place one after the other. A visitor who
+  // arrives already scrolled simply sees the exit below take over.
+  const entrance = [tag, title, actions].filter(Boolean);
   gsap.fromTo(
-    [...titleWords, ...actionItems],
-    { opacity: 0.2, y: INTRO.rise },
+    entrance,
+    { opacity: 0, y: INTRO.rise },
     {
       opacity: 1,
       y: 0,
       duration: INTRO.duration,
       stagger: INTRO.stagger,
       ease: INTRO.ease,
-      // The CTAs must end with no inline styles: an inline transform would
-      // override the buttons' own :hover and :active transforms from Designer.
-      onComplete: () =>
-        gsap.set(actionItems, { clearProps: "opacity,transform" }),
+      // Nothing inline once done: an inline transform on the CTA row would
+      // outrank the buttons' own :hover and :active transforms from Designer.
+      onComplete: () => gsap.set(entrance, { clearProps: "opacity,transform" }),
     },
   );
 
@@ -283,8 +294,10 @@ export default async function hero(root) {
       },
       MEDIA_EXIT.start + cornerDuration,
     )
+    // The whole primary layer fades, not its children: the entrance above
+    // owns the children's opacity, and two tweens must never share a target.
     .fromTo(
-      [title, actions].filter(Boolean),
+      primary ? [primary] : [title, actions].filter(Boolean),
       { opacity: 1 },
       { opacity: 0, duration: MEDIA_EXIT.duration },
       MEDIA_EXIT.start,

@@ -55,13 +55,20 @@ export async function loadGsap(pluginNames = []) {
 
   pending = (async () => {
     try {
-      const { gsap } = await import(`${GSAP_BASE}index.js`);
+      // Core and plugins in flight together: every extra round trip here
+      // lands directly on the hero's start.
+      const [core, ...plugins] = await Promise.all([
+        import(`${GSAP_BASE}index.js`),
+        ...pluginNames.map(
+          (name) => import(`${GSAP_BASE}${PLUGIN_FILES[name]}`),
+        ),
+      ]);
+      const { gsap } = core;
       const result = { gsap };
-      for (const name of pluginNames) {
-        const module = await import(`${GSAP_BASE}${PLUGIN_FILES[name]}`);
-        result[name] = module[name];
-        gsap.registerPlugin(module[name]);
-      }
+      pluginNames.forEach((name, index) => {
+        result[name] = plugins[index][name];
+        gsap.registerPlugin(plugins[index][name]);
+      });
       // Scroll-driven work must read the smoothed scroll position.
       if (result.ScrollTrigger) bindScrollTrigger(gsap, result.ScrollTrigger);
       return result;
