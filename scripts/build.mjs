@@ -147,10 +147,20 @@ async function buildHead() {
     await readFile(path.join(root, "package.json"), "utf8"),
   );
   const ref = cdnRef(manifest);
+  // A component whose initial state must exist before first paint (anything
+  // above the fold that starts hidden or pinned) ships it as
+  // <name>.critical.css; it rides along inline instead of waiting for rc.css.
+  const components = await findComponents();
   const critical =
-    (await minifyStyles([path.join(src, "base", "critical.css")], {
-      keepHeaders: false,
-    })) ?? "";
+    (await minifyStyles(
+      [
+        path.join(src, "base", "critical.css"),
+        ...components.map((name) =>
+          path.join(src, "components", name, `${name}.critical.css`),
+        ),
+      ],
+      { keepHeaders: false },
+    )) ?? "";
 
   for (const placeholder of ["{{cdn-ref}}", "{{critical-css}}"]) {
     if (!template.includes(placeholder)) {

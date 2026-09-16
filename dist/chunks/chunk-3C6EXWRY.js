@@ -1,0 +1,2 @@
+var d=window.matchMedia("(prefers-reduced-motion: reduce)");function l(){return d.matches}var i="https://cdn.jsdelivr.net/npm/gsap@3.13.0/",u={ScrollTrigger:"ScrollTrigger.js",SplitText:"SplitText.js"},a=new Map;async function p(n=[]){let r=[...n].sort().join(","),e=a.get(r);return e||(e=(async()=>{try{let{gsap:o}=await import(`${i}index.js`),s={gsap:o};for(let t of n){let c=await import(`${i}${u[t]}`);s[t]=c[t],o.registerPlugin(c[t])}return s}catch{return null}})(),a.set(r,e),e)}export{l as a,p as b};
+//# sourceMappingURL=chunk-3C6EXWRY.js.map
