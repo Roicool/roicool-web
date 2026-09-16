@@ -97,10 +97,12 @@ düzenlenmez; kaynağı `head.template.html`.
 belirler:
 
 - **`"main"` — geliştirme modu (şu an).** Her commit `main`'e push edilir,
-  site oradan okur. jsDelivr dal referanslarını 12 saate kadar cache'ler;
-  değişikliği hemen görmek için `npm run purge`. `head.html` yalnız kritik CSS
-  ya da şablon değişince yeniden yapıştırılır.
-- **`"tag"` — üretim modu.** URL'ler `v<sürüm>`'e sabitlenir:
+  site oradan okur; dosyalar `raw.githack.com` üzerinden gelir (CDN cache'i
+  yok, araya yalnız GitHub'ın 5 dakikalık raw cache'i girer). Değişikliği
+  görmek için hard reload. `head.html` yalnız kritik CSS ya da şablon
+  değişince yeniden yapıştırılır. jsDelivr bu modda kullanılmaz: dal
+  referanslarını 12 saat cache'ler, purge'ü dallarda güvenilir değil.
+- **`"tag"` — üretim modu.** URL'ler jsDelivr'da `v<sürüm>`'e sabitlenir:
   `npm version minor && git push --follow-tags`, sonra `head.html`
   yapıştırılır. `patch` = düzeltme, `minor` = yeni component/özellik,
   `major` = attribute sözleşmesinde kırıcı değişiklik.

@@ -19,22 +19,15 @@
   document.documentElement.classList.add("rc-js");
 </script>
 <style>{{critical-css}}</style>
-<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+<link rel="preconnect" href="{{cdn-origin}}" crossorigin />
 <link
   rel="preload"
   as="style"
   crossorigin
-  href="https://cdn.jsdelivr.net/gh/roicool/roicool-web@{{cdn-ref}}/dist/rc.css"
+  href="{{cdn-base}}rc.css"
   onload="this.onload = null; this.rel = 'stylesheet'"
 />
 <noscript>
-  <link
-    rel="stylesheet"
-    crossorigin
-    href="https://cdn.jsdelivr.net/gh/roicool/roicool-web@{{cdn-ref}}/dist/rc.css"
-  />
+  <link rel="stylesheet" crossorigin href="{{cdn-base}}rc.css" />
 </noscript>
-<script
-  type="module"
-  src="https://cdn.jsdelivr.net/gh/roicool/roicool-web@{{cdn-ref}}/dist/rc.js"
-></script>
+<script type="module" src="{{cdn-base}}rc.js"></script>

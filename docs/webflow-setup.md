@@ -27,15 +27,20 @@ interaction kullanılacaksa `head.template.html`'den o blok kaldırılır.
 
 **Şu an geliştirme modu:** `head.html` `@main`'e bakar. Her commit `main`'e
 gider ve site oradan okur; `head.html` yalnız şablon ya da kritik CSS
-değişince yeniden yapıştırılır. jsDelivr dalı 12 saate kadar cache'lediği
-için bir push'u hemen görmek istersen `npm run purge` — `dist/` değişen her
-`main` push'unda Actions bunu zaten otomatik yapıyor.
+değişince yeniden yapıştırılır. Dosyalar `raw.githack.com` üzerinden gelir:
+CDN cache'i yok, araya yalnız GitHub'ın 5 dakikalık raw cache'i girer. Push'tan
+en geç 5 dakika sonra yeni kod yayında; purge yok, Action yok.
 
-**Tarayıcı da 12 saat tutar.** jsDelivr dal dosyalarına `max-age` 12 saat
-veriyor; purge CDN'i temizler, senin tarayıcındaki kopyayı temizlemez. Test
-ederken DevTools › Network › **Disable cache** açık olsun, yoksa eski
-`rc.css`/`rc.js` ile bakarsın ve "çalışmıyor" sanırsın. Yaşandı: marquee JS'i
-bağlanmış, CSS'i eski dosyada yoktu.
+**Tarayıcı da 5 dakika tutar.** Test ederken hard reload (Ctrl+Shift+R, Mac'te
+Cmd+Shift+R) ya da DevTools › Network › **Disable cache** — bu seçenek yalnız
+DevTools paneli açıkken işler. Eski `rc.css`/`rc.js` ile bakıp "çalışmıyor"
+sanmak bugüne kadarki en sık yanılgı; şüphede konsolda dosyaya doğrudan bağlı
+bir değere bak: `typeof rc.lenis` (`object` → runtime yeni) gibi.
+
+**jsDelivr neden değil:** dal referanslarını 12 saat cache'ler ve purge API'si
+dallarda güvenilir değil; "finished" dönen purge'lerden sonra bile eski dosya
+servis edildi. Üretim modunda (`tag`) jsDelivr kullanılır, çünkü orada dosyalar
+değişmez.
 
 Site canlıya çıkınca sürüm tag'lerine geçilir; o zaman her sürümde
 `head.html` yeniden yapıştırılır. İki modun tanımı:

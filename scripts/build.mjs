@@ -9,8 +9,9 @@
  *   dist/rc.js + components/   the runtime (deferred) and one chunk per
  *                              component, fetched on demand
  *
- * dist/ and head.html are committed: jsDelivr serves dist/ straight from the
- * repository, and head.html is what the Webflow head must match exactly.
+ * dist/ and head.html are committed: the CDN (see cdn-ref.mjs) serves dist/
+ * straight from the repository, and head.html is what the Webflow head must
+ * match exactly.
  *
  * Sources that do not exist yet are skipped, so the build runs clean while
  * src/ is still being written and reports what it found.
@@ -27,7 +28,7 @@ import {
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 import * as esbuild from "esbuild";
-import { cdnRef } from "./cdn-ref.mjs";
+import { cdnLocation } from "./cdn-ref.mjs";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
 const src = path.join(root, "src");
@@ -136,7 +137,7 @@ async function buildStylesheet(components) {
 
 /**
  * head.html = head.template.html with the critical CSS inlined and the CDN
- * ref stamped into every URL. Both placeholders must be present in the
+ * location stamped into every URL. Every placeholder must be present in the
  * template; a silent no-op here would ship a broken head.
  */
 async function buildHead() {
@@ -147,7 +148,7 @@ async function buildHead() {
   const manifest = JSON.parse(
     await readFile(path.join(root, "package.json"), "utf8"),
   );
-  const ref = cdnRef(manifest);
+  const { ref, origin, base } = cdnLocation(manifest);
   // A component whose initial state must exist before first paint (anything
   // above the fold that starts hidden or pinned) ships it as
   // <name>.critical.css; it rides along inline instead of waiting for rc.css.
@@ -163,7 +164,13 @@ async function buildHead() {
       { keepHeaders: false },
     )) ?? "";
 
-  for (const placeholder of ["{{cdn-ref}}", "{{critical-css}}"]) {
+  const placeholders = [
+    "{{cdn-ref}}",
+    "{{cdn-origin}}",
+    "{{cdn-base}}",
+    "{{critical-css}}",
+  ];
+  for (const placeholder of placeholders) {
     if (!template.includes(placeholder)) {
       throw new Error(`head.template.html is missing ${placeholder}`);
     }
@@ -171,10 +178,12 @@ async function buildHead() {
 
   const html = template
     .replaceAll("{{cdn-ref}}", ref)
+    .replaceAll("{{cdn-origin}}", origin)
+    .replaceAll("{{cdn-base}}", base)
     .replace("{{critical-css}}", critical);
 
   await writeFile(path.join(embeds, "head.html"), html);
-  return { ref, criticalBytes: critical.length };
+  return { ref, base, criticalBytes: critical.length };
 }
 
 /** Clear only what this script owns; anything else in dist/ survives. */
@@ -201,7 +210,7 @@ async function main() {
 
   console.log(
     [
-      `cdn ref         @${head.ref}`,
+      `cdn             ${head.base}  (@${head.ref})`,
       `components      ${components.length} (${components.join(", ") || "none"})`,
       `js entries      ${scriptCount}`,
       report("rc.css", stylesheetBytes),

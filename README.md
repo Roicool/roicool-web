@@ -9,14 +9,15 @@ botların kolay taradığı yapı.
 
 ## Durum
 
-**v0.1.0 — runtime, component yok.** Siteye giren
+**v0.1.0 — runtime + marquee + hero + Lenis.** Siteye giren
 [`webflow/embeds/head.html`](./webflow/embeds/head.html): IX2 kapatıcı, `rc-js`
-işareti, inline kritik CSS (odak halkası, skip link, `.rc-sr-only`), async
-`rc.css` (hareket politikası), deferred `rc.js` (component keşfi). Runtime
-sayfayı tarıyor; bağlayacak component bir sonraki adımda gelir.
+işareti, inline kritik CSS (odak halkası, skip link, `.rc-sr-only`, hero
+başlangıç durumları), async `rc.css`, deferred `rc.js` (component keşfi,
+site geneli yumuşak kaydırma). Component'ler: `marquee`, `hero`.
 
-**Geliştirme modunda:** `head.html` `@main`'e bakar, her commit yayın demek.
-Site canlıya çıkınca sürüm tag'lerine geçilir — bkz.
+**Geliştirme modunda:** `head.html` `@main`'e bakar, her commit yayın demek
+(`raw.githack.com` üzerinden, en geç 5 dakikada). Site canlıya çıkınca sürüm
+tag'lerine geçilir — bkz.
 [`docs/architecture.md › Sürümleme`](./docs/architecture.md#sürümleme).
 
 ## Geliştirme
@@ -26,7 +27,6 @@ npm install
 npm run build        # src/ → dist/ + webflow/embeds/head.html (ikisi de commit'lenir)
 npm test
 npm run format
-npm run purge        # jsDelivr cache'ini temizle — push'u hemen görmek için (@main modunda)
 ```
 
 ## Klasörler

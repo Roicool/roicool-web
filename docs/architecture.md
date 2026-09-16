@@ -23,7 +23,7 @@ Webflow'un class isimlerini bilmez, Webflow kodun dosya adlarını bilmez.
   2. <style>             kritik CSS, 1-2 KB, build gömer     (ağ isteği yok)
 
 <head>  — CDN katmanı: hiçbiri boyamayı bekletmez
-  3. preconnect          cdn.jsdelivr.net                    (DNS + TLS ısınması)
+  3. preconnect          CDN kökü (githack ya da jsDelivr)   (DNS + TLS ısınması)
   4. rc.css              async (preload → stylesheet)        (boyamayı bekletmez)
   5. rc.js               type="module" = deferred            (boyamayı bekletmez)
 
@@ -35,7 +35,7 @@ DOM hazır
 ```
 
 Boyamayı bekleten hiçbir ağ isteği yok. Kritik CSS `<style>` olarak `head.html`'in
-içinde gelir; üçüncü taraf bir origin'e senkron bağımlılık kalmaz — jsDelivr
+içinde gelir; üçüncü taraf bir origin'e senkron bağımlılık kalmaz — CDN
 yavaşlasa da erişilmez olsa da ilk boyama etkilenmez. "Çizime engel olmama"
 hedefinin tamamı bu.
 
@@ -109,7 +109,7 @@ CSS'te iki çıktı: `src/base/critical.css` minify edilip `head.html`'in içine
 Component CSS'leri davranışsal olduğu için toplam küçük kalır; component başına
 ayrı istek açmaya değmez.
 
-`dist/` commit'lenir. jsDelivr onu doğrudan repo'dan servis edeceği için build
+`dist/` commit'lenir. CDN onu doğrudan repo'dan servis edeceği için build
 çıktısı repo'da bulunmak zorunda.
 
 Build ayrıca `webflow/embeds/head.html`'i üretir: şablona (`head.template.html`)
@@ -124,17 +124,21 @@ düzeltme hatası bu yüzden yoktur.
 
 **Geliştirme — `"main"` (şu an).** Site canlı değilken. Her commit `main`'e
 gider, site oradan okur; tag yok, sürüm numarası yok, `head.html` şablon ya
-da kritik CSS değişmedikçe yeniden yapıştırılmaz. Bedeli: jsDelivr dal
-referanslarını 12 saate kadar cache'ler, bu yüzden bir push'u hemen görmek
-için `npm run purge` (jsDelivr'ın cache temizleme adresine istek atar).
+da kritik CSS değişmedikçe yeniden yapıştırılmaz. Servis eden
+`raw.githack.com`: GitHub raw'ı doğru MIME tipi ve CORS ile geçirir, kendi
+cache'i yoktur; araya yalnız GitHub'ın 5 dakikalık raw cache'i girer. jsDelivr
+bu modda bilinçli olarak yok: dal referanslarını 12 saat cache'ler ve purge
+API'si dallar için güvenilir değil (kendi belgesi "purge yalnız semver
+sürümlerde çalışır" der; "finished" dönen purge'lerden sonra bile eski dosya
+servis edildi).
 
-**Üretim — `"tag"`.** Site canlıya çıkınca. URL'ler `v<sürüm>`'e sabitlenir:
-o dosya bir daha değişmez, jsDelivr kalıcı cache'ler, dala atılan commit
-siteye gitmez, geri alma = eski `head.html`'i yapıştırmak. Sürüm tek komut:
+**Üretim — `"tag"`.** Site canlıya çıkınca. URL'ler jsDelivr'da `v<sürüm>`'e
+sabitlenir: o dosya bir daha değişmez, jsDelivr kalıcı cache'ler, dala atılan
+commit siteye gitmez, geri alma = eski `head.html`'i yapıştırmak. Sürüm tek komut:
 `npm version minor` → `package.json` yükselir → `version` lifecycle'ı build
 alır ve stage'ler → npm commit'ler ve `vX.Y.Z` tag'ini atar →
 `git push --follow-tags`. Sonra `head.html` yapıştırılır.
 
-`@main` üretimde kullanılmaz: repo'ya atılan her commit siteyi değiştirir ve
-"sitede hangi kod çalışıyor" sorusunun cevabı 12 saatlik cache yüzünden
-belirsizleşir.
+`@main` üretimde kullanılmaz: repo'ya atılan her commit siteyi değiştirir,
+githack'in üretim düzeyinde bir hizmet garantisi yoktur ve "sitede hangi kod
+çalışıyor" sorusunun cevabı belirsizleşir.

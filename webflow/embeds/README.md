@@ -13,17 +13,19 @@ altı ay sonra sitede ne çalıştığını kimse bilemez.
 | `head.html`          | Build çıktısı — Site Settings › Custom Code › Head'e yapıştırılır |
 
 `head.html` elle düzenlenmez. Şablon düzenlenir, `npm run build` alınır, çıktı
-yapıştırılır. Build şablona iki şey yazar: `{{critical-css}}` yerine minify
-edilmiş `src/base/critical.css` (yorumsuz — her byte her ziyaretçiye gidiyor)
-ve `{{cdn-ref}}` yerine `package.json › config.cdnRef` (`main` ya da
-`v<sürüm>`).
+yapıştırılır. Build şablona şunları yazar: `{{critical-css}}` → minify edilmiş
+kritik CSS (`src/base/critical.css` + her component'in `<name>.critical.css`'i,
+yorumsuz — her byte her ziyaretçiye gidiyor); `{{cdn-origin}}` ve
+`{{cdn-base}}` → CDN kökü ve `dist/` adresi (geliştirmede
+`raw.githack.com/…/main/dist/`, üretimde `cdn.jsdelivr.net/gh/…@v<sürüm>/dist/`;
+`scripts/cdn-ref.mjs`); `{{cdn-ref}}` → ilk satırdaki damga.
 
 `head.html` içinde sırayla:
 
 1. Webflow IX2 kapatıcı — inline, açıklaması aşağıda
 2. `html.rc-js` işareti — inline; gizleme kuralları bu sınıfa bağlı
 3. Kritik CSS — inline `<style>`; odak halkası, skip link, `.rc-sr-only`
-4. `preconnect` → jsDelivr
+4. `preconnect` → CDN kökü
 5. `rc.css` — async (`preload` → `stylesheet`), `<noscript>` yedeğiyle
 6. `rc.js` — `type="module"`, deferred
 
