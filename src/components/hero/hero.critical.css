@@ -15,7 +15,7 @@
  */
 
 [data-rc~="hero"] {
-  --rc-hero-track: 200svh;
+  --rc-hero-track: 300svh;
   --rc-hero-stage: 100svh;
   position: relative;
   overflow-x: clip;

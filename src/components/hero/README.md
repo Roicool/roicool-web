@@ -6,7 +6,7 @@ HomePageV3Hero — aynı başlangıç durumları, aynı zamanlama, pin ile.
 ## Designer'daki yapı
 
 ```
-Section   [data-rc="hero" data-rc-eager]                      ← track, 200svh (kod verir; Designer min-height ile ezer)
+Section   [data-rc="hero" data-rc-eager]                      ← track, 300svh (kod verir; Designer min-height ile ezer)
   Div     [data-rc-part="stage"]                              ← pin edilir, 100svh; position: relative
     Div   [data-rc-part="media"]                              ← video katmanı, stage'i doldurur (absolute inset 0)
       Embed  <video …>                                        ← aşağıda
@@ -86,16 +86,23 @@ animasyon aynen çalışır.
 
 ## Ayarlar (kökte)
 
-| Attribute                 | Değer | Ne yapar                                         |
-| ------------------------- | ----- | ------------------------------------------------ |
-| `data-rc-eager`           | —     | **Her zaman ekle** — ekranın üstünde, beklemesin |
-| `data-rc-poster-portrait` | URL   | ≤767px'te video poster'ı                         |
-| `data-rc-priority`        | `10`  | ScrollTrigger refreshPriority; başka pin varsa   |
+| Attribute                 | Değer   | Ne yapar                                         |
+| ------------------------- | ------- | ------------------------------------------------ |
+| `data-rc-eager`           | —       | **Her zaman ekle** — ekranın üstünde, beklemesin |
+| `data-rc-poster-portrait` | URL     | ≤767px'te video poster'ı                         |
+| `data-rc-priority`        | `10`    | ScrollTrigger refreshPriority; başka pin varsa   |
+| `data-rc-snap`            | `false` | snap'i kapatır; yoksa açık                       |
 
-**Kaydırma mesafesi** = track − stage. Varsayılan track 200svh, stage 100svh:
-koreografi 100svh kaydırmada tamamlanır. Uzatmak ya da kısaltmak için section'a
-Designer'da `min-height` ver (ör. `250svh`); kodun değeri `:where()` ile
+**Kaydırma mesafesi** = track − stage. Varsayılan track 300svh, stage 100svh:
+koreografi 200svh kaydırmada tamamlanır. Uzatmak ya da kısaltmak için section'a
+Designer'da `min-height` ver (ör. `350svh`); kodun değeri `:where()` ile
 yazıldığından class kazanır. Stage 100svh sabittir (pin boyu).
+
+**Snap:** kaydırma durunca timeline yarıda kalmaz; en yakın uca (başlangıç ya
+da son) 0.5–1.2 sn'de tamamlanır (`power2.inOut`). Ölçü yalnız mesafe: yarıyı
+geçmeyen kaydırma başa döner, geçen sona gider. Kaydırma yönünde tamamlansın
+istenirse `hero.js`'te `SNAP.directional: true` tek satırlık değişikliktir.
+Kapatmak: köke `data-rc-snap="false"`.
 
 İkinci başlığın yükselme mesafesi sabit formül: `min(10rem, 20svh)` — masaüstünde
 10rem, kısa ekranda viewport'un %20'si. CSS ve JS aynı formülü kullanır; ayar
@@ -109,7 +116,7 @@ custom code'una bir `<style>` ile):
 --rc-hero-grain-opacity: 0.5;
 --rc-hero-grain-size: 80px;
 --rc-hero-tile-radius: 1rem; /* tile ve video köşesi; tile class'ındaki border-radius kazanır */
---rc-hero-track: 200svh; /* ya da section'a min-height */
+--rc-hero-track: 300svh; /* ya da section'a min-height */
 --rc-hero-stage: 100svh;
 ```
 
@@ -119,11 +126,12 @@ custom code'una bir `<style>` ile):
 .2→1, 2rem yükselir; 1 sn, öğe başına 0.05 sn gecikme, `power3.out`. Scroll'a
 bağlı değil; sayfa kaydırılmış açılırsa aşağıdaki çıkış devralır.
 
-**Scroll (0 → 1 = track − stage, varsayılan 100svh; scrub 0.5 sn gecikmeli):**
+**Scroll (0 → 1 = track − stage, varsayılan 200svh; scrub 0.6 sn gecikmeli):**
 
 | Aralık   | Ne                                                                    |
 | -------- | --------------------------------------------------------------------- |
-| .3 → .7  | media merkez tile'ın kutusuna kırpılır (`power2.inOut`); h1/CTA solar |
+| .3 → .36 | media'nın köşeleri tile yarıçapına yuvarlanır (kırpma başlamadan)     |
+| .36 → .7 | media merkez tile'ın kutusuna kırpılır (`power2.inOut`); h1/CTA solar |
 | .3 → .54 | footer alt-ortadan %70'e küçülür ve solar (`power2.in`)               |
 | .4 → .9  | h2 kelimeleri: opacity .2→1, `min(10rem, 20svh)` yükselir             |
 | .4 → .86 | tile'lar: scale .25→1 + görünür; iç img 1.5→1                         |

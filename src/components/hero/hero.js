@@ -23,6 +23,7 @@
 import {
   part,
   parts,
+  flagOption,
   numberOption,
   option,
   setState,
@@ -33,8 +34,17 @@ import { warn } from "../../runtime/log.js";
 /** Entrance on load: title words and CTAs rise into place. Not scroll-bound. */
 const INTRO = { duration: 1, stagger: 0.05, rise: "2rem", ease: "power3.out" };
 
-/** Scroll timeline, 0 → 1 over the track. Values follow the source site. */
-const MEDIA_EXIT = { start: 0.3, duration: 0.4, ease: "power2.inOut" };
+/**
+ * Scroll timeline, 0 → 1 over the track. Values follow the source site.
+ * The media exit spends its first `corner` share rounding the corners in
+ * place, so the video is already a rounded card when it starts to shrink.
+ */
+const MEDIA_EXIT = {
+  start: 0.3,
+  duration: 0.4,
+  corner: 0.15,
+  ease: "power2.inOut",
+};
 const FOOTER_EXIT = {
   start: 0.3,
   duration: 0.24,
@@ -45,7 +55,21 @@ const SECONDARY_WORDS = { start: 0.4, duration: 0.5, stagger: 0.015 };
 const TILES = { start: 0.4, duration: 0.46, stagger: 0.023 };
 
 /** Scrub lag in seconds: the timeline eases towards the scroll position. */
-const SCRUB = 0.5;
+const SCRUB = 0.6;
+
+/**
+ * The choreography never rests half-way: once scrolling stops, the page is
+ * carried to whichever end is nearer. Plain distance, no momentum guess —
+ * with smoothed scrolling the measured velocity is not a reliable intent.
+ */
+const SNAP = {
+  snapTo: [0, 1],
+  directional: false,
+  inertia: false,
+  delay: 0.1,
+  duration: { min: 0.5, max: 1.2 },
+  ease: "power2.inOut",
+};
 
 const PORTRAIT = "(max-width: 767px)";
 
@@ -115,6 +139,17 @@ function cornerRadius(element, box) {
   return value.endsWith("%") ? (number / 100) * box.width : number;
 }
 
+/** The corner the media lands with: the centre tile's own, or a default. */
+function landingRadius(tileCenter) {
+  const box = tileCenter?.getBoundingClientRect();
+  return box?.width ? cornerRadius(tileCenter, box) : 32;
+}
+
+/** Full-bleed, corners rounded to the landing radius: the exit's first step. */
+function mediaRoundedClip(tileCenter) {
+  return `inset(0px 0px 0px 0px round ${landingRadius(tileCenter)}px)`;
+}
+
 /**
  * Where the media ends up: clipped to the centre tile's box, so the video
  * becomes one tile of the mosaic while the others scale in around it. The
@@ -125,12 +160,12 @@ function cornerRadius(element, box) {
 function mediaExitClip(media, tileCenter) {
   const frame = media.getBoundingClientRect();
   const box = tileCenter?.getBoundingClientRect();
+  const radius = landingRadius(tileCenter);
   if (!box?.width) {
     const x = frame.width * 0.12;
     const y = frame.height * 0.12;
-    return `inset(${y}px ${x}px ${y}px ${x}px round 32px)`;
+    return `inset(${y}px ${x}px ${y}px ${x}px round ${radius}px)`;
   }
-  const radius = cornerRadius(tileCenter, box);
   const top = box.top - frame.top;
   const right = frame.right - box.right;
   const bottom = frame.bottom - box.bottom;
@@ -175,6 +210,9 @@ export default async function hero(root) {
   const titleWords = splitWords(SplitText, title);
   const headingWords = splitWords(SplitText, heading);
 
+  // Snapping is on unless the root says data-rc-snap="false".
+  const snapOn = option(root, "snap") === null || flagOption(root, "snap");
+
   // Entrance. The words and CTAs sit dimmed and low from the critical CSS;
   // from here they rise into place. A visitor who arrives already scrolled
   // simply sees the exit below take over.
@@ -201,6 +239,7 @@ export default async function hero(root) {
       // distance, so no spacer must be added.
       pinSpacing: false,
       scrub: SCRUB,
+      ...(snapOn ? { snap: SNAP } : {}),
       anticipatePin: 1,
       // Function-based values (the media's target clip) are measured again on
       // every refresh: resize, orientation change, fonts arriving.
@@ -212,19 +251,33 @@ export default async function hero(root) {
   // Every exit is a fromTo with an explicit "from": its start value must not
   // be read from the page, which may still be showing the CSS start states
   // or, on a reload mid-way down, a state from further along.
+  const cornerDuration = MEDIA_EXIT.duration * MEDIA_EXIT.corner;
   timeline
-    // The media leaves by being clipped down to the centre tile's box: the
-    // video turns into one tile of the mosaic. Content is not scaled, only
-    // cropped, so it stays sharp and the tile shows exactly what was there.
+    // The media leaves in two steps. First its corners round in place, so it
+    // reads as a card before it moves; then it is clipped down to the centre
+    // tile's box and the video turns into one tile of the mosaic. Content is
+    // not scaled, only cropped, so it stays sharp and the tile shows exactly
+    // what was there.
     .fromTo(
       media ?? [],
       { clipPath: "inset(0px 0px 0px 0px round 0px)" },
       {
-        clipPath: () => mediaExitClip(media, tileCenter),
-        duration: MEDIA_EXIT.duration,
-        ease: MEDIA_EXIT.ease,
+        clipPath: () => mediaRoundedClip(tileCenter),
+        duration: cornerDuration,
+        ease: "power1.out",
       },
       MEDIA_EXIT.start,
+    )
+    .fromTo(
+      media ?? [],
+      { clipPath: () => mediaRoundedClip(tileCenter) },
+      {
+        clipPath: () => mediaExitClip(media, tileCenter),
+        duration: MEDIA_EXIT.duration - cornerDuration,
+        ease: MEDIA_EXIT.ease,
+        immediateRender: false,
+      },
+      MEDIA_EXIT.start + cornerDuration,
     )
     .fromTo(
       [title, actions].filter(Boolean),
