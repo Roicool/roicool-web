@@ -48,11 +48,14 @@ boşluk sonda da bırakılır), stage'i ScrollTrigger ile o mesafe kadar pinler
 | `data-rc-top`       | px, `0`             | Sabit header için üstten boşluk; stage o kadar kısalır |
 | `data-rc-inset`     | px, başlangıç kadar | Satırın sonunda bırakılan boşluk; yoksa baştaki kadar  |
 | `data-rc-min-width` | px, `768`           | Bu genişliğin altında pin yok, satır düz şerit         |
+| `data-rc-scrub`     | saniye, `0.8`       | Satırın scroll'u yakalama gecikmesi; `0` birebir       |
 | `data-rc-eager`     | —                   | Görünüre girmeyi beklemeden yükle                      |
 
 ## Hareket
 
-- Scrub: satır sayfa kaydığı kadar kayar, easing yok; yumuşaklık Lenis'ten.
+- Scrub: satır sayfa kaydığı kadar kayar, easing yok; scroll'u 0.8 s
+  gecikmeyle yakalar (`data-rc-scrub`), her kalkış ve duruş yuvarlanır.
+  Lenis'in yumuşatması bunun üstüne gelir.
 - Pin: hero ile aynı ScrollTrigger; Lenis'e bağlı, `ignoreMobileResize`.
 - Yeniden ölçüm: görseller gelince, pencere değişince pin yeniden kurulur
   (150 ms bekleme). Mesafe sıfıra düşerse pin kalkar, çıkarsa geri gelir.

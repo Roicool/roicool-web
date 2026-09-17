@@ -27,6 +27,13 @@ import { warn } from "../../runtime/log.js";
 /** Milliseconds a resize is allowed to settle before the pin is rebuilt. */
 const REBUILD_DELAY = 150;
 
+/**
+ * Seconds the row takes to catch up with the scroll position. Following it
+ * 1:1 reads as harsh; a short lag rounds every start and stop off.
+ * `data-rc-scrub` changes it; 0 follows exactly.
+ */
+const DEFAULT_SCRUB = 0.8;
+
 /** A row overshooting by less than this is treated as fitting: no pin. */
 const MINIMUM_TRAVEL = 24;
 
@@ -77,6 +84,7 @@ export default async function horizontalScroll(root) {
   // Space kept free at the row's end; NaN mirrors the space at its start.
   const inset = numberOption(root, "inset", Number.NaN);
   const minimumWidth = numberOption(root, "min-width", DEFAULT_MINIMUM_WIDTH);
+  const scrub = numberOption(root, "scrub", DEFAULT_SCRUB);
 
   /** Pixels the row has to travel; 0 means it fits and nothing pins. */
   let distance = 0;
@@ -117,7 +125,7 @@ export default async function horizontalScroll(root) {
       // The spacer grows the section by the travel, so the page below moves
       // down by exactly as much as the visitor scrolls while pinned.
       pinSpacing: true,
-      scrub: true,
+      scrub: scrub > 0 ? scrub : true,
       anticipatePin: 1,
       // A refresh (resize, fonts, images) measures the travel again before
       // the end and the tween's target are recomputed.
