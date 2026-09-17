@@ -1,0 +1,51 @@
+/*!
+ * horizontal-scroll.css — behavioural styles only. Card size, gap, the
+ * stage's inner layout and every look come from Designer.
+ */
+
+/* Without JS, and whenever the row fits, motion is reduced or GSAP is
+   missing (state "static"): the row is a plain sideways-scrollable strip,
+   scrollbar hidden, cards settling near their edges. */
+[data-rc~="horizontal-scroll"]:not([data-rc-state]) [data-rc-part="track"],
+[data-rc~="horizontal-scroll"][data-rc-state="static"] [data-rc-part="track"] {
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x proximity;
+  scrollbar-width: none;
+}
+
+[data-rc~="horizontal-scroll"]:not([data-rc-state])
+  [data-rc-part="track"]::-webkit-scrollbar,
+[data-rc~="horizontal-scroll"][data-rc-state="static"]
+  [data-rc-part="track"]::-webkit-scrollbar {
+  display: none;
+}
+
+[data-rc~="horizontal-scroll"]:not([data-rc-state]) [data-rc-part="track"] > *,
+[data-rc~="horizontal-scroll"][data-rc-state="static"]
+  [data-rc-part="track"]
+  > * {
+  scroll-snap-align: start;
+}
+
+/* MECHANIC — pinned: the stage fills the viewport below the header offset
+   and clips the row's overshoot at the viewport's sides. `clip`, not
+   `hidden`: a hidden overflow is a scroll container and focus inside could
+   scroll it. The pin itself (position, spacer) is set by ScrollTrigger. */
+[data-rc~="horizontal-scroll"][data-rc-state="pinned"] [data-rc-part="stage"] {
+  height: calc(100svh - var(--rc-horizontal-scroll-top, 0px));
+  box-sizing: border-box;
+  overflow-x: clip;
+}
+
+/* MECHANIC — the row is moved by a transform and must not wrap or shrink. */
+[data-rc~="horizontal-scroll"][data-rc-state="pinned"] [data-rc-part="track"] {
+  flex-wrap: nowrap;
+  will-change: transform;
+}
+
+[data-rc~="horizontal-scroll"][data-rc-state="pinned"]
+  [data-rc-part="track"]
+  > * {
+  flex: none;
+}
