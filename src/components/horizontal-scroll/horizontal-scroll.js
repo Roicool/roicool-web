@@ -32,7 +32,16 @@ const REBUILD_DELAY = 150;
  * 1:1 reads as harsh; a short lag rounds every start and stop off.
  * `data-rc-scrub` changes it; 0 follows exactly.
  */
-const DEFAULT_SCRUB = 0.8;
+const DEFAULT_SCRUB = 0.3;
+
+/**
+ * Share of the travel the row covers while the section is still scrolling
+ * into view, before the pin. The row is already moving when the pin lands,
+ * so the moment reads as a continuation rather than a stop. Capped by
+ * LEAD_VIEWPORT_SHARE of the viewport width.
+ */
+const LEAD_SHARE = 0.25;
+const LEAD_VIEWPORT_SHARE = 0.2;
 
 /** A row overshooting by less than this is treated as fitting: no pin. */
 const MINIMUM_TRAVEL = 24;
@@ -88,12 +97,20 @@ export default async function horizontalScroll(root) {
 
   /** Pixels the row has to travel; 0 means it fits and nothing pins. */
   let distance = 0;
+  /** Pixels of that travel spent before the pin, as the section scrolls in. */
+  let lead = 0;
+  /** The pin itself; `trigger.start` is the scroll position it begins at. */
   let trigger = null;
+  /** Watches the whole range, entrance included, and positions the row. */
+  let driver = null;
+  /** Moves the row to a target x, easing over `scrub` seconds. */
+  let glide = null;
 
   function measure() {
     const viewport = document.documentElement.clientWidth;
     if (viewport < minimumWidth) {
       distance = 0;
+      lead = 0;
       return distance;
     }
     // Where the row starts once its transform is taken away, and how much
@@ -103,11 +120,48 @@ export default async function horizontalScroll(root) {
     const end = Number.isNaN(inset) ? start : inset;
     distance = Math.round(track.scrollWidth - (viewport - start - end));
     if (distance < MINIMUM_TRAVEL) distance = 0;
+    lead = Math.round(
+      Math.min(distance * LEAD_SHARE, viewport * LEAD_VIEWPORT_SHARE),
+    );
     return distance;
   }
 
+  /** Scroll position at which the stage's top enters the viewport. */
+  const entrance = () => trigger.start - (window.innerHeight - top);
+
+  /**
+   * How far the row has travelled at scroll position `y`: a slow drift of
+   * `lead` while the stage scrolls into view, then 1:1 while pinned.
+   */
+  function travelAt(y) {
+    const pinStart = trigger.start;
+    if (y < pinStart) {
+      const from = entrance();
+      return lead * clamp((y - from) / (pinStart - from || 1), 0, 1);
+    }
+    return lead + clamp(y - pinStart, 0, distance - lead);
+  }
+
+  /** The scroll position at which the row has travelled `travelled` px. */
+  function scrollFor(travelled) {
+    const pinStart = trigger.start;
+    if (travelled <= lead) {
+      const from = entrance();
+      return from + (pinStart - from) * (lead ? travelled / lead : 0);
+    }
+    return pinStart + (travelled - lead);
+  }
+
+  function place(y, immediate = false) {
+    const x = -travelAt(y);
+    if (immediate || !glide) gsap.set(track, { x });
+    else glide(x);
+  }
+
   function build() {
+    driver?.kill(true);
     trigger?.kill(true);
+    driver = null;
     trigger = null;
     gsap.set(track, { clearProps: "transform" });
 
@@ -117,26 +171,38 @@ export default async function horizontalScroll(root) {
     }
     setState(root, "pinned");
 
+    // The pin: from the stage's top reaching the pin line, for the travel
+    // that remains after the entrance drift. The spacer grows the section by
+    // exactly that much, so the page below moves down by as much as the
+    // visitor scrolls while pinned.
     trigger = ScrollTrigger.create({
       trigger: stage,
       start: `top ${top}px`,
-      end: () => `+=${distance}`,
+      end: () => `+=${distance - lead}`,
       pin: stage,
-      // The spacer grows the section by the travel, so the page below moves
-      // down by exactly as much as the visitor scrolls while pinned.
       pinSpacing: true,
-      scrub: scrub > 0 ? scrub : true,
-      anticipatePin: 1,
       // A refresh (resize, fonts, images) measures the travel again before
-      // the end and the tween's target are recomputed.
+      // the end is recomputed.
       invalidateOnRefresh: true,
       onRefreshInit: measure,
-      animation: gsap.fromTo(
-        track,
-        { x: 0 },
-        { x: () => -distance, ease: "none" },
-      ),
     });
+
+    // The motion, one owner for x: from the stage entering at the bottom of
+    // the viewport to the end of the pin, the row is placed from the scroll
+    // position on every change, easing there over `scrub` seconds.
+    glide =
+      scrub > 0
+        ? gsap.quickTo(track, "x", { duration: scrub, ease: "power1.out" })
+        : null;
+    driver = ScrollTrigger.create({
+      trigger: stage,
+      start: "top bottom",
+      end: () => `+=${window.innerHeight - top + distance - lead}`,
+      invalidateOnRefresh: true,
+      onUpdate: (self) => place(self.scroll()),
+      onRefresh: (self) => place(self.scroll(), true),
+    });
+    place(window.scrollY, true);
   }
 
   // Cards resize as images arrive and breakpoints change: the travel can go
@@ -182,7 +248,7 @@ export default async function horizontalScroll(root) {
     if (start - travelled < 0) target = start;
     target = clamp(target, 0, distance);
 
-    const y = trigger.start + target;
+    const y = scrollFor(target);
     const lenis = smoothScroll();
     if (lenis) lenis.scrollTo(y);
     else window.scrollTo({ top: y });
