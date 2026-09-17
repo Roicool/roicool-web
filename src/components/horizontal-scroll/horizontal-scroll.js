@@ -30,6 +30,13 @@ const REBUILD_DELAY = 150;
 /** A row overshooting by less than this is treated as fitting: no pin. */
 const MINIMUM_TRAVEL = 24;
 
+/**
+ * Below this viewport width nothing pins, whatever the layout: a scroll-
+ * driven sideways row on a phone hijacks the one gesture the visitor has.
+ * `data-rc-min-width` changes it.
+ */
+const DEFAULT_MINIMUM_WIDTH = 768;
+
 function findTrack(root) {
   // Explicit part first; fall back to Webflow's own list class so a plain
   // Collection List works with the part on the stage alone.
@@ -69,18 +76,23 @@ export default async function horizontalScroll(root) {
   root.style.setProperty("--rc-horizontal-scroll-top", `${top}px`);
   // Space kept free at the row's end; NaN mirrors the space at its start.
   const inset = numberOption(root, "inset", Number.NaN);
+  const minimumWidth = numberOption(root, "min-width", DEFAULT_MINIMUM_WIDTH);
 
   /** Pixels the row has to travel; 0 means it fits and nothing pins. */
   let distance = 0;
   let trigger = null;
 
   function measure() {
+    const viewport = document.documentElement.clientWidth;
+    if (viewport < minimumWidth) {
+      distance = 0;
+      return distance;
+    }
     // Where the row starts once its transform is taken away, and how much
     // of the viewport it may use.
     const x = Number(gsap.getProperty(track, "x")) || 0;
     const start = track.getBoundingClientRect().left - x;
     const end = Number.isNaN(inset) ? start : inset;
-    const viewport = document.documentElement.clientWidth;
     distance = Math.round(track.scrollWidth - (viewport - start - end));
     if (distance < MINIMUM_TRAVEL) distance = 0;
     return distance;

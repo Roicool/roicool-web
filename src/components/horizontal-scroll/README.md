@@ -29,8 +29,10 @@ Designer'da ayarlanacaklar:
 - **Item** → sabit genişlik (ör. `clamp(16rem, 20vw, 28rem)`), yükseklik
   aspect-ratio ile. Hover'daki görsel zoom'u Designer'ın hover state'i ile
   ver (görsel class'ında Hover → scale 1.05, transition).
-- **Mobil** → Collection List'i Column (ya da wrap) yap; satır sığınca kod
-  pinlemez, section normal akışa döner.
+- **Mobil** → 768 px altında kod hiç pinlemez (`data-rc-min-width` ile
+  değişir). Designer'da iki seçenek: Collection List'i Column yap, kartlar
+  alt alta durur (öneri); ya da Row bırak, satır parmakla kaydırılan yerel
+  bir şerit olur (snap'li, scrollbar gizli). İkisi de scroll'u ele geçirmez.
 - Kökün üst elemanlarında `transform`, `filter`, `perspective` olmasın (pin
   kuralı, hero ile aynı).
 
@@ -41,11 +43,12 @@ boşluk sonda da bırakılır), stage'i ScrollTrigger ile o mesafe kadar pinler
 
 ## Ayarlar (kökte)
 
-| Attribute       | Değer               | Ne yapar                                               |
-| --------------- | ------------------- | ------------------------------------------------------ |
-| `data-rc-top`   | px, `0`             | Sabit header için üstten boşluk; stage o kadar kısalır |
-| `data-rc-inset` | px, başlangıç kadar | Satırın sonunda bırakılan boşluk; yoksa baştaki kadar  |
-| `data-rc-eager` | —                   | Görünüre girmeyi beklemeden yükle                      |
+| Attribute           | Değer               | Ne yapar                                               |
+| ------------------- | ------------------- | ------------------------------------------------------ |
+| `data-rc-top`       | px, `0`             | Sabit header için üstten boşluk; stage o kadar kısalır |
+| `data-rc-inset`     | px, başlangıç kadar | Satırın sonunda bırakılan boşluk; yoksa baştaki kadar  |
+| `data-rc-min-width` | px, `768`           | Bu genişliğin altında pin yok, satır düz şerit         |
+| `data-rc-eager`     | —                   | Görünüre girmeyi beklemeden yükle                      |
 
 ## Hareket
 
