@@ -86,10 +86,11 @@ Tile numaraları DOM sırası (Navigator'daki sıra). 12. tile `is-center` +
 
 Satır yükseklikleri **Auto**, grid'in dikey hizası (align-content)
 **Center**; Stretch kalırsa satırlar stage'in sabit yüksekliğini paylaşır ve
-row gap'in yalnız beşte biri görünür. Mozaik stage'den uzun olabilir: üst ve
-alt satır viewport kenarında kesilir (bleed); pin bırakınca taşan kısmı kök
-dikeyde de kırpar (`hero.css`), sonraki section'a binmez. Başlık ve merkez
-tile viewport içinde kalmalı; video oraya kırpılır.
+row gap'in yalnız beşte biri görünür. Mozaik stage'e (100svh) sığmalı: pin
+boyunca scroll sayfayı değil animasyonu sürer, taşan kısım görünmez; pin
+bırakınca da stage'in kutusu 100svh kaldığından taşan kısım sonraki
+section'ın üstüne biner. Beş satır + dört gap + başlık, en kısa hedef
+viewport'ta 100svh'ın altında kalsın; sığmıyorsa tile küçülür.
 
 Mobilde kadraj: `secondary` genişliği breakpoint'e göre **250% → 225% →
 200% → 150% → 100%** (≤374 / ≤740 / ≤1024 / ≤1280 / üstü), yatayda

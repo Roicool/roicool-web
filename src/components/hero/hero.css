@@ -7,13 +7,6 @@
   --rc-hero-brightness: 0.75;
   --rc-hero-grain-opacity: 0.5;
   --rc-hero-grain-size: 80px;
-  /* MECHANIC — the mosaic may be taller than the stage and bleed off the top
-     and bottom of the viewport. While pinned the viewport crops it; once the
-     pin lets go the stage sits at the root's bottom edge, and without this
-     the overflow would paint over the next section. Vertical only here: the
-     horizontal clip is in hero.critical.css (first paint), this one matters
-     only after the pin. */
-  overflow-y: clip;
 }
 
 /* LOOK — Designer positions the media layer (absolute, inset 0, z 1); these
