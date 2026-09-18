@@ -84,6 +84,13 @@ row5:    .  ■  .  ■  .  ■  .  ■  .      tile 15-18  (kolon 2,4,6,8)
 Tile numaraları DOM sırası (Navigator'daki sıra). 12. tile `is-center` +
 `tile-center`, boş.
 
+Satır yükseklikleri **Auto**, grid'in dikey hizası (align-content)
+**Center**; Stretch kalırsa satırlar stage'in sabit yüksekliğini paylaşır ve
+row gap'in yalnız beşte biri görünür. Mozaik stage'den uzun olabilir: üst ve
+alt satır viewport kenarında kesilir (bleed); pin bırakınca taşan kısmı kök
+dikeyde de kırpar (`hero.css`), sonraki section'a binmez. Başlık ve merkez
+tile viewport içinde kalmalı; video oraya kırpılır.
+
 Mobilde kadraj: `secondary` genişliği breakpoint'e göre **250% → 225% →
 200% → 150% → 100%** (≤374 / ≤740 / ≤1024 / ≤1280 / üstü), yatayda
 ortalanmış (`left: 50%; transform: translateX(-50%)` ya da negatif margin).
