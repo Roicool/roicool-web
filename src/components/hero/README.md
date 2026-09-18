@@ -144,6 +144,12 @@ elemanda inline stil kalmaz (butonların Designer'daki hover'ı ezilmesin).
 | .4 → .9  | h2 kelimeleri: opacity .2→1, `min(10rem, 20svh)` yükselir              |
 | .4 → .86 | tile'lar: scale .25→1 + görünür; iç img 1.5→1                          |
 
+`primary` ve `footer` sıfıra inince `visibility: hidden` de alır (GSAP
+`autoAlpha`): ikisi de z-sırasında grid'in üstünde durduğundan, yalnız
+saydamlaşsalar görünmez h1 ve butonlar imleci yakalar, ikinci başlık
+hover alamazdı. Gizlenince imleç grid'e geçer, butonlar Tab sırasından da
+çıkar; geri kaydırınca ikisi de döner.
+
 Video ilk açılışı saf CSS (`@starting-style`): opacity 3s + radial mask 20s.
 
 **Yeniden kurulan kısım:** kaynak sitede media'nın çıkışı CSS'te çözülmüş

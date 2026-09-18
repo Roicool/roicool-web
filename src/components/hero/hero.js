@@ -296,19 +296,22 @@ export default async function hero(root) {
     )
     // The whole primary layer fades, not its children: the entrance above
     // owns the children's opacity, and two tweens must never share a target.
+    // autoAlpha, not opacity: at zero GSAP also sets visibility hidden, so the
+    // faded layer — which stays above the grid in z-order — stops catching
+    // the pointer and drops out of the tab order; scrolling back restores it.
     .fromTo(
       primary ? [primary] : [title, actions].filter(Boolean),
-      { opacity: 1 },
-      { opacity: 0, duration: MEDIA_EXIT.duration },
+      { autoAlpha: 1 },
+      { autoAlpha: 0, duration: MEDIA_EXIT.duration },
       MEDIA_EXIT.start,
     )
     // The footer strip shrinks into the leaving video and is gone before the
-    // clip reaches it.
+    // clip reaches it. Same autoAlpha: it sits above the bottom tiles.
     .fromTo(
       footer ?? [],
-      { opacity: 1, scale: 1, transformOrigin: "50% 100%" },
+      { autoAlpha: 1, scale: 1, transformOrigin: "50% 100%" },
       {
-        opacity: 0,
+        autoAlpha: 0,
         scale: FOOTER_EXIT.scale,
         duration: FOOTER_EXIT.duration,
         ease: FOOTER_EXIT.ease,
