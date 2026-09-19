@@ -1,0 +1,111 @@
+/*!
+ * image-trail.css — behavioural styles only. Card size, radius, shadow and
+ * the picture's fit come from Designer.
+ */
+
+/* LOOK — the trail layer is positioned against the root; Designer's own
+   positioning on the section wins. */
+:where([data-rc~="image-trail"]) {
+  position: relative;
+}
+
+/* MECHANIC — the trail layer covers the root, clips cards that wander past
+   its edge, keeps the cards' z-order to itself (so the content after it in
+   the DOM paints above without a z-index of its own) and never catches the
+   pointer. */
+[data-rc~="image-trail"] [data-rc-part="trail"] {
+  position: absolute;
+  inset: 0;
+  overflow: clip;
+  isolation: isolate;
+  pointer-events: none;
+}
+
+/* MECHANIC — a card is placed by the code with `translate`, from the
+   layer's origin. */
+[data-rc~="image-trail"] [data-rc-part="item"] {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* MECHANIC — with JS on the way, and while the pointer is out (`idle`), a
+   card waits shrunk and clipped to a point at its centre; `active` opens it.
+   Gated on .rc-js, not on the state: the chunk loads as the section nears
+   the viewport, and until then the cards must not show. `static` is the
+   still fan below. */
+.rc-js
+  [data-rc~="image-trail"]:not([data-rc-state="active"]):not(
+    [data-rc-state="static"]
+  )
+  [data-rc-part="item"] {
+  scale: 0.5;
+  clip-path: inset(50%);
+}
+
+.rc-js
+  [data-rc~="image-trail"]:is([data-rc-state="idle"], [data-rc-state="active"])
+  [data-rc-part="item"] {
+  transition:
+    scale 0.8s cubic-bezier(0.87, 0, 0.13, 1),
+    clip-path 0.8s cubic-bezier(0.87, 0, 0.13, 1);
+  will-change: transform;
+}
+
+.rc-js [data-rc~="image-trail"][data-rc-state="active"] [data-rc-part="item"] {
+  scale: 1;
+  clip-path: inset(0);
+}
+
+/* LOOK — the still fan: no JS, reduced motion, a touch device or a narrow
+   viewport (`static`). Five spots around the edges of the layer, clear of
+   the content in the middle; a sixth card and beyond share the last spot.
+   Designer may hide the layer on small breakpoints instead. */
+[data-rc~="image-trail"]:not([data-rc-state="idle"]):not(
+    [data-rc-state="active"]
+  )
+  [data-rc-part="item"] {
+  transform: translate(-50%, -50%);
+}
+
+[data-rc~="image-trail"]:not([data-rc-state="idle"]):not(
+    [data-rc-state="active"]
+  )
+  [data-rc-part="item"]:nth-child(1) {
+  left: 14%;
+  top: 30%;
+}
+
+[data-rc~="image-trail"]:not([data-rc-state="idle"]):not(
+    [data-rc-state="active"]
+  )
+  [data-rc-part="item"]:nth-child(2) {
+  left: 86%;
+  top: 24%;
+}
+
+[data-rc~="image-trail"]:not([data-rc-state="idle"]):not(
+    [data-rc-state="active"]
+  )
+  [data-rc-part="item"]:nth-child(3) {
+  left: 20%;
+  top: 78%;
+}
+
+[data-rc~="image-trail"]:not([data-rc-state="idle"]):not(
+    [data-rc-state="active"]
+  )
+  [data-rc-part="item"]:nth-child(4) {
+  left: 80%;
+  top: 80%;
+}
+
+[data-rc~="image-trail"]:not([data-rc-state="idle"]):not(
+    [data-rc-state="active"]
+  )
+  [data-rc-part="item"]:nth-child(n + 5) {
+  left: 50%;
+  top: 88%;
+}
