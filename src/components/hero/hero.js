@@ -248,7 +248,12 @@ export default async function hero(root) {
     scrollTrigger: {
       trigger: root,
       start: "top top",
-      end: "bottom bottom",
+      // The pin lasts until the stage's bottom edge meets the root's: the
+      // root's bottom padding (hero.critical.css) is the scroll distance,
+      // whatever the stage's height. A stage taller than the viewport keeps
+      // its lower part off screen while pinned and scrolls it into view
+      // once let go, the next section following behind.
+      end: () => `+=${root.offsetHeight - stage.offsetHeight}`,
       pin: stage,
       // The root is already taller than the stage; that height is the scroll
       // distance, so no spacer must be added.
