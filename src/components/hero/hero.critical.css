@@ -34,8 +34,10 @@
 
 /* The stage is at least one viewport tall and grows with the mosaic when
    the secondary layer is in flow: what does not fit scrolls into view once
-   the pin lets go. Media and primary stay a viewport-high frame at its top. */
-[data-rc~="hero"] > [data-rc-part="stage"] {
+   the pin lets go. Media and primary stay a viewport-high frame at its top.
+   Descendant, not child: while pinned, ScrollTrigger wraps the stage in a
+   spacer div and a child combinator would stop matching. */
+[data-rc~="hero"] [data-rc-part="stage"] {
   min-height: var(--rc-hero-stage);
 }
 
