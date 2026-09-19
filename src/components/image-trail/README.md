@@ -28,8 +28,10 @@ Designer'da ayarlanacaklar:
   görsel `object-fit: cover`, `width/height: 100%`.
 - **Görsel** → `loading="lazy"`, `alt=""` (dekoratif). Mobilde katman
   gizlenirse lazy görsel indirilmez.
-- **Container** → padding'i section'a değil container'a ver; section'ın
-  kendisi imleç alanı, ne kadar büyükse kuyruk o kadar yer gezer.
+- **Yükseklik** → section'a dikey padding ya da `min-height` (ör. `70svh`,
+  flex column, justify center); sabit `height` verme. Katman section'ın
+  kutusunu padding dahil kaplar, imleç alanı da odur: section ne kadar
+  büyükse kuyruk o kadar yer gezer.
 - **Mobil** → 992 px altında kod çalışmaz (`static`); kartlar CSS'teki sabit
   yelpazede durur. İstenmiyorsa katmanı tablet breakpoint'inde Display: None
   yap.
