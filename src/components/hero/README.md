@@ -6,18 +6,18 @@ HomePageV3Hero — aynı başlangıç durumları, aynı zamanlama, pin ile.
 ## Designer'daki yapı
 
 ```
-Section   [data-rc="hero" data-rc-eager]                      ← kök; alt padding'i = kaydırma mesafesi (200svh, kod verir)
-  Div     [data-rc-part="stage"]                              ← pin edilir; en az 100svh, mozaik uzarsa uzar; position: relative
-    Div   [data-rc-part="media"]                              ← video katmanı, viewport çerçevesi (absolute, top 0, 100svh)
+Section   [data-rc="hero" data-rc-eager]                      ← track, 300svh (kod verir; Designer min-height ile ezer)
+  Div     [data-rc-part="stage"]                              ← pin edilir, 100svh; position: relative
+    Div   [data-rc-part="media"]                              ← video katmanı, stage'i doldurur (absolute inset 0)
       Embed  <video …>                                        ← aşağıda
       Div [data-rc-part="shade"]                              ← boş div, karartma
       Div [data-rc-part="grain"]                              ← boş div, grain
-    Div   [data-rc-part="primary"]                            ← tag + h1 + CTA, viewport çerçevesi (absolute, top 0, 100svh), ortalanmış
+    Div   [data-rc-part="primary"]                            ← tag + h1 + CTA, stage'i doldurur, ortalanmış
       Div [data-rc-part="tag"]                                ← isteğe bağlı küçük etiket, h1'in üstünde
       H1  [data-rc-part="title"]
       Div [data-rc-part="actions"]                            ← içine butonlar
-    Div   [data-rc-part="footer"]                             ← çerçevenin altına yapışır (kod hesaplar); içine marquee
-    Div   [data-rc-part="secondary"]                          ← AKIŞTA (absolute değil), en az 100svh, grid; aşağıda
+    Div   [data-rc-part="footer"]                             ← alta yapışır; içine marquee; scroll'da küçülüp kaybolur
+    Div   [data-rc-part="secondary"]                          ← stage'i doldurur, grid; aşağıda
       H2
       Div [data-rc-part="tile"] ×17                              ← her birinde Image
       Div [data-rc-part="tile-center"] ×1                        ← BOŞ; video buraya kırpılır
@@ -27,16 +27,10 @@ Section   [data-rc="hero" data-rc-eager]                      ← kök; alt padd
 footer 4. Secondary media'nın üstünde ama primary'nin altında; scroll'da media
 küçülüp kırpılırken ve primary solarken secondary altından çıkar.
 
-**Katmanların konumu:** `media`, `primary` ve `footer` Designer'da
-`position: absolute` (media ve primary: top 0, left 0, right 0; yükseklik kod
-verir, 100svh). `secondary` **akışta** kalır (Static; genişlik hilesi için
-Relative olabilir): stage'in yüksekliği ondan gelir. Mozaik 100svh'tan uzunsa
-stage uzar; pin boyunca alt kısım ekran dışında bekler, pin bırakınca sayfayla
-kayarak görünür, sonraki section arkasından gelir. Footer: `left: 0; width:
-100%`, **`bottom` verme** — kod `calc(100% − 100svh)` ile çerçevenin altına
-koyar; Designer `bottom: 0` yazarsa uzun stage'de footer ekran dışına düşer.
-Kod footer, shade ve grain'in konumunu kritik CSS'te verir; verilmediğinde
-footer `rc.css` gelene kadar tepede durup sonra alta zıplıyordu (CLS 0.3).
+**Düzen kayması:** `media`, `primary`, `secondary` ve `footer` Designer'da
+`position: absolute` olsun (footer: `bottom: 0; left: 0; width: 100%`). Kod
+footer, shade ve grain için bunu kritik CSS'te de verir; verilmediğinde footer
+`rc.css` gelene kadar stage'in tepesinde durup sonra alta zıplıyordu (CLS 0.3).
 
 **Pin kuralı:** `stage`'in hiçbir üst elemanında `transform`, `filter`,
 `perspective`, `will-change: transform` olmasın (page wrapper'lar dahil).
@@ -91,12 +85,12 @@ Tile numaraları DOM sırası (Navigator'daki sıra). 12. tile `is-center` +
 `tile-center`, boş.
 
 Satır yükseklikleri **Auto**, grid'in dikey hizası (align-content)
-**Center**, `min-height: 100svh` (kod da verir). Mozaik kısaysa çerçevede
-ortalanır; uzunsa `secondary` ve onunla stage uzar, row gap ve padding
-birebir işler. Tek sınır: **başlık ve merkez tile ilk 100svh'ın içinde**
-kalmalı — video merkez tile'a kırpılır, tile çerçevenin altına taşarsa video
-onu dolduramaz. Square'de 4. satır viewport'un yaklaşık %70'inde; taşma bir
-satırdan az tutulur.
+**Center**; Stretch kalırsa satırlar stage'in sabit yüksekliğini paylaşır ve
+row gap'in yalnız beşte biri görünür. Mozaik stage'e (100svh) sığmalı: pin
+boyunca scroll sayfayı değil animasyonu sürer, taşan kısım görünmez; pin
+bırakınca da stage'in kutusu 100svh kaldığından taşan kısım sonraki
+section'ın üstüne biner. Beş satır + dört gap + başlık, en kısa hedef
+viewport'ta 100svh'ın altında kalsın; sığmıyorsa tile küçülür.
 
 Mobilde kadraj: `secondary` genişliği breakpoint'e göre **250% → 225% →
 200% → 150% → 100%** (≤374 / ≤740 / ≤1024 / ≤1280 / üstü), yatayda
@@ -113,13 +107,10 @@ animasyon aynen çalışır.
 | `data-rc-priority`        | `10`    | ScrollTrigger refreshPriority; başka pin varsa   |
 | `data-rc-snap`            | `false` | snap'i kapatır; yoksa açık                       |
 
-**Kaydırma mesafesi** = track − 100svh = kökün alt padding'i; varsayılan
-200svh. Pin, stage'in altı kökün altına gelince biter, mesafe stage uzasa da
-değişmez. Uzatmak ya da kısaltmak için section'a Designer'da `padding-bottom`
-ver (ör. `250svh`); kodun değeri `:where()` ile yazıldığından class kazanır.
-Section class'ında genel bir padding varsa kaldır: o padding kazanır ve
-mesafe `min-height` tabanından (300svh − stage) hesaplanır, stage uzadıkça
-kısalır.
+**Kaydırma mesafesi** = track − stage. Varsayılan track 300svh, stage 100svh:
+koreografi 200svh kaydırmada tamamlanır. Uzatmak ya da kısaltmak için section'a
+Designer'da `min-height` ver (ör. `350svh`); kodun değeri `:where()` ile
+yazıldığından class kazanır. Stage 100svh sabittir (pin boyu).
 
 **Snap:** kaydırma durunca timeline yarıda kalmaz; en yakın uca (başlangıç ya
 da son) 0.5–1.2 sn'de tamamlanır (`power2.inOut`). Ölçü yalnız mesafe: yarıyı
@@ -139,7 +130,7 @@ custom code'una bir `<style>` ile):
 --rc-hero-grain-opacity: 0.5;
 --rc-hero-grain-size: 80px;
 --rc-hero-tile-radius: 1rem; /* tile ve video köşesi; tile class'ındaki border-radius kazanır */
---rc-hero-track: 300svh; /* mesafe = track − stage; ya da section'a padding-bottom */
+--rc-hero-track: 300svh; /* ya da section'a min-height */
 --rc-hero-stage: 100svh;
 ```
 
@@ -151,7 +142,7 @@ sn arayla, `power3.out`. Kelime kelime değil; h1 bölünmez. Scroll'a bağlı
 değil; sayfa kaydırılmış açılırsa aşağıdaki çıkış devralır. Bitince üç
 elemanda inline stil kalmaz (butonların Designer'daki hover'ı ezilmesin).
 
-**Scroll (0 → 1 = track − 100svh, varsayılan 200svh; scrub 0.6 sn gecikmeli):**
+**Scroll (0 → 1 = track − stage, varsayılan 200svh; scrub 0.6 sn gecikmeli):**
 
 | Aralık   | Ne                                                                     |
 | -------- | ---------------------------------------------------------------------- |

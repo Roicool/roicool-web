@@ -18,38 +18,21 @@
   --rc-hero-track: 300svh;
   --rc-hero-stage: 100svh;
   position: relative;
-  box-sizing: border-box;
   overflow-x: clip;
 }
 
-/* LOOK — the scroll distance (track − stage) is the root's bottom padding:
-   the stage sits at the top, the pin lasts until the stage's bottom edge
-   meets the root's bottom edge, so the distance stays the same however tall
-   the stage grows. The min-height is a floor should Designer's own padding
-   on the section win over this rule (no specificity). */
+/* LOOK — the track is the scroll distance (track − stage). Designer may set
+   min-height on the section instead; this rule has no specificity. */
 :where([data-rc~="hero"]) {
   min-height: var(--rc-hero-track);
-  padding-bottom: calc(var(--rc-hero-track) - var(--rc-hero-stage));
 }
 
-/* The stage is at least one viewport tall and grows with the mosaic when
-   the secondary layer is in flow: what does not fit scrolls into view once
-   the pin lets go. Media and primary stay a viewport-high frame at its top.
-   Descendant, not child: while pinned, ScrollTrigger wraps the stage in a
-   spacer div and a child combinator would stop matching. */
-[data-rc~="hero"] [data-rc-part="stage"] {
-  min-height: var(--rc-hero-stage);
-}
-
-[data-rc~="hero"] [data-rc-part="media"],
-[data-rc~="hero"] [data-rc-part="primary"] {
+[data-rc~="hero"] > [data-rc-part="stage"] {
   height: var(--rc-hero-stage);
 }
 
-/* LOOK — the mosaic layer fills the frame when short and grows past it when
-   tall; Designer's own min-height on the class wins. */
-:where([data-rc~="hero"] [data-rc-part="secondary"]) {
-  min-height: var(--rc-hero-stage);
+[data-rc~="hero"] [data-rc-part="media"] {
+  height: var(--rc-hero-stage);
 }
 
 [data-rc~="hero"] [data-rc-part="media"] video {
@@ -69,13 +52,11 @@
   pointer-events: none;
 }
 
-/* LOOK — the marquee slot at the bottom edge of the viewport-high frame, not
-   of the stage: with a stage taller than the frame, 100% − stage-height
-   pulls it up from the stage's bottom to the frame's. Designer's own
-   positioning on the class wins, so leave `bottom` unset there. */
+/* LOOK — the marquee slot at the bottom edge of the stage; Designer's own
+   positioning on the class wins. */
 :where([data-rc~="hero"] [data-rc-part="footer"]) {
   position: absolute;
-  bottom: calc(100% - var(--rc-hero-stage));
+  bottom: 0;
   left: 0;
   width: 100%;
 }
