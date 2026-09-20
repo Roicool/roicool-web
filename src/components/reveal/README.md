@@ -88,14 +88,14 @@ garantiye alır, videoyu section ekrandayken oynatır, dışında durdurur.
 İki mod var. **Tek seferlik** (varsayılan): kökün %25'i görününce kendi
 saatiyle bir kez oynar. **Scroll modu** (`data-rc-scrub`): Square'in canlı
 sitesindeki davranış, tam ekran section'lar için. Açılış kaydırmaya kilitli:
-section'ın üstü viewport'un altından girerken 0, viewport'un üstüne oturunca
-
-1. Yukarı kaydırınca geri sarar. Kaydırma yarıda durursa snap en yakın uca
-   götürür: section ya tam yerine oturur ya da geri çekilir (`data-rc-snap="false"`
-   kapatır). Scroll modunda sıra: media ilk yarıda açılır, kelimeler onda
-   birden itibaren sırayla, bloklar ortadan sonra. Geri sarabilmek için bölme
-   geri alınmaz; metin bölünmüş kalır (tam metin `aria-label`'da). Pin yok;
-   Lenis'e bağlı, hero ile aynı snap ayarı. Tek seferlik modun ayrıntısı:
+section'ın üstü viewport'un altından girerken sıfırdır, viewport'un üstüne
+oturunca tamamlanır. Yukarı kaydırınca geri sarar. Kaydırma yarıda durursa
+snap en yakın uca götürür: section ya tam yerine oturur ya da geri çekilir
+(`data-rc-snap="false"` kapatır). Scroll modunda sıra: media ilk yarıda
+açılır, kelimeler onda birden itibaren sırayla, bloklar ortadan sonra. Geri
+sarabilmek için bölme geri alınmaz; metin bölünmüş kalır (tam metin
+`aria-label`'da). Pin yok; Lenis'e bağlı, hero ile aynı snap ayarı. Tek
+seferlik modun ayrıntısı:
 
 - **Kelimeler:** `opacity .2 → 1`, `min(10rem, 20svh)` alttan yükselir,
   `expo.out`, kelime başına 0.06 s; satırlar `clip-path` ile maskeli, kelime
