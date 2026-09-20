@@ -29,6 +29,12 @@ Designer'da ayarlanacaklar:
   içerik hizası. `position` verme; kod `relative` verir.
 - **media** → `position: absolute; inset: 0; z-index: 0`. `overflow` verme,
   kod `clip` verir. Video kabı için `aria-hidden="true"`.
+- **Grain ve karartma** → media'nın **içine değil, hemen sonrasına** (kod
+  media'nın içindekileri videoyla birlikte ölçekler): boş Div, class
+  `rc-grain` (doku, blend, konum koddan; `--rc-grain-opacity`, `--rc-grain-size`
+  ile ayar), `aria-hidden="true"`. Karartma için ayrı boş Div, Designer'da
+  absolute inset 0 + yarı saydam siyah. İkisi de container'dan önce, z-index
+  gerekmez.
 - **Container** → `position: relative; z-index: 1`; içerik videonun üstünde.
 - **Metin parçaları** → tipografi Designer'da; `text-wrap`, `overflow`
   verme.
