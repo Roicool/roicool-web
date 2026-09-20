@@ -27,6 +27,7 @@ import {
   setState,
 } from "../../runtime/dom.js";
 import { prefersReducedMotion } from "../../runtime/motion.js";
+import { slideFrames, pictureOf } from "../../runtime/slide.js";
 import { warn } from "../../runtime/log.js";
 
 /** Seconds a switch takes when `data-rc-duration` is not set. */
@@ -37,14 +38,6 @@ const DEFAULT_PARALLAX = 30;
 
 /** Pixels a press must travel sideways to count as a swipe. */
 const SWIPE_THRESHOLD = 40;
-
-/** Ease in and out, close to GSAP's power3.inOut. */
-const EASING = "cubic-bezier(0.65, 0, 0.35, 1)";
-
-/** The moving picture inside a slide, if the slide is not the picture. */
-function pictureOf(slide) {
-  return slide.querySelector("img, video");
-}
 
 /** The word thumbnails are labelled with: "Görsel 2 / 3", "Image 2 / 3". */
 function thumbnailWord(root) {
@@ -159,31 +152,17 @@ export default function slideshow(root) {
     });
 
     // The frames cross at full width; the pictures inside lag behind so the
-    // move reads as depth rather than a flat push.
-    const moves = [
-      [incoming, direction * 100, 0],
-      [outgoing, 0, -direction * 100],
-      [pictureOf(incoming), -direction * parallax, 0],
-      [pictureOf(outgoing), 0, direction * parallax],
-    ];
-    const timing = {
+    // move reads as depth rather than a flat push (runtime/slide.js).
+    const { animations, finished } = slideFrames({
+      incoming,
+      outgoing,
+      axis: "x",
+      direction,
       duration: prefersReducedMotion() ? 0 : duration,
-      easing: EASING,
-      fill: "both",
-    };
-    const animations = moves
-      .filter(([el]) => el)
-      .map(([el, from, to]) =>
-        el.animate(
-          [
-            { transform: `translateX(${from}%)` },
-            { transform: `translateX(${to}%)` },
-          ],
-          timing,
-        ),
-      );
+      parallax,
+    });
 
-    Promise.all(animations.map((a) => a.finished)).then(
+    finished.then(
       () => {
         setState(incoming, "active");
         setState(outgoing, null);
