@@ -9,7 +9,8 @@
  * step with Lenis), and the scroll position over that length picks the
  * step. Steps never skip: the shown step walks towards the one the scroll
  * asks for one at a time, each move playing through — a fast scroll shows
- * every step in order.
+ * every step in order. A marker press is the exception: it goes straight to
+ * the pressed step and scrolls the page there.
  *
  * A move is the slideshow's slide, turned vertical (runtime/slide.js): the
  * new step's media comes in from the bottom (from the top when going back),
@@ -41,16 +42,22 @@ const DEFAULT_DIM = 0.5;
 const DEFAULT_LENGTH = 150;
 /** Below this viewport width nothing pins. `data-rc-min-width`. */
 const DEFAULT_MINIMUM_WIDTH = 0;
-/** The text's exit and entrance, from the source site. */
+/** The text's exit and entrance, from the source site. `rise` in rem. */
 const CONTENT = {
   out: 200,
   in: 900,
   delay: 220,
-  rise: "1.5rem",
+  rise: 1.5,
   ease: "cubic-bezier(0.22, 0.61, 0.36, 1)",
 };
 /** Milliseconds a resize is allowed to settle before the pin is rebuilt. */
 const REBUILD_DELAY = 150;
+/** Milliseconds a marker jump waits for the scroll to land before the scroll
+ * position drives the steps again (a Lenis scroll the user interrupts never
+ * reports completion). */
+const JUMP_TIMEOUT = 2000;
+/** Seconds the page takes to reach a pressed marker's slice (Lenis). */
+const JUMP_DURATION = 1.2;
 
 export default async function steps(root) {
   const stage = part(root, "stage");
@@ -101,6 +108,12 @@ export default async function steps(root) {
   let animating = false;
   /** The animations of the move under way, for cancelling on a disarm. */
   let running = [];
+  /** Set by a marker press: the next move goes straight to `target`. */
+  let direct = false;
+  /** The step a marker press is scrolling to; the scroll position does not
+   * drive the steps until that scroll lands. */
+  let jump = null;
+  let landTimer = 0;
   let trigger = null;
   let onScreen = false;
 
@@ -174,15 +187,14 @@ export default async function steps(root) {
         ),
       );
     }
+    // The text moves through `translate`, not `transform`: Designer centres
+    // the content with a transform (translateY(-50%)) and the two compose.
     if (contents[from]) {
       extras.push(
         contents[from].animate(
           [
-            { opacity: 1, transform: "translateY(0)" },
-            {
-              opacity: 0,
-              transform: `translateY(calc(${-direction} * ${CONTENT.rise}))`,
-            },
+            { opacity: 1, translate: "0 0" },
+            { opacity: 0, translate: `0 ${-direction * CONTENT.rise}rem` },
           ],
           {
             duration: reduced ? 0 : CONTENT.out,
@@ -196,11 +208,8 @@ export default async function steps(root) {
       extras.push(
         contents[index].animate(
           [
-            {
-              opacity: 0,
-              transform: `translateY(calc(${direction} * ${CONTENT.rise}))`,
-            },
-            { opacity: 1, transform: "translateY(0)" },
+            { opacity: 0, translate: `0 ${direction * CONTENT.rise}rem` },
+            { opacity: 1, translate: "0 0" },
           ],
           {
             duration: reduced ? 0 : CONTENT.in,
@@ -235,14 +244,20 @@ export default async function steps(root) {
     );
   }
 
-  /** One step towards the target, if not already on the way. */
+  /** One step towards the target, if not already on the way; after a marker
+   * press, straight to it. */
   function advance() {
-    if (animating || !pinned() || current === target) return;
-    go(current + Math.sign(target - current));
+    if (animating || !pinned()) return;
+    if (current === target) {
+      direct = false;
+      return;
+    }
+    go(direct ? target : current + Math.sign(target - current));
   }
 
   /** The step the scroll progress (0 → 1 over the pin) asks for. */
   function aim(progress) {
+    if (jump !== null) return;
     target = Math.min(
       stepList.length - 1,
       Math.max(0, Math.floor(progress * stepList.length)),
@@ -301,17 +316,35 @@ export default async function steps(root) {
     playVideos();
   }
 
-  // A marker press scrolls the page to the middle of that step's slice; the
-  // walk from the current step follows as usual.
+  // A marker press goes straight to that step (no walk through the ones
+  // between) and scrolls the page to the middle of its slice. While the
+  // scroll is on its way, the slices it passes do not drive the steps; once
+  // it lands, the scroll position is in charge again.
+  function land() {
+    if (jump === null) return;
+    jump = null;
+    clearTimeout(landTimer);
+    if (trigger) aim(trigger.progress);
+  }
   markers.forEach((marker, index) => {
     marker.addEventListener("click", () => {
       if (!trigger) return;
+      jump = index;
+      target = index;
+      direct = true;
+      advance();
       const y =
         trigger.start +
         ((index + 0.5) / stepList.length) * (trigger.end - trigger.start);
       const lenis = smoothScroll();
-      if (lenis) lenis.scrollTo(y);
-      else window.scrollTo({ top: y });
+      clearTimeout(landTimer);
+      landTimer = setTimeout(land, JUMP_TIMEOUT);
+      if (lenis)
+        lenis.scrollTo(y, { duration: JUMP_DURATION, onComplete: land });
+      else {
+        window.scrollTo({ top: y });
+        land();
+      }
     });
   });
 

@@ -80,8 +80,12 @@ translateY(-50%)`), flex column, gap. `list-style: none` + `role="list"`.
   Çıkan media aynı sürede `data-rc-dim`'e kararır.
 - **Metin:** çıkan 200 ms'de solup 1.5rem yön tersine kayar; giren 220 ms
   gecikmeyle 900 ms'de belirip yerine iner (`cubic-bezier(.22, .61, .36, 1)`).
-- **Gösterge:** aktif marker `aria-current="step"`; tıklanınca sayfa o
-  dilimin ortasına kayar (Lenis), yürüyüş normal işler.
+- **Gösterge:** aktif marker `aria-current="step"`; tıklanınca gösterilen
+  adım aradakilere uğramadan **tek hamlede** basılan adıma geçer ve sayfa o
+  dilimin ortasına kayar (Lenis, 1.2 s). Kaydırma yoldayken geçilen dilimler
+  adımı sürmez; kaydırma oturunca (ya da 2 s sonra) scroll yeniden sürer.
+- **Metin geçişi** `translate` ile: Designer'ın dikey ortalama `transform`'u
+  (`translateY(-50%)`) ile çakışmaz, ikisi birleşir.
 - **Video:** aktif adımın videosu oynar; diğerleri durur ve başa sarar;
   section ekran dışındayken hepsi durur.
 - Snap yok; dilimler uzun.
