@@ -70,3 +70,10 @@
 :where([id]) {
   scroll-margin-top: var(--rc-anchor-offset);
 }
+
+/* Helper class: an inline-block piece (a badge or an icon inside a line of
+   text, before an inline heading) centred on the text beside it instead of
+   hanging from the baseline. Not in Designer: vertical-align. */
+.rc-align-middle {
+  vertical-align: middle;
+}

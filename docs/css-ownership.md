@@ -23,6 +23,7 @@ gördüğün şey gerçeği yansıtmamaya başlar, bu da en pahalı hata türü.
 | `@media (prefers-reduced-motion)`        | Designer'da yok                          |
 | `@media (forced-colors)`, `@media print` | Designer'da yok                          |
 | `.rc-sr-only`, `.rc-skip-link`           | Erişilebilirlik altyapısı, tasarım değil |
+| `.rc-align-middle`                       | `vertical-align` Designer'da yok         |
 
 ## Çakışmayı mimariyle önlüyoruz
 
