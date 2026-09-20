@@ -1,0 +1,67 @@
+/*!
+ * reveal.css — behavioural styles only: the start states of what reveal.js
+ * animates, and the media frame's mechanics. Layout, typography, the media
+ * layer's position and every look come from Designer.
+ */
+
+/* LOOK — the media layer is positioned against the root; Designer's own
+   positioning on the section wins. */
+:where([data-rc~="reveal"]) {
+  position: relative;
+}
+
+/* MECHANIC — the media frame clips the zoomed picture inside it and shows
+   a video edge to edge. */
+[data-rc~="reveal"] [data-rc-part="media"] {
+  overflow: clip;
+}
+
+[data-rc~="reveal"] [data-rc-part="media"] video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* MECHANIC — split lines clip their rising words. */
+[data-rc~="reveal"] .rc-line {
+  clip-path: inset(-0.5em);
+}
+
+/* Start states, gated three ways: JS confirmed (.rc-js), motion not reduced,
+   and the root carrying no data-rc-state yet. reveal.js stamps a state once
+   every part holds its start values inline, and either releases these rules.
+   Should rc.js itself never arrive, the fallback animation lets everything
+   in after three seconds: no content stays dim for want of a script. Text
+   is only dimmed and shifted, never display: none or visibility: hidden —
+   it stays in the accessibility tree and in what crawlers read. */
+@media (prefers-reduced-motion: no-preference) {
+  .rc-js [data-rc~="reveal"]:not([data-rc-state]) [data-rc-part="text"],
+  .rc-js [data-rc~="reveal"]:not([data-rc-state]) [data-rc-part="rise"] {
+    opacity: 0.2;
+    /* Same formula as riseDistance() in reveal.js. */
+    transform: translateY(min(10rem, 20svh));
+    animation: rc-reveal-fallback 0.6s 3s both;
+  }
+
+  .rc-js [data-rc~="reveal"]:not([data-rc-state]) [data-rc-part="media"] {
+    opacity: 0;
+    visibility: hidden;
+    clip-path: inset(25%);
+    animation: rc-reveal-fallback 0.6s 3s both;
+  }
+
+  .rc-js [data-rc~="reveal"]:not([data-rc-state]) [data-rc-part="media"] > * {
+    transform: scale(1.2);
+    animation: rc-reveal-fallback 0.6s 3s both;
+  }
+
+  @keyframes rc-reveal-fallback {
+    to {
+      opacity: 1;
+      visibility: visible;
+      transform: none;
+      clip-path: inset(0);
+    }
+  }
+}
