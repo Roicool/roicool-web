@@ -1,0 +1,95 @@
+/*!
+ * steps.css — behavioural styles only. The stage's inner layout (where the
+ * text sits, where the markers sit), typography, the markers' look and every
+ * colour come from Designer.
+ *
+ * Two layouts. Static (no JS, reduced motion, no GSAP, narrow viewport):
+ * the steps are a plain column in normal flow, Designer's own layout, and
+ * the markers are hidden. Pinned: the stage is one viewport tall and the
+ * steps stack on top of each other inside it, one on show at a time.
+ */
+
+/* MECHANIC — pictures and videos fill their media frame in both layouts. In
+   the static column the frame's height is Designer's (an aspect ratio), so
+   100% resolves to that. */
+[data-rc~="steps"] [data-rc-part="media"] :is(img, video) {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* MECHANIC — the markers are a control for the pinned scene only. */
+[data-rc~="steps"]:not([data-rc-state="pinned"]) [data-rc-part="navigation"] {
+  display: none;
+}
+
+/* MECHANIC — pinned: the stage fills the viewport below the header offset,
+   clips the sliding frames and keeps the steps' z-order to itself. `clip`,
+   not `hidden`: a hidden overflow is a scroll container. The pin itself
+   (position, spacer) is set by ScrollTrigger. */
+[data-rc~="steps"][data-rc-state="pinned"] [data-rc-part="stage"] {
+  position: relative;
+  height: calc(100svh - var(--rc-steps-top, 0px));
+  box-sizing: border-box;
+  overflow: clip;
+  isolation: isolate;
+}
+
+/* MECHANIC — the steps stack in the stage; only the ones with a state
+   (active, entering, leaving) are painted, the rest wait invisible. */
+[data-rc~="steps"][data-rc-state="pinned"] [data-rc-part="step"] {
+  position: absolute;
+  inset: 0;
+}
+
+[data-rc~="steps"][data-rc-state="pinned"]
+  [data-rc-part="step"]:not([data-rc-state]) {
+  visibility: hidden;
+}
+
+/* MECHANIC — the media frame fills its step and is what slides; the picture
+   inside is what lags (parallax), so the frame clips it. The height and
+   aspect ratio Designer gives the frame for the static column are reset:
+   here the frame is as tall as the step. */
+[data-rc~="steps"][data-rc-state="pinned"] [data-rc-part="media"] {
+  position: absolute;
+  inset: 0;
+  height: auto;
+  aspect-ratio: auto;
+  overflow: clip;
+}
+
+/* MECHANIC — the text paints above its own media. Designer positions it
+   (absolute, wherever the design wants it); a positioned box takes the
+   z-index. */
+[data-rc~="steps"][data-rc-state="pinned"] [data-rc-part="content"] {
+  z-index: 1;
+}
+
+:where([data-rc~="steps"][data-rc-state="pinned"] [data-rc-part="content"]) {
+  position: relative;
+}
+
+/* MECHANIC — the markers sit above every step. */
+[data-rc~="steps"][data-rc-state="pinned"] [data-rc-part="navigation"] {
+  z-index: 2;
+}
+
+:where([data-rc~="steps"][data-rc-state="pinned"] [data-rc-part="navigation"]) {
+  position: absolute;
+}
+
+/* LOOK — the marker on the current step stands out; the rest are dimmed.
+   Designer cannot see aria-current, so the current one's colour is a
+   variable: --rc-steps-marker-active, the brand colour by default. The
+   dimming is a zero-specificity default Designer's class may replace. */
+:where([data-rc~="steps"] [data-rc-part="marker"]) {
+  opacity: 0.55;
+  transition: opacity 0.3s;
+}
+
+[data-rc~="steps"] [data-rc-part="marker"][aria-current] {
+  opacity: 1;
+  color: var(--rc-steps-marker-active, var(--rc-brand, currentColor));
+}
