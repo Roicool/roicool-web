@@ -4,16 +4,29 @@
  * layer's position and every look come from Designer.
  */
 
-/* LOOK — the media layer is positioned against the root; Designer's own
-   positioning on the section wins. */
+/* LOOK — the media layer is positioned against the root and covers it;
+   Designer's own positioning on the section and on the layer wins. */
 :where([data-rc~="reveal"]) {
   position: relative;
 }
 
-/* MECHANIC — the media frame clips the zoomed picture inside it and shows
-   a video edge to edge. */
+:where([data-rc~="reveal"] [data-rc-part="media"]) {
+  position: absolute;
+  inset: 0;
+}
+
+/* MECHANIC — the media frame clips the zoomed picture inside it. Whatever
+   sits directly inside (Webflow wraps an Embed in a div of its own) fills
+   the frame, so a video's 100% height has a box to resolve against and it
+   shows edge to edge. */
 [data-rc~="reveal"] [data-rc-part="media"] {
   overflow: clip;
+}
+
+[data-rc~="reveal"] [data-rc-part="media"] > * {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 
 [data-rc~="reveal"] [data-rc-part="media"] video {
