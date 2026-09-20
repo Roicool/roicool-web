@@ -60,8 +60,16 @@
   overflow: clip;
 }
 
-/* MECHANIC — the text paints above its own media. Designer positions it
-   (absolute, wherever the design wants it); a positioned box takes the
+/* MECHANIC — in the static column the text sits under its media in normal
+   flow. Designer places it for the pinned scene (absolute, offsets, the
+   centring transform); that placement waits for the pin. */
+[data-rc~="steps"]:not([data-rc-state="pinned"]) [data-rc-part="content"] {
+  position: static;
+  transform: none;
+}
+
+/* MECHANIC — pinned: the text paints above its own media. Designer positions
+   it (absolute, wherever the design wants it); a positioned box takes the
    z-index. */
 [data-rc~="steps"][data-rc-state="pinned"] [data-rc-part="content"] {
   z-index: 1;

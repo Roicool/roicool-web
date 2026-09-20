@@ -38,8 +38,14 @@ Designer'da ayarlanacaklar:
   (dekoratif). Görsel `alt=""`, `loading="lazy"`; video Embed ile, R2'dan,
   `muted playsinline loop preload="metadata"` (kod aktif adımı oynatır).
 - **content** → pinli düzende `position: absolute` + yer (ör. sol, dikey
-  ortalı, `max-width: 28rem`), metin rengi. Açık görselli bir adımda koyu
-  metin istiyorsan o adımın content'ine combo class.
+  ortalı, `max-width: 28rem`), metin rengi. Statik sütunda (JS yok, reduced
+  motion, mobil B) kod `position: static; transform: none` basar: metin
+  media'nın altında normal akışta kalır, Designer'daki yerleşim pin'i
+  bekler. Sol kenarı container'la hizalamak için `left:
+max(var(--view--px), calc((100% - var(--container--xl)) / 2))` — dar
+  ekranda sayfa padding'ine düşer, mobil için ayrı değer gerekmez. Açık
+  görselli bir adımda koyu metin istiyorsan o adımın content'ine combo
+  class.
 - **navigation** → `position: absolute`, sağ orta (`right: 3rem; top: 50%;
 translateY(-50%)`), flex column, gap. `list-style: none` + `role="list"`.
 - **marker** → DOM element, tag `button`; içinde etiket Text Block ve numara
