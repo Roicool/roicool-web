@@ -10,10 +10,13 @@
  * of the scroll-locked pile.
  *
  * The pinning is the browser's own `position: sticky` (step-stack.css), not
- * a scroll library: wide screens keep the frame in a full-height rail beside
- * the steps, narrow screens keep the whole stage at the top and let the
- * steps pass under it. This file only decides which step is current (the
- * last one whose top has crossed the trigger line) and plays the moves.
+ * a scroll library, and only on wide screens, where the frame rides in a
+ * full-height rail beside the steps. Narrow screens — Webflow's tablet
+ * breakpoint and below — get the frame once, static, above the steps, with
+ * the first picture in it: nothing sticks and no picture moves; only the
+ * steps' highlight follows the scroll. This file decides which step is
+ * current (the last one whose top has crossed the trigger line) and plays
+ * the moves.
  *
  * Without JavaScript the frame is a small gallery of every picture above the
  * steps; the steps themselves are plain text in every case.
@@ -29,10 +32,8 @@ import {
 import { SLIDE_EASING, pictureOf } from "../../runtime/slide.js";
 import { warn } from "../../runtime/log.js";
 
-/** Pixels from the top of the viewport the frame docks at (wide screens). `data-rc-top`. */
+/** Pixels from the top of the viewport the frame docks at. `data-rc-top`. */
 const DEFAULT_TOP = 120;
-/** Pixels left for a fixed header above the stage (narrow screens). `data-rc-header`. */
-const DEFAULT_HEADER = 0;
 /** Trigger line as a percent of the viewport height. `data-rc-line`. */
 const DEFAULT_LINE = 50;
 /** Seconds a move takes. `data-rc-duration`. */
@@ -41,6 +42,15 @@ const DEFAULT_DURATION = 0.9;
 const DEFAULT_PARALLAX = 30;
 /** Brightness a covered picture dims to, 0–1. `data-rc-dim`. */
 const DEFAULT_DIM = 0.6;
+/**
+ * A move still running when a newer one starts is sped up to this rate, so
+ * a fast scroll never queues slides: the frame keeps up with the steps.
+ */
+const CATCH_UP_RATE = 3;
+/** Where the frame is pinned and the pictures move; step-stack.css agrees. */
+const WIDE = "(min-width: 992px)";
+/** The pictures are fetched and decoded once the stack is this close. */
+const PREPARE_MARGIN = "100% 0px";
 
 export default function stepStack(root) {
   const stage = part(root, "stage");
@@ -70,17 +80,22 @@ export default function stepStack(root) {
     `${numberOption(root, "top", DEFAULT_TOP)}px`,
   );
   root.style.setProperty(
-    "--rc-step-stack-header",
-    `${numberOption(root, "header", DEFAULT_HEADER)}px`,
-  );
-  root.style.setProperty(
     "--rc-step-stack-dim",
     String(numberOption(root, "dim", DEFAULT_DIM)),
   );
   root.style.setProperty("--rc-step-stack-duration", `${duration}ms`);
+  const wide = window.matchMedia(WIDE);
 
+  /** The current step. */
   let current = 0;
+  /** The picture in the frame: follows `current` on wide screens, 0 on narrow. */
+  let shown = 0;
+  /** Some of the stack is in the viewport: only then is the line measured. */
   let onScreen = false;
+  /** The frame itself is in the viewport: only then does a video play. */
+  let frameOnScreen = false;
+  /** The stack is within a viewport of showing: time to fetch the pictures. */
+  let near = false;
 
   /** The move under way on each picture, so a reversal plays it backwards. */
   const moves = new Map();
@@ -98,6 +113,15 @@ export default function stepStack(root) {
       return;
     }
     if (running) for (const a of running.animations) a.cancel();
+    // A newer move takes over: whatever else is still moving wraps up fast.
+    // The sign keeps a reversed move going backwards.
+    for (const [other, record] of moves) {
+      if (other === media) continue;
+      for (const a of record.animations) {
+        if (a.playState !== "running") continue;
+        a.updatePlaybackRate(Math.sign(a.playbackRate) * CATCH_UP_RATE);
+      }
+    }
     const ms = prefersReducedMotion() ? 0 : duration;
     const timing = { duration: ms, easing: SLIDE_EASING, fill: "both" };
     const frameKeyframes =
@@ -127,31 +151,29 @@ export default function stepStack(root) {
     );
   }
 
-  /**
-   * The current step's video plays while the stack is on screen; the others
-   * pause and rewind. With reduced motion none plays and the posters stand.
-   */
-  function playVideos() {
-    const playing = onScreen && !document.hidden && !prefersReducedMotion();
-    medias.forEach((media, index) => {
-      for (const video of media.querySelectorAll("video")) {
-        video.muted = true;
-        video.playsInline = true;
-        if (playing && index === current) {
-          video.play().catch(() => {});
-        } else {
-          video.pause();
-          if (index !== current) video.currentTime = 0;
-        }
-      }
-    });
+  /** Cancel every move; the states alone then decide what shows. */
+  function settle() {
+    for (const { animations } of moves.values()) {
+      for (const a of animations) a.cancel();
+    }
+    moves.clear();
   }
 
-  /** Make step `index` the current one, sliding pictures as needed. */
-  function go(index) {
-    const from = current;
-    if (index === from) return;
-    current = index;
+  /**
+   * Put picture `index` in the frame — wide screens only. `instant` skips
+   * the move (the layout just changed under the stack).
+   */
+  function show(index, instant = false) {
+    const from = shown;
+    if (index === from && !instant) return;
+    shown = index;
+    if (instant) {
+      settle();
+      medias.forEach((media, i) =>
+        setState(media, i < index ? "under" : i === index ? "active" : null),
+      );
+      return;
+    }
     if (index > from) {
       // Forward: the pictures passed go under; the new one slides in on top.
       for (let k = from; k < index; k += 1) setState(medias[k], "under");
@@ -165,7 +187,60 @@ export default function stepStack(root) {
       }
       setState(medias[index], "active");
     }
+  }
+
+  /** Narrow screens: the first picture, static; nothing moves. */
+  function rest() {
+    settle();
+    shown = 0;
+    medias.forEach((media, i) => setState(media, i === 0 ? "active" : null));
+  }
+
+  /**
+   * Every picture is fetched and decoded ahead of its step, so the first
+   * paint of a picture never waits for a decode mid-move. Wide screens
+   * only: narrow ones show the first picture alone.
+   */
+  let prepared = false;
+  function prepare() {
+    if (prepared || !near || !wide.matches) return;
+    prepared = true;
+    for (const media of medias) {
+      for (const image of media.querySelectorAll("img")) {
+        image.loading = "eager";
+        image.decoding = "async";
+        image.decode().catch(() => {});
+      }
+    }
+  }
+
+  /**
+   * The shown picture's video plays while the frame is on screen; the
+   * others pause and rewind. With reduced motion none plays.
+   */
+  function playVideos() {
+    const playing =
+      frameOnScreen && !document.hidden && !prefersReducedMotion();
+    medias.forEach((media, index) => {
+      for (const video of media.querySelectorAll("video")) {
+        video.muted = true;
+        video.playsInline = true;
+        if (playing && index === shown) {
+          video.play().catch(() => {});
+        } else {
+          video.pause();
+          if (index !== shown) video.currentTime = 0;
+        }
+      }
+    });
+  }
+
+  /** Make step `index` the current one; on wide screens its picture follows. */
+  function go(index) {
+    if (index === current) return;
+    current = index;
     steps.forEach((step, i) => setState(step, i === index ? "active" : null));
+    if (wide.matches) show(index);
     playVideos();
   }
 
@@ -192,22 +267,46 @@ export default function stepStack(root) {
     });
   }
 
+  /** The layout changed under the stack (a resize, a rotation). */
+  function layout() {
+    if (wide.matches) {
+      show(current, true);
+      prepare();
+    } else {
+      rest();
+    }
+    playVideos();
+  }
+
+  new IntersectionObserver(
+    ([entry]) => {
+      near = entry.isIntersecting;
+      prepare();
+    },
+    { rootMargin: PREPARE_MARGIN },
+  ).observe(root);
   new IntersectionObserver(
     ([entry]) => {
       onScreen = entry.isIntersecting;
       if (onScreen) aim();
-      playVideos();
     },
     { threshold: 0 },
   ).observe(root);
+  new IntersectionObserver(
+    ([entry]) => {
+      frameOnScreen = entry.isIntersecting;
+      playVideos();
+    },
+    { threshold: 0 },
+  ).observe(frame);
   document.addEventListener("visibilitychange", playVideos);
   onMotionPreferenceChange(playVideos);
+  wide.addEventListener("change", layout);
   window.addEventListener("scroll", schedule, { passive: true });
   window.addEventListener("resize", schedule);
 
-  setState(medias[0], "active");
   setState(steps[0], "active");
+  layout();
   setState(root, "ready");
   aim();
-  playVideos();
 }

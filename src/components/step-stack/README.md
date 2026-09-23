@@ -10,6 +10,9 @@ slideshow'daki gibi yumuşatılmış.
 **Pin nasıl:** GSAP yok, pin-spacer yok. Çerçeve tarayıcının kendi
 `position: sticky`'siyle sabitlenir; kod yalnız hangi adımın güncel olduğuna
 karar verir ve geçişleri oynatır. Metin her zaman normal akışta ve görünür.
+Yalnız geniş ekranda (992 px ve üstü): tablet ve altında çerçeve adımların
+üstünde bir kez, sabit durur ve ilk görseli gösterir; ne yapışır ne görsel
+değiştirir.
 
 ## Designer'daki yapı
 
@@ -20,7 +23,7 @@ Section                     [data-rc="step-stack"]        ← kök; ayarlar bura
   Container
     (başlık alanı, serbest)
     Div                     [data-rc-part="body"]         ← adımlar + sahne; kod relative
-      Div                   [data-rc-part="stage"]        ← İLK çocuk; geniş ekranda ray, darda üstte yapışır
+      Div                   [data-rc-part="stage"]        ← İLK çocuk; geniş ekranda ray, darda üstte sabit blok
         Div                 [data-rc-part="frame"]        ← görsel çerçevesi; genişlik, oran, radius Designer
           Div               [data-rc-part="media"] ×n     ← her adımın görseli; sıra adımlarla aynı
             Image (alt "") ya da Embed <video>
@@ -34,17 +37,17 @@ Designer'da ayarlanacaklar:
   `overflow: hidden` olmasın (sticky'yi öldürür; yatay taşma için body'ye
   verilmişse bile).
 - **stage** → hiçbir şey. Geniş ekranda kod `absolute; inset: 0` ray yapar
-  (tıklar içinden geçer), dar ekranda `sticky; top` verir. Dar ekranda
-  metin altından geçerken kenarlardan görünmesin diye arka plan rengi
-  verilebilir.
+  (tıklar içinden geçer); dar ekranda kod dokunmaz, normal akışta üstte
+  durur. Dar ekranda alt boşluk (adımlarla arası) Designer'dan.
 - **frame** → genişlik (ör. `28rem`), `aspect-ratio` (ör. `16 / 10`),
   radius. Geniş ekranda kod rayın içinde yatay ortalar (`margin-inline:
 auto`; sola/sağa almak için margin ver), `sticky; top` ve `overflow: clip`
   verir. Dar ekranda `width: 100%`, oran `16 / 9` gibi.
-- **media** → stil verme; kod pinliyken `absolute; inset: 0` yapar, görseli
-  cover doldurtur. Görsel `alt=""`, `loading="lazy"`; video Embed ile,
-  R2'dan, `muted playsinline loop preload="metadata"` (aktif adımınki
-  oynar).
+- **media** → stil verme; kod `absolute; inset: 0` yapar, görseli cover
+  doldurtur. Görsel `alt=""`, `loading="lazy"` (geniş ekranda yığın bir
+  viewport yaklaşınca kod hepsini eager'a çevirip decode ettirir: geçiş
+  anında görsel çözülmez, takılmaz); video Embed ile, R2'dan,
+  `muted playsinline loop preload="metadata"` (çerçevedeki adımınki oynar).
 - **step** → satır düzeni: geniş ekranda 3 kolonlu grid (`1fr <çerçeve
 genişliği> 1fr`; orta kolon boş, çerçeve oraya oturur) ya da 2 kolon
   (metin solda, çerçeve sağda — frame'e `margin-left: auto`). Alt
@@ -58,44 +61,51 @@ genişliği> 1fr`; orta kolon boş, çerçeve oraya oturur) ya da 2 kolon
 | Attribute          | Değer         | Ne yapar                                                         |
 | ------------------ | ------------- | ---------------------------------------------------------------- |
 | `data-rc-top`      | px, `120`     | Geniş ekranda çerçevenin yapıştığı yükseklik (viewport üstünden) |
-| `data-rc-header`   | px, `0`       | Dar ekranda sahnenin üstünde sabit header için boşluk            |
 | `data-rc-line`     | %, `50`       | Tetikleme çizgisi: üstü bu çizgiyi geçen son adım günceldir      |
 | `data-rc-duration` | saniye, `0.9` | Geçiş süresi                                                     |
 | `data-rc-parallax` | yüzde, `30`   | Çerçeveye girerken içerideki görselin gecikme payı               |
 | `data-rc-dim`      | 0–1, `0.6`    | Altta kalan görselin parlaklığı; `1` kararmaz                    |
 | `data-rc-eager`    | —             | Görünüre girmeyi beklemeden yükle (önerilir)                     |
 
-Kırılma noktası sabit: Webflow'un tablet eşiği (991 px). Üstünde yan ray,
-altında üstte sahne.
+Kırılma noktası sabit: Webflow'un tablet eşiği (991 px). Üstünde yan ray ve
+görsel geçişleri, altında üstte sabit çerçeve.
 
 ## Hareket
 
 - **Geniş ekran:** stage, body'nin tamamını kaplayan görünmez bir ray;
   frame rayın içinde `top`'ta yapışır. Adımlar yanından akar.
-- **Dar ekran:** stage body'nin ilk çocuğu olarak üstte yapışır; adımlar
-  altından geçer.
+- **Dar ekran:** stage body'nin ilk çocuğu olarak üstte, normal akışta;
+  çerçevede ilk görsel durur, kaydırınca yukarı gider. Görsel geçişi yok;
+  yalnız adım vurgusu (aşağıdaki "Metin") çalışır. Pencere genişleyip
+  daralınca kod çerçeveyi o anki adıma anında (animasyonsuz) getirir.
 - **Güncel adım:** üstü viewport'un `line`%'ini geçmiş son adım. Adım
   değişince: ileri → geçilen görseller `under` (kararır, %96'ya küçülür),
   yeni görsel alttan `100% → 0` kayarak girer, içindeki görsel %30
   gecikmeli; geri → arkada kalan görseller aşağı kayarak çıkar, alttaki
   yeniden tam parlaklığa gelir. Kayma sürerken yön değişirse aynı animasyon
   tersine oynar, sıçrama olmaz.
+- **Hızlı kaydırma:** ara adımlar atlanır — yalnız varılan görsel kayar,
+  aradakiler doğrudan `under` olur. Bir geçiş sürerken yenisi başlarsa
+  süren geçiş 3 kat hızla tamamlanır; çerçeve adımların gerisinde
+  kuyruk oluşturmaz.
+- **Kararma:** `filter` değil, görselin üstünde opaklığı değişen siyah bir
+  `::after` katmanı (`1 − dim`). Filter büyük görseli her karede yeniden
+  rasterize eder; opacity compositor'da kalır.
 - **Metin:** güncel adım `data-rc-state="active"`; diğerleri `%50` opak
   (`--rc-step-stack-rest`; Designer class'ında opacity verirse o kazanır).
-- **Video:** güncel adımın videosu oynar, diğerleri durur ve başa sarar;
-  yığın ekran dışındayken ve sekme gizliyken hepsi durur.
+- **Video:** çerçevedeki görselin videosu oynar, diğerleri durur ve başa
+  sarar; çerçeve ekran dışındayken ve sekme gizliyken hepsi durur.
 - Ölçüm yalnız yığın ekrandayken: dışarıdayken scroll dinlenir ama hiçbir
   şey hesaplanmaz; görünüre girince (sayfa içi atlama, yarıdan yüklenme) bir
   kez hedeflenir.
-- Hızlı kaydırmada ara adımlar atlanır: yalnız varılan görsel kayar,
-  aradakiler doğrudan `under` olur.
 
 ## JS yoksa, hareket azaltılmışsa
 
 - **JS yok:** sticky yok; frame içindeki görseller küçük bir galeri (grid)
   olarak adımların üstünde durur, adımlar alt alta.
-- **Reduced motion:** pin kalır (animasyon değil, konum); geçişler anlık;
-  videolar oynamaz, poster durur (tercih oturum içinde değişirse kod uyar).
+- **Reduced motion:** geniş ekranda pin kalır (animasyon değil, konum);
+  geçişler anlık; videolar oynamaz, poster durur (tercih oturum içinde
+  değişirse kod uyar).
 - İçerik her koşulda HTML'de ve görünür.
 
 ## Erişilebilirlik

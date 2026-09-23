@@ -4,15 +4,15 @@
  * ratio and radius, and every colour come from Designer.
  *
  * The pin is `position: sticky`, gated on .rc-js so that without JavaScript
- * nothing sticks and the frame is a small gallery of every picture. Two
- * layouts, split at Webflow's tablet breakpoint:
+ * nothing sticks and the frame is a small gallery of every picture, and on
+ * Webflow's tablet breakpoint:
  *
  *   ≥ 992px  the stage is a full-height rail over the steps (absolute,
  *            clicks go through it) and the frame inside it sticks at
  *            --rc-step-stack-top, centred in the rail — Designer's row grid
  *            leaves the middle column empty for it.
- *   ≤ 991px  the stage sits first in the flow and sticks at the top
- *            (--rc-step-stack-header); the steps pass under it.
+ *   ≤ 991px  nothing sticks: the stage sits first in the flow, static, and
+ *            the frame shows the first picture; the steps follow below.
  *
  * Pictures stack in the frame: the current one on top, the ones passed
  * dimmed and slightly smaller underneath, the ones ahead hidden. The moves
@@ -51,9 +51,7 @@
 }
 
 /* MECHANIC — a picture is on show only with a state; before JS stamps one,
-   the first picture shows. A covered picture rests dimmed and a little
-   smaller (the move to that rest is a transition; motion.css shortens it
-   under reduced motion). */
+   the first picture shows. */
 .rc-js [data-rc~="step-stack"] [data-rc-part="media"]:not([data-rc-state]) {
   visibility: hidden;
 }
@@ -65,15 +63,37 @@
   visibility: visible;
 }
 
+/* MECHANIC — a covered picture rests dimmed and a little smaller. The
+   dimming is a black overlay fading in — opacity, not a filter: a filter
+   re-rasterises a large picture on every frame of the move. The move to
+   that rest is a transition; motion.css shortens it under reduced motion. */
+.rc-js [data-rc~="step-stack"] [data-rc-part="media"]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: #000;
+  opacity: 0;
+  pointer-events: none;
+}
+
 :where(.rc-js [data-rc~="step-stack"] [data-rc-part="media"]) {
-  transition:
-    scale var(--rc-step-stack-duration, 0.9s) cubic-bezier(0.65, 0, 0.35, 1),
-    filter var(--rc-step-stack-duration, 0.9s) cubic-bezier(0.65, 0, 0.35, 1);
+  transition: scale var(--rc-step-stack-duration, 0.9s)
+    cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+:where(.rc-js [data-rc~="step-stack"] [data-rc-part="media"]::after) {
+  transition: opacity var(--rc-step-stack-duration, 0.9s)
+    cubic-bezier(0.65, 0, 0.35, 1);
 }
 
 .rc-js [data-rc~="step-stack"] [data-rc-part="media"][data-rc-state="under"] {
   scale: 0.96;
-  filter: brightness(var(--rc-step-stack-dim, 0.6));
+}
+
+.rc-js
+  [data-rc~="step-stack"]
+  [data-rc-part="media"][data-rc-state="under"]::after {
+  opacity: calc(1 - var(--rc-step-stack-dim, 0.6));
 }
 
 /* MECHANIC — wide: the stage is a rail over the steps, the frame sticks. */
@@ -93,15 +113,6 @@
 
   :where(.rc-js [data-rc~="step-stack"] [data-rc-part="frame"]) {
     margin-inline: auto;
-  }
-}
-
-/* MECHANIC — narrow: the stage itself sticks at the top of the viewport. */
-@media (max-width: 991px) {
-  .rc-js [data-rc~="step-stack"] [data-rc-part="stage"] {
-    position: sticky;
-    top: var(--rc-step-stack-header, 0px);
-    z-index: 1;
   }
 }
 
