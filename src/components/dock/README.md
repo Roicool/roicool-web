@@ -1,8 +1,8 @@
 # dock
 
 Ekranın altına yapışan CTA çubuğu: logo şeridi, "Get started", "Book a
-demo". İşaretlenen section'ı aşağı doğru geçince alttan kayarak gelir, o
-section'ın üstüne geri çıkınca iner.
+demo". İşaretlenen section'ı aşağı doğru geçince alttan kayarak gelir; o
+section'ın üstüne geri çıkınca ya da footer ekrana girince iner.
 
 **Sayfada tetikleyici yoksa çubuk hiç çıkmaz** — uyarı da yazmaz; bu normal
 bir sayfa. Böylece çubuk tüm sayfalarda duran bir Symbol'de yaşar, hangi
@@ -10,12 +10,14 @@ sayfada görüneceğine o sayfadaki section karar verir.
 
 ## Designer'daki yapı
 
-İki ayrı yer: çubuğun kendisi ve geçilecek section.
+Üç ayrı yer: çubuğun kendisi, geçilecek section ve çubuğun indiği footer.
 
 ```
 Section (herhangi biri)           [data-rc-dock-trigger]         ← bu section geçilince çubuk gelir
 
 …
+
+Footer                            [data-rc-dock-stop]            ← ekrana girince çubuk iner (isteğe bağlı)
 
 Div (tag: aside)                  [data-rc="dock"]               ← çubuk; body'nin sonunda (Symbol olabilir)
                                   aria-label="Hızlı iletişim"
@@ -33,6 +35,10 @@ Div (tag: aside)                  [data-rc="dock"]               ← çubuk; bod
   birden fazla varsa ilki sayılır. Section şart değil; boş bir Div de olur
   ("bu noktadan sonra göster"). Tetikleyici o breakpoint'te `Display: None`
   ise çubuk o breakpoint'te çıkmaz.
+- **Durdurucu** yine değersiz: `data-rc-dock-stop`. Footer'ın kendisine ver
+  (Symbol'ün içindeki kök eleman). Üst kenarı ekranın altından girdiği anda
+  çubuk iner, footer'dan yukarı çıkınca geri gelir. Yoksa çubuk sayfanın
+  sonuna kadar kalır.
 - **Çubuk** body'nin sonunda dursun (footer Symbol'ünün altı iyi bir yer).
   `transform`, `filter` ya da `backdrop-filter` taşıyan bir elemanın içine
   koyma: `position: fixed` o zaman ekrana değil o elemana yapışır.
@@ -74,7 +80,8 @@ Hepsi CSS değişkeni; site ya da sayfa custom code'unda değiştirilir.
 
 - Tetikleyicinin alt kenarı ekranın üstünden çıkınca kök
   `data-rc-state="shown"` alır; çubuk 0,5 sn'de alttan kayarak gelir.
-  Tetikleyiciye geri çıkınca durum kalkar, çubuk 0,25 sn'de iner.
+  Tetikleyiciye geri çıkınca ya da durdurucu (footer) ekrana girince durum
+  kalkar, çubuk 0,25 sn'de iner.
 - Sayfa tetikleyicinin altından açılırsa (yenileme, anchor linki) çubuk
   hemen görünür.
 - Nabız çubuk her gelişinde yarım saniye sonra başlar, iki kez atar, durur.
