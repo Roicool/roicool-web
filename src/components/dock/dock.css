@@ -1,0 +1,109 @@
+/*!
+ * dock.css — behavioural styles only. The bar's look (background, radius,
+ * padding, the logo strip, the buttons, the avatars) comes from Designer.
+ *
+ * Everything that positions or hides the bar is gated on .rc-js: without
+ * JavaScript it stays a normal block where Designer put it. The bar is
+ * hidden with visibility, never display: none, so it keeps a box in the
+ * viewport — the runtime mounts a component when its box nears the screen.
+ */
+
+[data-rc~="dock"] {
+  --rc-dock-offset: 1rem;
+  --rc-dock-layer: 900;
+  --rc-dock-pulse-color: rgb(193 175 145 / 0.5);
+  --rc-dock-pulse-duration: 2.4s;
+  --rc-dock-pulse-count: 2;
+}
+
+/* MECHANIC — fixed to the bottom of the viewport, centred. */
+.rc-js [data-rc~="dock"] {
+  position: fixed;
+  z-index: var(--rc-dock-layer);
+  bottom: var(--rc-dock-offset);
+  inset-inline: 0;
+  margin-inline: auto;
+  transition:
+    opacity 0.4s,
+    translate 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+    visibility 0s;
+}
+
+/* LOOK — as wide as its content, never wider than the screen minus a
+   gutter. A width set in Designer wins. */
+:where(.rc-js [data-rc~="dock"]) {
+  width: fit-content;
+  max-width: calc(100% - 2 * var(--rc-dock-offset));
+}
+
+/* MECHANIC — until the trigger is passed the bar waits below, invisible,
+   out of the tab order and the accessibility tree. It stays while focus is
+   inside it, so scrolling back up never drops a keyboard user's focus. The
+   slide is capped so the box stays near the viewport (see header). */
+.rc-js [data-rc~="dock"]:not([data-rc-state="shown"]):not(:focus-within) {
+  visibility: hidden;
+  opacity: 0;
+  translate: 0 min(100% + var(--rc-dock-offset), 6rem);
+  pointer-events: none;
+  transition:
+    opacity 0.25s,
+    translate 0.25s ease-in,
+    visibility 0s 0.25s;
+}
+
+/* MECHANIC — while the bar is up, anything focused or scrolled into view
+   stops above it instead of underneath (WCAG 2.4.11). Read on <html>, so
+   --rc-dock-clearance is set on :root, not on the bar. */
+html:has([data-rc~="dock"][data-rc-state="shown"]) {
+  scroll-padding-bottom: var(--rc-dock-clearance, 6rem);
+}
+
+/* MECHANIC — the pulse part draws its ring on ::after, so Designer's own
+   box-shadow on the element is left alone. Keep overflow visible on it. */
+:where([data-rc~="dock"] [data-rc-part="pulse"]) {
+  position: relative;
+}
+
+[data-rc~="dock"] [data-rc-part="pulse"]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+/* The pulse runs each time the bar comes up, a few rounds and then rests:
+   the default two rounds stay under five seconds, so no pause control is
+   owed (WCAG 2.2.2). Set --rc-dock-pulse-count: infinite to keep it going. */
+@media (prefers-reduced-motion: no-preference) {
+  [data-rc~="dock"][data-rc-state="shown"] [data-rc-part="pulse"],
+  [data-rc~="dock"][data-rc-state="shown"] [data-rc-part="pulse"]::after {
+    animation: var(--rc-dock-pulse-duration) ease-in-out 0.5s
+      var(--rc-dock-pulse-count);
+  }
+
+  [data-rc~="dock"][data-rc-state="shown"] [data-rc-part="pulse"] {
+    animation-name: rc-dock-pulse;
+  }
+
+  [data-rc~="dock"][data-rc-state="shown"] [data-rc-part="pulse"]::after {
+    animation-name: rc-dock-pulse-ring;
+  }
+}
+
+@keyframes rc-dock-pulse {
+  50% {
+    scale: 1.02;
+  }
+}
+
+@keyframes rc-dock-pulse-ring {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+  }
+
+  50% {
+    box-shadow: 0 0 0 4px var(--rc-dock-pulse-color);
+  }
+}

@@ -40,6 +40,14 @@ Rezerve adlar — ayar olarak kullanılamaz: `part`, `state`, `eager`.
 `data-rc-eager` her component'te geçerlidir: görünüre girmeyi beklemeden hemen
 yükler. Ekranın üst kısmındaki component'lerde (navigasyon, hero) kullanılır.
 
+### Kökün dışındaki işaretler
+
+Bir component bazen kendi kökünün dışındaki bir elemana bakmak zorunda: ör.
+`dock` çubuğu, sayfada hangi section geçilince görüneceğini bilmeli. Bu
+eleman ne parça (kökün içinde değil) ne ayar (kökte değil); adı
+`data-rc-<component>-<rol>` olur: `data-rc-dock-trigger`. Component adıyla
+başladığı için hangi koda ait olduğu HTML'den okunur.
+
 ### İç içe component'ler
 
 Parçalar her zaman **en yakın** `[data-rc]` köküne aittir. Bir accordion'ın
