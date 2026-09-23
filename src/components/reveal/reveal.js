@@ -39,11 +39,23 @@ import {
   numberOption,
   setState,
 } from "../../runtime/dom.js";
-import { prefersReducedMotion, loadGsap } from "../../runtime/motion.js";
+import {
+  prefersReducedMotion,
+  onMotionPreferenceChange,
+  loadGsap,
+} from "../../runtime/motion.js";
 import { warn } from "../../runtime/log.js";
 
 /** One-shot mode: share of the root on screen before the reveal plays. */
 const DEFAULT_THRESHOLD = 0.25;
+/**
+ * One-shot mode: the observer reports at every twentieth of the root, so the
+ * moment enough of it shows is caught whatever the threshold — and whatever
+ * the root's height (see onceReveal).
+ */
+const OBSERVED_STEPS = Array.from({ length: 21 }, (_, i) => i / 20);
+/** `data-rc-scrub` set to one of these keeps the one-shot mode. */
+const SCRUB_OFF = new Set(["false", "no", "off"]);
 /** One-shot mode: seconds between one word starting and the next. */
 const DEFAULT_STAGGER = 0.06;
 /** One-shot mode: seconds a word or a block takes to rise. */
@@ -97,7 +109,10 @@ function riseDistance() {
   return Math.min(10 * rem, 0.2 * window.innerHeight);
 }
 
-/** Videos inside the media parts play on screen and pause off screen. */
+/**
+ * Videos inside the media parts play on screen and pause off screen; with
+ * reduced motion they never play and their posters stand.
+ */
 function initVideos(root, videos) {
   if (videos.length === 0) return;
   videos.forEach((video) => {
@@ -106,8 +121,9 @@ function initVideos(root, videos) {
   });
   let onScreen = false;
   const sync = () => {
+    const playing = onScreen && !document.hidden && !prefersReducedMotion();
     videos.forEach((video) => {
-      if (onScreen && !document.hidden) video.play().catch(() => {});
+      if (playing) video.play().catch(() => {});
       else video.pause();
     });
   };
@@ -119,6 +135,7 @@ function initVideos(root, videos) {
     { threshold: 0 },
   ).observe(root);
   document.addEventListener("visibilitychange", sync);
+  onMotionPreferenceChange(sync);
 }
 
 export default async function reveal(root) {
@@ -142,8 +159,11 @@ export default async function reveal(root) {
     return;
   }
 
-  // `data-rc-scrub` alone means the default lag; a number sets it.
-  const scrubbed = root.hasAttribute("data-rc-scrub");
+  // `data-rc-scrub` alone means the default lag, a number sets it (0 follows
+  // the scroll exactly) and "false" keeps the one-shot mode.
+  const scrubbed =
+    root.hasAttribute("data-rc-scrub") &&
+    !SCRUB_OFF.has(option(root, "scrub", "").toLowerCase());
   const scrub = scrubbed ? numberOption(root, "scrub", DEFAULT_SCRUB) : 0;
   const plugins = [];
   if (texts.length) plugins.push("SplitText");
@@ -193,7 +213,6 @@ export default async function reveal(root) {
    * Nothing is reverted afterwards: the reveal has to be able to wind back.
    */
   function scrubbedReveal() {
-    ScrollTrigger.config({ ignoreMobileResize: true });
     const snapOn = option(root, "snap") === null || flagOption(root, "snap");
     const wordStagger = SCRUBBED.words.span / Math.max(words.length - 1, 1);
     const timeline = gsap.timeline({
@@ -297,13 +316,21 @@ export default async function reveal(root) {
         .call(() => setState(root, "revealed"), null, Math.max(textEnd, 0.01));
     }
 
+    // Enough of the root shows when `threshold` of it is on screen — or, for
+    // a root taller than the viewport, which can never show that share of
+    // itself, when it covers `threshold` of the viewport.
     const watcher = new IntersectionObserver(
       ([entry]) => {
         if (!entry.isIntersecting) return;
+        const viewport = entry.rootBounds?.height ?? window.innerHeight;
+        const enough =
+          entry.intersectionRatio >= threshold ||
+          entry.intersectionRect.height >= threshold * viewport;
+        if (!enough) return;
         watcher.disconnect();
         play();
       },
-      { threshold },
+      { threshold: OBSERVED_STEPS },
     );
     watcher.observe(root);
   }

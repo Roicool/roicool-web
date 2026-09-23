@@ -69,8 +69,14 @@ export async function loadGsap(pluginNames = []) {
         result[name] = plugins[index][name];
         gsap.registerPlugin(plugins[index][name]);
       });
-      // Scroll-driven work must read the smoothed scroll position.
-      if (result.ScrollTrigger) bindScrollTrigger(gsap, result.ScrollTrigger);
+      if (result.ScrollTrigger) {
+        // Scroll-driven work must read the smoothed scroll position.
+        bindScrollTrigger(gsap, result.ScrollTrigger);
+        // Mobile browsers resize the viewport as the address bar hides;
+        // refreshing every pin on each such resize makes them jump. One
+        // setting for the whole page, so no component has to remember it.
+        result.ScrollTrigger.config({ ignoreMobileResize: true });
+      }
       return result;
     } catch {
       return null;

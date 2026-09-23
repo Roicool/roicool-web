@@ -173,7 +173,8 @@ oraya kırpılır; breakpoint değişimi ve font yüklenmesi hizayı bozmaz.
   CSS'teki `rc-hero-reveal` animasyonu 3 sn sonra her şeyi saf CSS ile açar.
   Hiçbir şey bir script uğruna gizli kalmaz.
 - **Reduced motion:** başlangıç durumları `no-preference` içinde → hiçbir şey
-  gizli başlamaz; kod timeline kurmaz, yalnız videoyu yönetir.
+  gizli başlamaz; kod timeline kurmaz, video oynamaz, poster durur (tercih
+  oturum içinde değişirse kod uyar).
 - **GSAP CDN'den gelmezse:** kök `data-rc-state="static"` alır, başlangıç
   durumları çözülür, uyarı konsola düşer. Sayfa okunur.
 
@@ -183,9 +184,12 @@ oraya kırpılır; breakpoint değişimi ve font yüklenmesi hizayı bozmaz.
   kelime span'ları `aria-hidden`). h1 olduğu gibi kalır. Ekran okuyucu
   bölünmemiş metni okur; bot HTML'de bölünmemiş metni görür.
 - Video `muted` + `playsinline`; hero'nun herhangi bir parçası ekrandayken
-  hep oynar (pin'in DOM taşıması ya da sekme değişimi durdurursa bir sonraki
-  karede yeniden başlar), ekran dışında durur. `aria-hidden` verme — poster ve
-  video dekoratif, `media` div'ine `aria-hidden="true"` Designer'da.
+  oynar, ekran dışında ve sekme gizliyken durur. Pin stage'i DOM'da taşır;
+  bu taşıma videoyu durdurmuşsa kod pin kurulunca ve her ScrollTrigger
+  refresh'inde yeniden başlatır — bunun dışında `pause`'a karışmaz
+  (tarayıcının güç tasarrufu durdurması geri açılmaz). `aria-hidden` verme
+  — poster ve video dekoratif, `media` div'ine `aria-hidden="true"`
+  Designer'da.
 - Tile görsellerinde `alt`: anlam taşıyorsa açıklama, dekoratifse boş.
 - 5 sn'den uzun otomatik video için WCAG 2.2.2 durdurma kontrolü — şu an yok;
   marquee'deki açık konuyla birlikte ele alınacak.

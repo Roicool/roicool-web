@@ -1,2 +1,2 @@
 var b="cubic-bezier(0.65, 0, 0.35, 1)";function h(e){return e.querySelector("img, video")}function x({incoming:e,outgoing:n,axis:m="x",direction:s=1,duration:f,parallax:r=30,picture:a=h}){let o=t=>m==="y"?`translateY(${t}%)`:`translateX(${t}%)`,l=[[e,s*100,0],[n,0,-s*100],[a(e),-s*r,0],[a(n),0,s*r]],c={duration:f,easing:b,fill:"both"},i=l.filter(([t])=>t).map(([t,p,u])=>t.animate([{transform:o(p)},{transform:o(u)}],c));return{animations:i,finished:Promise.all(i.map(t=>t.finished))}}export{b as a,h as b,x as c};
-//# sourceMappingURL=chunk-J7ZUH4Q5.js.map
+//# sourceMappingURL=chunk-7T2RR34Q.js.map

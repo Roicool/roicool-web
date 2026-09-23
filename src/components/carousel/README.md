@@ -16,7 +16,9 @@ Collection List Wrapper   [data-rc="carousel"]       ← tam genişlik (section'
     Collection Item                                  ← attribute gerekmez; içinde görsel + metin
 ```
 
-`track` attribute'u bu component'te **zorunlu** (CSS ona bağlı).
+`track` attribute'u yazılmazsa kod Webflow'un `.w-dyn-items` sınıfını bulur ve
+attribute'u ona kendisi basar (CSS ona bağlı). Yine de yazmak tercih edilir —
+Webflow sınıf adı değişirse kod etkilenmez.
 
 Designer'da ayarlanacaklar:
 
@@ -50,8 +52,8 @@ basar; ortadaki karta (ve klonlarına) `data-rc-active` yazar — özel CSS'te
 ## Hareket
 
 - **Otomatik:** her `interval`'da bir sonraki kart ortaya gelir (`duration`,
-  cubic ease-out). Fare üstündeyken, içeride klavye odağı varken, basılıyken
-  ve sekme gizliyken durur; sebep kalkınca sürer.
+  cubic ease-out). Fare üstündeyken, içeride klavye odağı varken, basılıyken,
+  sekme gizliyken ve şerit ekran dışındayken durur; sebep kalkınca sürer.
 - **Sürükleme:** basınca durur, işaretçi kadar kayar, bırakınca hızın
   250 ms'lik payı kadar süzülüp en yakın karta oturur. 4px altı basış
   tıklamadır; sürükleme sonrası ilk tıklama yutulur. Dokunmatikte yatay
@@ -78,8 +80,10 @@ düzen kayması sayılır. `data-rc-eager` bunu erkene çeker.
 
 ## Erişilebilirlik
 
-- Klonlar `aria-hidden="true"`, içlerindeki linkler `tabindex="-1"`; ekran
-  okuyucu ve klavye yalnız orijinal kartları görür.
+- Klonlar `aria-hidden="true"`; içlerinde odak alabilen her şey (link,
+  düğme, form alanı, `contenteditable`, `tabindex`li eleman) `tabindex="-1"`.
+  Ekran okuyucu ve klavye yalnız orijinal kartları görür; klon kartlar fareyle
+  yine tıklanır (`inert` değil — ortaya gelen kart çoğu zaman klondur).
 - Wrapper'a Designer'da `role="region"` ve açıklayıcı `aria-label`
   ("Ödüller" gibi); istenirse `aria-roledescription="carousel"`.
 - Kart görsellerinde anlamlı `alt`; kart linkleri tam metin taşısın.

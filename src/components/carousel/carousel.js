@@ -21,6 +21,7 @@
  */
 
 import {
+  FOCUSABLE,
   part,
   flagOption,
   numberOption,
@@ -59,8 +60,13 @@ function wrap(value, min, max) {
 
 function findTrack(root) {
   // Explicit part first; fall back to Webflow's own list class so a plain
-  // Collection List works with a single attribute on the wrapper.
-  return part(root, "track") ?? root.querySelector(":scope > .w-dyn-items");
+  // Collection List works with a single attribute on the wrapper. The
+  // fallback is stamped as the part: the CSS selects the track that way.
+  const track = part(root, "track");
+  if (track) return track;
+  const list = root.querySelector(":scope > .w-dyn-items");
+  list?.setAttribute("data-rc-part", "track");
+  return list;
 }
 
 /** A visual copy that assistive tech and the keyboard never reach. */
@@ -69,7 +75,7 @@ function cloneItem(item) {
   copy.setAttribute("aria-hidden", "true");
   copy.setAttribute("data-rc-clone", "");
   for (const el of copy.querySelectorAll("[id]")) el.removeAttribute("id");
-  for (const el of copy.querySelectorAll("a, button, input, [tabindex]")) {
+  for (const el of copy.querySelectorAll(FOCUSABLE)) {
     el.setAttribute("tabindex", "-1");
   }
   return copy;
@@ -289,6 +295,16 @@ export default function carousel(root) {
     if (document.hidden) hold("hidden");
     else release("hidden");
   });
+
+  // Nothing steps while the strip is scrolled out of view: no card moves
+  // unseen, and no timer runs for a strip far down the page.
+  new IntersectionObserver(
+    ([entry]) => {
+      if (entry.isIntersecting) release("offscreen");
+      else hold("offscreen");
+    },
+    { threshold: 0 },
+  ).observe(root);
 
   // Drag: a press stops the strip, moving scrubs it, a release glides to the
   // nearest card. Links inside keep working — a press that never travels is

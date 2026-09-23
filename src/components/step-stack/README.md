@@ -82,7 +82,11 @@ altında üstte sahne.
   tersine oynar, sıçrama olmaz.
 - **Metin:** güncel adım `data-rc-state="active"`; diğerleri `%50` opak
   (`--rc-step-stack-rest`; Designer class'ında opacity verirse o kazanır).
-- **Video:** güncel adımın videosu oynar, diğerleri durur ve başa sarar.
+- **Video:** güncel adımın videosu oynar, diğerleri durur ve başa sarar;
+  yığın ekran dışındayken ve sekme gizliyken hepsi durur.
+- Ölçüm yalnız yığın ekrandayken: dışarıdayken scroll dinlenir ama hiçbir
+  şey hesaplanmaz; görünüre girince (sayfa içi atlama, yarıdan yüklenme) bir
+  kez hedeflenir.
 - Hızlı kaydırmada ara adımlar atlanır: yalnız varılan görsel kayar,
   aradakiler doğrudan `under` olur.
 
@@ -90,7 +94,8 @@ altında üstte sahne.
 
 - **JS yok:** sticky yok; frame içindeki görseller küçük bir galeri (grid)
   olarak adımların üstünde durur, adımlar alt alta.
-- **Reduced motion:** pin kalır (animasyon değil, konum); geçişler anlık.
+- **Reduced motion:** pin kalır (animasyon değil, konum); geçişler anlık;
+  videolar oynamaz, poster durur (tercih oturum içinde değişirse kod uyar).
 - İçerik her koşulda HTML'de ve görünür.
 
 ## Erişilebilirlik

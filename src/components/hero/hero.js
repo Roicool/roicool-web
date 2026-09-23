@@ -29,7 +29,11 @@ import {
   option,
   setState,
 } from "../../runtime/dom.js";
-import { prefersReducedMotion, loadGsap } from "../../runtime/motion.js";
+import {
+  prefersReducedMotion,
+  onMotionPreferenceChange,
+  loadGsap,
+} from "../../runtime/motion.js";
 import { warn } from "../../runtime/log.js";
 
 /**
@@ -83,14 +87,14 @@ const SNAP = {
 const PORTRAIT = "(max-width: 767px)";
 
 /**
- * The video plays whenever any part of the hero is on screen, and pauses
- * off screen to save power. Anything else that pauses it while on screen —
- * the pin moving the stage in the DOM, a tab switch — is undone on the next
- * frame. Portrait poster on small screens.
+ * The video plays whenever any part of the hero is on screen and pauses off
+ * screen to save power; with reduced motion it never plays and the poster
+ * stands. Portrait poster on small screens. Returns the function that
+ * applies the rule, for the pin below to call once it has moved the stage.
  */
 function initVideo(root) {
   const video = part(root, "media")?.querySelector("video");
-  if (!video) return;
+  if (!video) return () => {};
 
   const portraitPoster = option(root, "poster-portrait");
   if (portraitPoster && window.matchMedia(PORTRAIT).matches) {
@@ -101,22 +105,22 @@ function initVideo(root) {
   video.playsInline = true;
 
   let onScreen = false;
-  const play = () => {
-    if (onScreen && !document.hidden && video.paused) {
-      video.play().catch(() => {});
-    }
+  const sync = () => {
+    if (onScreen && !document.hidden && !prefersReducedMotion()) {
+      if (video.paused) video.play().catch(() => {});
+    } else video.pause();
   };
 
   new IntersectionObserver(
     ([entry]) => {
       onScreen = entry.isIntersecting;
-      if (onScreen) play();
-      else video.pause();
+      sync();
     },
     { threshold: 0 },
   ).observe(root);
-  video.addEventListener("pause", () => requestAnimationFrame(play));
-  document.addEventListener("visibilitychange", play);
+  document.addEventListener("visibilitychange", sync);
+  onMotionPreferenceChange(sync);
+  return sync;
 }
 
 /**
@@ -189,7 +193,7 @@ export default async function hero(root) {
     return;
   }
 
-  initVideo(root);
+  const playVideo = initVideo(root);
   if (prefersReducedMotion()) return;
 
   const motion = await loadGsap(["ScrollTrigger", "SplitText"]);
@@ -200,9 +204,9 @@ export default async function hero(root) {
   }
   const { gsap, ScrollTrigger, SplitText } = motion;
 
-  // Mobile browsers resize the viewport as the address bar hides; refreshing
-  // the pin on every such resize makes it jump.
-  ScrollTrigger.config({ ignoreMobileResize: true });
+  // The pin wraps the stage in a spacer; a video that move paused is started
+  // again once the move has settled — after the frame, never during it.
+  const resumeVideo = () => requestAnimationFrame(playVideo);
 
   const primary = part(root, "primary");
   const tag = part(root, "tag");
@@ -260,8 +264,10 @@ export default async function hero(root) {
       // every refresh: resize, orientation change, fonts arriving.
       invalidateOnRefresh: true,
       refreshPriority: numberOption(root, "priority", 10),
+      onRefresh: resumeVideo,
     },
   });
+  resumeVideo();
 
   // Every exit is a fromTo with an explicit "from": its start value must not
   // be read from the page, which may still be showing the CSS start states

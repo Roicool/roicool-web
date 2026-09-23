@@ -125,18 +125,20 @@ export default function slideshow(root) {
       else if (event.key === "End") index = last;
       if (index === null) return;
       event.preventDefault();
-      go(index, index > current ? 1 : -1);
-      thumbnails[index].focus();
+      // Focus follows the switch; a key pressed mid-move changes nothing,
+      // so focus stays where it is.
+      if (go(index, index > current ? 1 : -1)) thumbnails[index].focus();
     });
   }
 
   /**
    * Switch to slide `index`. `direction` is where the new slide comes from:
    * 1 from the right (forward), -1 from the left (back). Wrapping round from
-   * the last slide to the first is still forward.
+   * the last slide to the first is still forward. True when the switch
+   * starts; false when it is the current slide or a move is under way.
    */
   function go(index, direction = Math.sign(index - current)) {
-    if (index === current || animating) return;
+    if (index === current || animating) return false;
     const outgoing = slides[current];
     const incoming = slides[index];
     animating = true;
@@ -179,6 +181,7 @@ export default function slideshow(root) {
         animating = false;
       },
     );
+    return true;
   }
 
   // A sideways swipe over the frame goes to the next or previous slide. A

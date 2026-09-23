@@ -55,8 +55,13 @@ const DEFAULT_MINIMUM_WIDTH = 768;
 
 function findTrack(root) {
   // Explicit part first; fall back to Webflow's own list class so a plain
-  // Collection List works with the part on the stage alone.
-  return part(root, "track") ?? root.querySelector(".w-dyn-items");
+  // Collection List works with the part on the stage alone. The fallback is
+  // stamped as the part: the CSS selects the track that way.
+  const track = part(root, "track");
+  if (track) return track;
+  const list = root.querySelector(".w-dyn-items");
+  list?.setAttribute("data-rc-part", "track");
+  return list;
 }
 
 const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
@@ -84,7 +89,6 @@ export default async function horizontalScroll(root) {
     return;
   }
   const { gsap, ScrollTrigger } = motion;
-  ScrollTrigger.config({ ignoreMobileResize: true });
 
   // Pixels between the viewport's top and the pinned stage: room for a fixed
   // header. Also the stage's height shortfall, through the CSS variable.
@@ -167,6 +171,9 @@ export default async function horizontalScroll(root) {
 
     if (measure() <= 0) {
       setState(root, "static");
+      // A pin-spacer that has just gone moved everything below it; every
+      // trigger on the page measures again.
+      ScrollTrigger.refresh();
       return;
     }
     setState(root, "pinned");
@@ -202,6 +209,9 @@ export default async function horizontalScroll(root) {
       onUpdate: (self) => place(self.scroll()),
       onRefresh: (self) => place(self.scroll(), true),
     });
+    // The pin-spacer just added moved everything below it: every trigger on
+    // the page (the hero's, another row's) measures again.
+    ScrollTrigger.refresh();
     place(window.scrollY, true);
   }
 

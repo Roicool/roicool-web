@@ -21,6 +21,7 @@
  */
 
 import {
+  FOCUSABLE,
   part,
   flagOption,
   numberOption,
@@ -59,8 +60,13 @@ const smoothstep = (t) => t * t * (3 - 2 * t);
 
 function findTrack(root) {
   // Explicit part first; fall back to Webflow's own list class so a plain
-  // Collection List works with a single attribute on the wrapper.
-  return part(root, "track") ?? root.querySelector(":scope > .w-dyn-items");
+  // Collection List works with a single attribute on the wrapper. The
+  // fallback is stamped as the part: the CSS selects the track that way.
+  const track = part(root, "track");
+  if (track) return track;
+  const list = root.querySelector(":scope > .w-dyn-items");
+  list?.setAttribute("data-rc-part", "track");
+  return list;
 }
 
 /** A visual copy that assistive tech and the keyboard never reach. */
@@ -68,7 +74,7 @@ function cloneTrack(track) {
   const copy = track.cloneNode(true);
   copy.setAttribute("aria-hidden", "true");
   for (const el of copy.querySelectorAll("[id]")) el.removeAttribute("id");
-  for (const el of copy.querySelectorAll("a, button, input, [tabindex]")) {
+  for (const el of copy.querySelectorAll(FOCUSABLE)) {
     el.setAttribute("tabindex", "-1");
   }
   return copy;

@@ -4,7 +4,7 @@
  * inside move at a fraction of that distance, so the move reads as depth
  * rather than a flat push. Web Animations API, no library.
  *
- * Shared by slideshow (sideways) and steps (vertical). The caller owns the
+ * Shared by slideshow (sideways) and step-stack (vertical). The caller owns the
  * states: it settles them once `finished` resolves and then cancels the
  * animations, in that order, so the outgoing frame is hidden before its
  * fill is dropped. Both happen in one microtask; nothing paints in between.

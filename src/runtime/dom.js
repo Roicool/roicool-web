@@ -12,6 +12,14 @@
 
 export const ROOT_SELECTOR = "[data-rc]";
 
+/**
+ * Everything the keyboard can land on. A visual copy of content (a marquee's
+ * second track, a carousel's clones) sets tabindex="-1" on all of these so
+ * the copy is never a tab stop, while its links still take a click.
+ */
+export const FOCUSABLE =
+  "a[href], area[href], button, input, select, textarea, summary, iframe, audio[controls], video[controls], [contenteditable]:not([contenteditable='false']), [tabindex]";
+
 const FALSE_VALUES = new Set(["false", "0", "no", "off"]);
 
 /** The component names declared on a root element. */

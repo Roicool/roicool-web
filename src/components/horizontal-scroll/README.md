@@ -15,8 +15,8 @@ Section                        [data-rc="horizontal-scroll"]   ← kök; padding
         Collection Item                                        ← kart (Link Block, görsel, başlık)
 ```
 
-`track` yazılmazsa kod Webflow'un `.w-dyn-items` sınıfını kullanır; yine de
-yazmak tercih edilir.
+`track` yazılmazsa kod Webflow'un `.w-dyn-items` sınıfını bulur ve attribute'u
+ona kendisi basar; yine de yazmak tercih edilir.
 
 Designer'da ayarlanacaklar:
 

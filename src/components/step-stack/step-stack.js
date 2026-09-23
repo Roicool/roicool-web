@@ -22,7 +22,10 @@
  */
 
 import { part, parts, numberOption, setState } from "../../runtime/dom.js";
-import { prefersReducedMotion } from "../../runtime/motion.js";
+import {
+  prefersReducedMotion,
+  onMotionPreferenceChange,
+} from "../../runtime/motion.js";
 import { SLIDE_EASING, pictureOf } from "../../runtime/slide.js";
 import { warn } from "../../runtime/log.js";
 
@@ -124,12 +127,17 @@ export default function stepStack(root) {
     );
   }
 
+  /**
+   * The current step's video plays while the stack is on screen; the others
+   * pause and rewind. With reduced motion none plays and the posters stand.
+   */
   function playVideos() {
+    const playing = onScreen && !document.hidden && !prefersReducedMotion();
     medias.forEach((media, index) => {
       for (const video of media.querySelectorAll("video")) {
         video.muted = true;
         video.playsInline = true;
-        if (index === current && onScreen && !document.hidden) {
+        if (playing && index === current) {
           video.play().catch(() => {});
         } else {
           video.pause();
@@ -171,24 +179,29 @@ export default function stepStack(root) {
     go(index);
   }
 
+  // One measurement per frame, and none while the stack is scrolled out of
+  // view: nothing can cross the line there. Coming back into view aims once
+  // at the spot the page landed on (a jump, a reload half-way down).
   let scheduled = false;
   function schedule() {
     if (scheduled) return;
     scheduled = true;
     requestAnimationFrame(() => {
       scheduled = false;
-      aim();
+      if (onScreen) aim();
     });
   }
 
   new IntersectionObserver(
     ([entry]) => {
       onScreen = entry.isIntersecting;
+      if (onScreen) aim();
       playVideos();
     },
     { threshold: 0 },
   ).observe(root);
   document.addEventListener("visibilitychange", playVideos);
+  onMotionPreferenceChange(playVideos);
   window.addEventListener("scroll", schedule, { passive: true });
   window.addEventListener("resize", schedule);
 

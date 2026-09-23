@@ -74,14 +74,14 @@ garantiye alır, videoyu section ekrandayken oynatır, dışında durdurur.
 
 ## Ayarlar (kökte)
 
-| Attribute           | Değer           | Ne yapar                                                                  |
-| ------------------- | --------------- | ------------------------------------------------------------------------- |
-| `data-rc-scrub`     | —, ya da saniye | **Scroll modu**: açılış kaydırmaya bağlı; değer gecikme, varsayılan `0.6` |
-| `data-rc-snap`      | `false`         | Scroll modunda snap'i kapatır; yoksa açık                                 |
-| `data-rc-threshold` | 0–1, `0.25`     | Tek seferlik mod: kökün bu kadarı görününce açılır                        |
-| `data-rc-stagger`   | saniye, `0.06`  | Tek seferlik mod: kelimeler arası gecikme                                 |
-| `data-rc-duration`  | saniye, `0.9`   | Tek seferlik mod: kelime ya da blok yükselme süresi                       |
-| `data-rc-eager`     | —               | Görünüre girmeyi beklemeden yükle (gerekmez)                              |
+| Attribute           | Değer           | Ne yapar                                                                                                                         |
+| ------------------- | --------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `data-rc-scrub`     | —, ya da saniye | **Scroll modu**: açılış kaydırmaya bağlı; değer gecikme, varsayılan `0.6`, `0` birebir izler; `false` tek seferlik modda bırakır |
+| `data-rc-snap`      | `false`         | Scroll modunda snap'i kapatır; yoksa açık                                                                                        |
+| `data-rc-threshold` | 0–1, `0.25`     | Tek seferlik mod: kökün bu kadarı görününce açılır (kök viewport'tan uzunsa: viewport'un bu kadarını kaplayınca)                 |
+| `data-rc-stagger`   | saniye, `0.06`  | Tek seferlik mod: kelimeler arası gecikme                                                                                        |
+| `data-rc-duration`  | saniye, `0.9`   | Tek seferlik mod: kelime ya da blok yükselme süresi                                                                              |
+| `data-rc-eager`     | —               | Görünüre girmeyi beklemeden yükle (gerekmez)                                                                                     |
 
 ## Hareket
 
@@ -126,8 +126,8 @@ seferlik modun ayrıntısı:
   başlamaz. Video poster'ıyla durur.
 - **`rc.js` gelmezse:** `.rc-js` var ama durum basılmaz; 3 sn sonra CSS
   animasyonu her şeyi açar.
-- **Reduced motion:** kod `static` basar, timeline kurmaz; yalnız videoyu
-  yönetir.
+- **Reduced motion:** kod `static` basar, timeline kurmaz; video da oynamaz,
+  poster'ıyla durur (tercih oturum içinde değişirse kod uyar).
 - **GSAP gelmezse:** `static`, uyarı konsola düşer.
 
 ## Erişilebilirlik

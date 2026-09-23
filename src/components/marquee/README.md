@@ -13,9 +13,9 @@ Collection List Wrapper   [data-rc="marquee"]
     Collection Item       ← attribute gerekmez
 ```
 
-`track` attribute'u yazılmazsa kod Webflow'un `.w-dyn-items` sınıfını kullanır;
-yani wrapper'a tek attribute yeterli. Yine de `track`'i yazmak tercih edilir —
-Webflow sınıf adı değişirse kod etkilenmez.
+`track` attribute'u yazılmazsa kod Webflow'un `.w-dyn-items` sınıfını bulur ve
+attribute'u ona kendisi basar; yani wrapper'a tek attribute yeterli. Yine de
+`track`'i yazmak tercih edilir — Webflow sınıf adı değişirse kod etkilenmez.
 
 Designer'da ayarlanacaklar:
 
@@ -95,8 +95,10 @@ gibi. `:where()` ile yazıldığından Designer'daki bir mask onu ezer.
 
 ## Erişilebilirlik
 
-- Klon `aria-hidden="true"`; içindeki linkler `tabindex="-1"`. Ekran okuyucu
-  ve klavye yalnız orijinal listeyi görür.
+- Klon `aria-hidden="true"`; içinde odak alabilen her şey (link, düğme, form
+  alanı, `contenteditable`, `tabindex`li eleman) `tabindex="-1"`. Ekran
+  okuyucu ve klavye yalnız orijinal listeyi görür; klondaki linkler fareyle
+  yine tıklanır (`inert` değil — şeridin yarısı klondur).
 - Şeridin içindeki bir link **klavyeyle** odak alınca (`:focus-visible`) şerit
   durur, odak çıkınca sürer — klavye kullanıcısı hareket eden hedefi kovalamaz.
   Fareyle basınca oluşan odak durdurmaz; yoksa sürükleme sonrası şerit başka
