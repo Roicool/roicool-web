@@ -18,7 +18,7 @@
     "prebuild": "prettier --write src scripts --log-level warn",
     "build": "node scripts/build.mjs",
     "version": "npm run build && git add -A",
-    "test": "node --test 'src/**/*.test.js'",
+    "test": "node --test 'src/**/*.test.js' 'scripts/**/*.test.mjs'",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },
