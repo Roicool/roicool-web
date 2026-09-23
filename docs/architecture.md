@@ -1,7 +1,8 @@
 # Mimari
 
-> Durum: plan. Kod yazımı henüz başlamadı. Bu belge yazılacak şeyin nasıl
-> çalışacağını anlatır.
+> Durum: uygulanıyor. Runtime, build ve component'ler yazıldı (liste
+> [`README.md`](../README.md)'de); `a11y/` katmanı henüz yok. Bu belge
+> sistemin nasıl çalıştığını anlatır.
 
 ## İki taraf, keskin sınır
 
@@ -80,7 +81,9 @@ components/  →  a11y/  →  runtime/
 
 Ok tek yönlü. `runtime/` hiçbir component'i bilmez, `a11y/` hiçbir component'i
 bilmez. Component component'i import etmez — ortak bir şey gerekiyorsa
-`runtime/` ya da `a11y/` içine çıkar.
+`runtime/` ya da `a11y/` içine çıkar. `a11y/` henüz açılmadı: ilk focus trap
+ya da live region ihtiyacında açılır (planı
+[`accessibility.md`](./accessibility.md)'de).
 
 ## Dış kütüphaneler: GSAP ve Lenis
 

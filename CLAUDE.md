@@ -21,8 +21,10 @@ tutulur.
 
 1. **JS asla içerik üretmez.** Metin, başlık, liste, tablo — hepsi HTML'de
    bulunur. JS yalnızca davranış ekler. Gerekçe: [`docs/geo.md`](./docs/geo.md).
-2. **Hiçbir şey ilk boyamayı geciktirmez.** Senkron yüklenen tek dosya
-   `dist/rc.critical.css`. Tüm JS `type="module"` (tanımı gereği deferred).
+2. **Hiçbir şey ilk boyamayı geciktirmez.** Senkron gelen tek stil, build'in
+   `head.html`'e `<style>` olarak gömdüğü kritik CSS'tir
+   (`src/base/critical.css`); ağdan senkron hiçbir dosya istenmez. Tüm JS
+   `type="module"` (tanımı gereği deferred).
 3. **JS gelmezse içerik görünür kalır.** Bir şeyi gizleyen CSS `.rc-js`
    önekiyle yazılır; bu sınıfı Webflow head'indeki satır içi snippet basar.
 4. **Kod, Webflow'un class'larına dokunmaz.** Seçim ve durum yalnızca

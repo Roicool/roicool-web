@@ -28,24 +28,26 @@ yanıt motorunun da anlayabildiği sayfadır. İkisi için ayrı iş yapılmıyo
    ya da `<a>` — tıklama olayı bağlanmış bir div değil. Kod, `<button>`
    olmayan tetikleyiciler için konsola uyarı düşer.
 2. **Odak görünür ve mantıklı yerde.** Bir katman açıldığında odak içine girer
-   (`src/a11y/focus-trap.js`), kapandığında geldiği yere döner.
+   (planlanan `src/a11y/focus-trap.js`), kapandığında geldiği yere döner.
 3. **Durum okunabilir.** Açık/kapalı, seçili, yükleniyor — `aria-expanded`,
    `aria-selected`, `aria-busy` ile bildirilir. Yalnızca renkle anlatılmaz.
 4. **Görünmeyen içerik erişilebilirlik ağacında da olmaz.** Kapalı panel
    `inert` alır; `visibility` veya `opacity` ile gizlenmiş bir eleman ekran
    okuyucuda hâlâ durur ve sekme sırasını kirletir.
 5. **Sessiz değişiklik yok.** Görsel olarak fark edilen ama metinle
-   duyurulmayan her değişiklik `src/a11y/live-region.js` ile duyurulur —
-   filtre sonucu sayısı, form hatası, "kopyalandı".
+   duyurulmayan her değişiklik (planlanan `src/a11y/live-region.js` ile)
+   duyurulur — filtre sonucu sayısı, form hatası, "kopyalandı".
 6. **Hareket isteğe bağlı.** `prefers-reduced-motion: reduce` altında component
    tam işlevsel kalır. Global geri çekilme `src/base/motion.css`'te; JS tarafı
    `src/runtime/motion.js` ile kontrol edilir.
 7. **Otomatik hareket durdurulabilir.** 5 saniyeden uzun süren otomatik
    kaydırma/slider'ın durdurma kontrolü olur (WCAG 2.2.2).
 
-## Paylaşılan katman — `src/a11y/`
+## Paylaşılan katman — `src/a11y/` (planlandı, henüz yok)
 
-Her component kendi focus trap'ini yazmaz. Planlanan dosyalar:
+Her component kendi focus trap'ini yazmaz. Klasör ilk ihtiyaçta açılır;
+bugünkü component'lerin hiçbiri katman açmıyor ya da duyuru yapmıyor.
+Planlanan dosyalar:
 
 | Dosya                | Ne zaman                                                       |
 | -------------------- | -------------------------------------------------------------- |

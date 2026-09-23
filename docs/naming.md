@@ -55,11 +55,19 @@ içindeki video component'inin parçaları accordion'a sızmaz.
 
 ## CSS sınıfları
 
-Kod, Webflow'un class'larına dokunmaz — ne okur ne yazar. Kodun tanımladığı tek
-class ailesi `rc-` öneklidir ve sayısı azdır:
+Kod, Webflow'un class'larına dokunmaz — ne okur ne yazar. Tek istisna
+okuma: Collection List'te `track` parçası yazılmamışsa kod `.w-dyn-items`'ı
+bulur ve ona `data-rc-part="track"` basar. Kodun tanımladığı tek class ailesi
+`rc-` öneklidir ve sayısı azdır:
 
 - `.rc-sr-only` — yalnız ekran okuyucuya görünür
 - `.rc-skip-link` — içeriğe atlama bağlantısı
+- `.rc-align-middle` — `vertical-align: middle` (Designer'da yok; `site.css`)
+- `.rc-grain` — data: URI doku + blend (Designer'da yok; `site.css`)
+- `.rc-scrollbar`, `.rc-scrollbar__thumb` — runtime'ın oluşturduğu yüzen
+  kaydırma çubuğu (`runtime/scrollbar.js`, `base/scroll.css`)
+- `.rc-line`, `.rc-word` — SplitText'in bölme sırasında bastığı geçici
+  satır ve kelime sınıfları (hero, reveal)
 - `html.rc-js` — JavaScript çalıştı işareti
 
 Durum, class ile değil `data-rc-state` ile ifade edilir. Gerekçe: Designer'da

@@ -9,7 +9,8 @@ botların kolay taradığı yapı.
 
 ## Durum
 
-**v0.1.0 — runtime + marquee + hero + Lenis.** Siteye giren
+**Geliştirme modu; sürüm tag'i henüz yok** (`package.json` 0.1.0'da bekliyor,
+ilk tag canlıya çıkışta). Siteye giren
 [`webflow/embeds/head.html`](./webflow/embeds/head.html): IX2 kapatıcı, `rc-js`
 işareti, inline kritik CSS (odak halkası, skip link, `.rc-sr-only`, hero
 başlangıç durumları), async `rc.css`, deferred `rc.js` (component keşfi,
@@ -36,7 +37,7 @@ npm run format
 | Klasör            | Ne var                                                                |
 | ----------------- | --------------------------------------------------------------------- |
 | `src/runtime/`    | `rc.js` çekirdeği — component keşfi, DOM sözleşmesi, hareket tercihi  |
-| `src/a11y/`       | Paylaşılan erişilebilirlik yardımcıları (focus trap, live region)     |
+| `src/a11y/`       | Planlandı, henüz yok: paylaşılan focus trap, live region              |
 | `src/base/`       | Senkron yüklenen kritik CSS + global hareket politikası               |
 | `src/components/` | Her component kendi klasöründe: js + css + README                     |
 | `src/effects/`    | Tek başına duran görsel efektler (component'e bağlı olmayan)          |
