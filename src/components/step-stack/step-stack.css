@@ -66,7 +66,10 @@
 /* MECHANIC — a covered picture rests dimmed and a little smaller. The
    dimming is a black overlay fading in — opacity, not a filter: a filter
    re-rasterises a large picture on every frame of the move. The move to
-   that rest is a transition; motion.css shortens it under reduced motion. */
+   that rest is a transition; motion.css shortens it under reduced motion.
+   The overlay's transition sits on the pseudo-element itself: a
+   pseudo-element is not allowed inside :where(), and nothing but this file
+   styles the overlay anyway. */
 .rc-js [data-rc~="step-stack"] [data-rc-part="media"]::after {
   content: "";
   position: absolute;
@@ -74,15 +77,12 @@
   background: #000;
   opacity: 0;
   pointer-events: none;
+  transition: opacity var(--rc-step-stack-duration, 0.9s)
+    cubic-bezier(0.65, 0, 0.35, 1);
 }
 
 :where(.rc-js [data-rc~="step-stack"] [data-rc-part="media"]) {
   transition: scale var(--rc-step-stack-duration, 0.9s)
-    cubic-bezier(0.65, 0, 0.35, 1);
-}
-
-:where(.rc-js [data-rc~="step-stack"] [data-rc-part="media"]::after) {
-  transition: opacity var(--rc-step-stack-duration, 0.9s)
     cubic-bezier(0.65, 0, 0.35, 1);
 }
 
