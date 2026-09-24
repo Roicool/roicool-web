@@ -15,8 +15,9 @@
  *            the frame shows the first picture; the steps follow below.
  *
  * Pictures stack in the frame: the current one on top, the ones passed
- * dimmed and slightly smaller underneath, the ones ahead hidden. The moves
- * themselves are Web Animations in step-stack.js.
+ * dimmed and slightly smaller underneath, the ones ahead hidden. Their
+ * places (slide, parallax, dimming) are written by step-stack.js from the
+ * scroll position every frame; nothing here transitions.
  */
 
 /* MECHANIC — pictures and videos fill their media box. */
@@ -63,40 +64,23 @@
   visibility: visible;
 }
 
-/* MECHANIC — a covered picture rests dimmed and a little smaller. The
-   dimming is a black overlay fading in — opacity, not a filter: a filter
-   re-rasterises a large picture on every frame of the move. The move to
-   that rest is a transition; motion.css shortens it under reduced motion.
-   The overlay's transition sits on the pseudo-element itself: a
-   pseudo-element is not allowed inside :where(), and nothing but this file
-   styles the overlay anyway. */
+/* MECHANIC — a covered picture dims under a black overlay, as far as the
+   picture above has come in (--rc-step-stack-cover, 0–1, from the code).
+   An overlay's opacity, not a filter: a filter re-rasterises a large
+   picture on every frame of the move. */
 .rc-js [data-rc~="step-stack"] [data-rc-part="media"]::after {
   content: "";
   position: absolute;
   inset: 0;
   background: #000;
-  opacity: 0;
+  opacity: calc(
+    var(--rc-step-stack-cover, 0) * (1 - var(--rc-step-stack-dim, 0.6))
+  );
   pointer-events: none;
-  transition: opacity var(--rc-step-stack-duration, 0.9s)
-    cubic-bezier(0.65, 0, 0.35, 1);
 }
 
-:where(.rc-js [data-rc~="step-stack"] [data-rc-part="media"]) {
-  transition: scale var(--rc-step-stack-duration, 0.9s)
-    cubic-bezier(0.65, 0, 0.35, 1);
-}
-
-.rc-js [data-rc~="step-stack"] [data-rc-part="media"][data-rc-state="under"] {
-  scale: 0.96;
-}
-
-.rc-js
-  [data-rc~="step-stack"]
-  [data-rc-part="media"][data-rc-state="under"]::after {
-  opacity: calc(1 - var(--rc-step-stack-dim, 0.6));
-}
-
-/* MECHANIC — wide: the stage is a rail over the steps, the frame sticks. */
+/* MECHANIC — wide: the stage is a rail over the steps, the frame sticks,
+   and the pictures — moved every frame — get their own layers. */
 @media (min-width: 992px) {
   .rc-js [data-rc~="step-stack"] [data-rc-part="stage"] {
     position: absolute;
@@ -113,6 +97,11 @@
 
   :where(.rc-js [data-rc~="step-stack"] [data-rc-part="frame"]) {
     margin-inline: auto;
+  }
+
+  .rc-js [data-rc~="step-stack"] [data-rc-part="media"],
+  .rc-js [data-rc~="step-stack"] [data-rc-part="media"] :is(img, video) {
+    will-change: translate;
   }
 }
 

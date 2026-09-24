@@ -2,17 +2,22 @@
 
 Alt alta adımlar (numara, başlık, birkaç satır) ve adımlar kayarken yerinde
 duran tek bir görsel çerçevesi. Her adımın kendi görseli var; adım tetikleme
-çizgisine gelince görseli çerçeveye alttan kayarak girer, önceki altında
+çizgisine yaklaşırken görseli çerçeveye alttan kayarak girer, önceki altında
 kararıp küçülür. Geri kaydırınca aynı yoldan çıkar. Kaynak: webnomads.com
-"Driving growth by design"; oradaki scroll'a kilitli yığın yerine geçişler
-slideshow'daki gibi yumuşatılmış.
+"Driving growth by design".
+
+**Hareket scroll'a bağlı, zamana değil.** Her karede her görselin yeri
+adımının konumundan hesaplanır: çerçeve hızlı kaydırmanın gerisinde
+kalamaz, geçişler kuyruklanmaz, yön değişince aynı yol geriye oynar. Fare
+tekerleğinin basamaklarını kısa bir scrub (üstel gecikme) yuvarlar; Lenis
+varken kaydırma zaten yumuşaktır.
 
 **Pin nasıl:** GSAP yok, pin-spacer yok. Çerçeve tarayıcının kendi
-`position: sticky`'siyle sabitlenir; kod yalnız hangi adımın güncel olduğuna
-karar verir ve geçişleri oynatır. Metin her zaman normal akışta ve görünür.
-Yalnız geniş ekranda (992 px ve üstü): tablet ve altında çerçeve adımların
-üstünde bir kez, sabit durur ve ilk görseli gösterir; ne yapışır ne görsel
-değiştirir.
+`position: sticky`'siyle sabitlenir; kod yalnız görsellerin yerini yazar ve
+hangi adımın güncel olduğuna karar verir. Metin her zaman normal akışta ve
+görünür. Yalnız geniş ekranda (992 px ve üstü): tablet ve altında çerçeve
+adımların üstünde bir kez, sabit durur ve ilk görseli gösterir; ne yapışır ne
+görsel değiştirir.
 
 ## Designer'daki yapı
 
@@ -44,10 +49,12 @@ Designer'da ayarlanacaklar:
 auto`; sola/sağa almak için margin ver), `sticky; top` ve `overflow: clip`
   verir. Dar ekranda `width: 100%`, oran `16 / 9` gibi.
 - **media** → stil verme; kod `absolute; inset: 0` yapar, görseli cover
-  doldurtur. Görsel `alt=""`, `loading="lazy"` (geniş ekranda yığın bir
-  viewport yaklaşınca kod hepsini eager'a çevirip decode ettirir: geçiş
-  anında görsel çözülmez, takılmaz); video Embed ile, R2'dan,
-  `muted playsinline loop preload="metadata"` (çerçevedeki adımınki oynar).
+  doldurtur, yerini `translate`/`scale` ile yazar. Görsel `alt=""`,
+  `loading="lazy"` (geniş ekranda yığın bir viewport yaklaşınca kod hepsini
+  eager'a çevirip decode ettirir: geçiş anında görsel çözülmez, takılmaz);
+  video Embed ile, R2'dan, `muted playsinline loop preload="metadata"`
+  (çerçevedeki adımınki oynar). **Her media'nın görseli farklı olsun**; aynı
+  asset iki adımda kullanılırsa o adımda "değişmedi" görünür.
 - **step** → satır düzeni: geniş ekranda 3 kolonlu grid (`1fr <çerçeve
 genişliği> 1fr`; orta kolon boş, çerçeve oraya oturur) ya da 2 kolon
   (metin solda, çerçeve sağda — frame'e `margin-left: auto`). Alt
@@ -58,14 +65,15 @@ genişliği> 1fr`; orta kolon boş, çerçeve oraya oturur) ya da 2 kolon
 
 ## Ayarlar (kökte)
 
-| Attribute          | Değer         | Ne yapar                                                         |
-| ------------------ | ------------- | ---------------------------------------------------------------- |
-| `data-rc-top`      | px, `120`     | Geniş ekranda çerçevenin yapıştığı yükseklik (viewport üstünden) |
-| `data-rc-line`     | %, `50`       | Tetikleme çizgisi: üstü bu çizgiyi geçen son adım günceldir      |
-| `data-rc-duration` | saniye, `0.9` | Geçiş süresi                                                     |
-| `data-rc-parallax` | yüzde, `30`   | Çerçeveye girerken içerideki görselin gecikme payı               |
-| `data-rc-dim`      | 0–1, `0.6`    | Altta kalan görselin parlaklığı; `1` kararmaz                    |
-| `data-rc-eager`    | —             | Görünüre girmeyi beklemeden yükle (önerilir)                     |
+| Attribute          | Değer          | Ne yapar                                                                                        |
+| ------------------ | -------------- | ----------------------------------------------------------------------------------------------- |
+| `data-rc-top`      | px, `120`      | Geniş ekranda çerçevenin yapıştığı yükseklik (viewport üstünden)                                |
+| `data-rc-line`     | %, `50`        | Tetikleme çizgisi (viewport yüksekliğinin yüzdesi): üstü bu çizgiye gelen adım günceldir        |
+| `data-rc-zone`     | %, `25`        | Görselin kayarak girdiği kaydırma mesafesi, viewport yüksekliğinin yüzdesi; çizgiye varınca tam |
+| `data-rc-scrub`    | saniye, `0.12` | Görsellerin kaydırmayı izleme gecikmesi; `0` birebir                                            |
+| `data-rc-parallax` | yüzde, `30`    | Çerçeveye girerken içerideki görselin gecikme payı                                              |
+| `data-rc-dim`      | 0–1, `0.6`     | Altta kalan görselin parlaklığı; `1` kararmaz                                                   |
+| `data-rc-eager`    | —              | Görünüre girmeyi beklemeden yükle (önerilir)                                                    |
 
 Kırılma noktası sabit: Webflow'un tablet eşiği (991 px). Üstünde yan ray ve
 görsel geçişleri, altında üstte sabit çerçeve.
@@ -77,35 +85,37 @@ görsel geçişleri, altında üstte sabit çerçeve.
 - **Dar ekran:** stage body'nin ilk çocuğu olarak üstte, normal akışta;
   çerçevede ilk görsel durur, kaydırınca yukarı gider. Görsel geçişi yok;
   yalnız adım vurgusu (aşağıdaki "Metin") çalışır. Pencere genişleyip
-  daralınca kod çerçeveyi o anki adıma anında (animasyonsuz) getirir.
-- **Güncel adım:** üstü viewport'un `line`%'ini geçmiş son adım. Adım
-  değişince: ileri → geçilen görseller `under` (kararır, %96'ya küçülür),
-  yeni görsel alttan `100% → 0` kayarak girer, içindeki görsel %30
-  gecikmeli; geri → arkada kalan görseller aşağı kayarak çıkar, alttaki
-  yeniden tam parlaklığa gelir. Kayma sürerken yön değişirse aynı animasyon
-  tersine oynar, sıçrama olmaz.
-- **Hızlı kaydırma:** ara adımlar atlanır — yalnız varılan görsel kayar,
-  aradakiler doğrudan `under` olur. Bir geçiş sürerken yenisi başlarsa
-  süren geçiş 3 kat hızla tamamlanır; çerçeve adımların gerisinde
-  kuyruk oluşturmaz.
+  daralınca kod çerçeveyi o anki adıma anında getirir.
+- **Görselin yeri:** k. adımın üstünün tetikleme çizgisine kalan mesafesi
+  `zone`'un altına inince görseli girmeye başlar; adımın üstü çizgiye
+  değince tam yerindedir (`translate 100% → 0`, içindeki görsel `parallax`
+  kadar geriden gelir, smoothstep ile yumuşatılır). Aynı oranda alttaki
+  görsel kararır (`::after` katmanı, `1 − dim`) ve `%96`'ya küçülür. Zone,
+  bir önceki adıma olan mesafenin %90'ını geçemez; kısa adımlarda geçiş
+  ona sığar.
+- **Güncel adım:** üstü çizgiyi geçmiş son adım. Metin vurgusu ve video o
+  an değişir; görsel ise tam o anda yerine oturmuş olur.
+- **Scrub:** görseller kaydırmayı `scrub` saniyelik üstel gecikmeyle izler;
+  kaydırma durunca birkaç karede yerine oturur. Yığın ekran dışındayken
+  hiçbir şey ölçülmez; görünüre girince (sayfa içi atlama, yarıdan yüklenme)
+  gecikmesiz yerleşir.
 - **Kararma:** `filter` değil, görselin üstünde opaklığı değişen siyah bir
-  `::after` katmanı (`1 − dim`). Filter büyük görseli her karede yeniden
-  rasterize eder; opacity compositor'da kalır.
+  `::after` katmanı. Filter büyük görseli her karede yeniden rasterize eder;
+  opacity ve translate compositor'da kalır (`will-change`).
 - **Metin:** güncel adım `data-rc-state="active"`; diğerleri `%50` opak
   (`--rc-step-stack-rest`; Designer class'ında opacity verirse o kazanır).
+- **Media durumları:** girmemiş görsel durumsuz (gizli), girerken
+  `entering`, en üstteki `active`, örtülmüş olanlar `under`.
 - **Video:** çerçevedeki görselin videosu oynar, diğerleri durur ve başa
   sarar; çerçeve ekran dışındayken ve sekme gizliyken hepsi durur.
-- Ölçüm yalnız yığın ekrandayken: dışarıdayken scroll dinlenir ama hiçbir
-  şey hesaplanmaz; görünüre girince (sayfa içi atlama, yarıdan yüklenme) bir
-  kez hedeflenir.
 
 ## JS yoksa, hareket azaltılmışsa
 
 - **JS yok:** sticky yok; frame içindeki görseller küçük bir galeri (grid)
   olarak adımların üstünde durur, adımlar alt alta.
 - **Reduced motion:** geniş ekranda pin kalır (animasyon değil, konum);
-  geçişler anlık; videolar oynamaz, poster durur (tercih oturum içinde
-  değişirse kod uyar).
+  görsel adımın üstü çizgiye değince anında değişir, scrub yok; videolar
+  oynamaz, poster durur (tercih oturum içinde değişirse kod uyar).
 - İçerik her koşulda HTML'de ve görünür.
 
 ## Erişilebilirlik
@@ -118,5 +128,5 @@ görsel geçişleri, altında üstte sabit çerçeve.
 
 ## Bağımlılık
 
-Yok. Geçişler Web Animations API (`runtime/slide.js`'in easing'i ve
-picture seçicisi).
+Yok. Yerler her karede inline `translate`/`scale` ve bir CSS değişkeni
+olarak yazılır; `runtime/slide.js`'in picture seçicisi kullanılır.

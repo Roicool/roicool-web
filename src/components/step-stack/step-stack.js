@@ -1,22 +1,25 @@
 /**
  * step-stack.js — a column of steps (number, title, a few lines) with one
  * picture frame that stays put while the steps scroll past it. Each step
- * has its own picture; when a step reaches the trigger line its picture
- * slides up into the frame over the previous one, which dims underneath.
- * Scrolling back slides it out again.
+ * has its own picture; as a step approaches the trigger line its picture
+ * slides up into the frame over the previous one, which dims underneath,
+ * and scrolling back slides it out again.
  *
- * Reconstructed from webnomads.com's "Driving growth by design", with the
- * picture changes turned into eased slides (runtime/slide.js's move) instead
- * of the scroll-locked pile.
+ * Reconstructed from webnomads.com's "Driving growth by design".
+ *
+ * The moves are driven by the scroll position, not by a clock: every frame
+ * each picture's place is computed from where its step is, so the frame can
+ * never fall behind a fast scroll, never queues moves, and a change of
+ * direction simply runs the same path backwards. A short scrub (an
+ * exponential lag) rounds off the steps of a mouse wheel; with Lenis the
+ * scroll is smooth already.
  *
  * The pinning is the browser's own `position: sticky` (step-stack.css), not
  * a scroll library, and only on wide screens, where the frame rides in a
  * full-height rail beside the steps. Narrow screens — Webflow's tablet
  * breakpoint and below — get the frame once, static, above the steps, with
  * the first picture in it: nothing sticks and no picture moves; only the
- * steps' highlight follows the scroll. This file decides which step is
- * current (the last one whose top has crossed the trigger line) and plays
- * the moves.
+ * steps' highlight follows the scroll.
  *
  * Without JavaScript the frame is a small gallery of every picture above the
  * steps; the steps themselves are plain text in every case.
@@ -29,28 +32,41 @@ import {
   prefersReducedMotion,
   onMotionPreferenceChange,
 } from "../../runtime/motion.js";
-import { SLIDE_EASING, pictureOf } from "../../runtime/slide.js";
+import { pictureOf } from "../../runtime/slide.js";
 import { warn } from "../../runtime/log.js";
 
 /** Pixels from the top of the viewport the frame docks at. `data-rc-top`. */
 const DEFAULT_TOP = 120;
 /** Trigger line as a percent of the viewport height. `data-rc-line`. */
 const DEFAULT_LINE = 50;
-/** Seconds a move takes. `data-rc-duration`. */
-const DEFAULT_DURATION = 0.9;
+/**
+ * Scroll distance a picture takes to slide in, as a percent of the viewport
+ * height, ending as its step's top reaches the line. `data-rc-zone`.
+ */
+const DEFAULT_ZONE = 25;
+/** Seconds of lag the pictures trail the scroll by. `data-rc-scrub`. */
+const DEFAULT_SCRUB = 0.12;
 /** Percent of the frame the picture inside lags. `data-rc-parallax`. */
 const DEFAULT_PARALLAX = 30;
 /** Brightness a covered picture dims to, 0–1. `data-rc-dim`. */
 const DEFAULT_DIM = 0.6;
-/**
- * A move still running when a newer one starts is sped up to this rate, so
- * a fast scroll never queues slides: the frame keeps up with the steps.
- */
-const CATCH_UP_RATE = 3;
+/** How much a covered picture shrinks. */
+const UNDER_SCALE = 0.04;
+/** A zone never spans more than this share of the way from the step before. */
+const ZONE_SHARE = 0.9;
 /** Where the frame is pinned and the pictures move; step-stack.css agrees. */
 const WIDE = "(min-width: 992px)";
 /** The pictures are fetched and decoded once the stack is this close. */
 const PREPARE_MARGIN = "100% 0px";
+/**
+ * Below this gap the scrub snaps to its target. Invisible: smoothstep is
+ * flat at both ends, so the eased gap is a hundredth of this.
+ */
+const SETTLED = 0.01;
+
+const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
+/** Ease applied to a picture's progress along its zone. */
+const smoothstep = (t) => t * t * (3 - 2 * t);
 
 export default function stepStack(root) {
   const stage = part(root, "stage");
@@ -71,10 +87,12 @@ export default function stepStack(root) {
     );
   }
   const count = Math.min(steps.length, medias.length);
+  const pictures = medias.map(pictureOf);
 
-  const duration = numberOption(root, "duration", DEFAULT_DURATION) * 1000;
-  const parallax = numberOption(root, "parallax", DEFAULT_PARALLAX);
   const line = numberOption(root, "line", DEFAULT_LINE) / 100;
+  const zone = numberOption(root, "zone", DEFAULT_ZONE) / 100;
+  const scrub = numberOption(root, "scrub", DEFAULT_SCRUB) * 1000;
+  const parallax = numberOption(root, "parallax", DEFAULT_PARALLAX);
   root.style.setProperty(
     "--rc-step-stack-top",
     `${numberOption(root, "top", DEFAULT_TOP)}px`,
@@ -83,117 +101,141 @@ export default function stepStack(root) {
     "--rc-step-stack-dim",
     String(numberOption(root, "dim", DEFAULT_DIM)),
   );
-  root.style.setProperty("--rc-step-stack-duration", `${duration}ms`);
   const wide = window.matchMedia(WIDE);
 
   /** The current step. */
   let current = 0;
-  /** The picture in the frame: follows `current` on wide screens, 0 on narrow. */
+  /** The picture on top of the frame: `current` on wide screens, 0 on narrow. */
   let shown = 0;
-  /** Some of the stack is in the viewport: only then is the line measured. */
+  /** Some of the stack is in the viewport: only then is anything measured. */
   let onScreen = false;
   /** The frame itself is in the viewport: only then does a video play. */
   let frameOnScreen = false;
   /** The stack is within a viewport of showing: time to fetch the pictures. */
   let near = false;
 
-  /** The move under way on each picture, so a reversal plays it backwards. */
-  const moves = new Map();
-
-  /** Slide a picture into the frame ("in") or out below it ("out"). */
-  function slide(media, to) {
-    const running = moves.get(media);
-    if (
-      running &&
-      running.to !== to &&
-      running.animations[0].playState === "running"
-    ) {
-      for (const a of running.animations) a.reverse();
-      running.to = to;
-      return;
-    }
-    if (running) for (const a of running.animations) a.cancel();
-    // A newer move takes over: whatever else is still moving wraps up fast.
-    // The sign keeps a reversed move going backwards.
-    for (const [other, record] of moves) {
-      if (other === media) continue;
-      for (const a of record.animations) {
-        if (a.playState !== "running") continue;
-        a.updatePlaybackRate(Math.sign(a.playbackRate) * CATCH_UP_RATE);
-      }
-    }
-    const ms = prefersReducedMotion() ? 0 : duration;
-    const timing = { duration: ms, easing: SLIDE_EASING, fill: "both" };
-    const frameKeyframes =
-      to === "in"
-        ? [{ translate: "0 100%" }, { translate: "0 0" }]
-        : [{ translate: "0 0" }, { translate: "0 100%" }];
-    const animations = [media.animate(frameKeyframes, timing)];
-    const picture = pictureOf(media);
-    if (picture) {
-      const pictureKeyframes =
-        to === "in"
-          ? [{ translate: `0 -${parallax}%` }, { translate: "0 0" }]
-          : [{ translate: "0 0" }, { translate: `0 -${parallax}%` }];
-      animations.push(picture.animate(pictureKeyframes, timing));
-    }
-    const record = { animations, to };
-    moves.set(media, record);
-    Promise.all(animations.map((a) => a.finished)).then(
-      () => {
-        if (moves.get(media) !== record) return;
-        moves.delete(media);
-        // Out: hide first, then drop the fill, so nothing flashes back.
-        if (record.to === "out") setState(media, null);
-        for (const a of animations) a.cancel();
-      },
-      () => {},
-    );
-  }
-
-  /** Cancel every move; the states alone then decide what shows. */
-  function settle() {
-    for (const { animations } of moves.values()) {
-      for (const a of animations) a.cancel();
-    }
-    moves.clear();
-  }
-
   /**
-   * Put picture `index` in the frame — wide screens only. `instant` skips
-   * the move (the layout just changed under the stack).
+   * How far each picture is into the frame, 0 (below it) to 1 (in place):
+   * where the scroll says it should be, and where it is shown right now —
+   * the two differ while the scrub catches up. The first picture is always
+   * in place.
    */
-  function show(index, instant = false) {
-    const from = shown;
-    if (index === from && !instant) return;
-    shown = index;
-    if (instant) {
-      settle();
-      medias.forEach((media, i) =>
-        setState(media, i < index ? "under" : i === index ? "active" : null),
+  const target = medias.map((_, k) => (k === 0 ? 1 : 0));
+  const progress = target.slice();
+  /** What each picture last rendered as, so the DOM is only written on change. */
+  const rendered = medias.map(() => ({ eased: NaN, cover: NaN, state: "" }));
+
+  /** Measure where every picture should be and which step is current. */
+  function measure() {
+    const lineY = window.innerHeight * line;
+    const reduced = prefersReducedMotion();
+    let index = 0;
+    let previousTop = steps[0].getBoundingClientRect().top;
+    for (let k = 1; k < count; k += 1) {
+      const top = steps[k].getBoundingClientRect().top;
+      // The distance still to travel until this step reaches the line: the
+      // picture slides in over the last `zone` of it, and is in place when
+      // the step is.
+      const remaining = top - lineY;
+      if (remaining <= 0) index = k;
+      const span = Math.min(
+        zone * window.innerHeight,
+        ZONE_SHARE * Math.max(top - previousTop, 1),
       );
-      return;
+      target[k] = reduced
+        ? remaining <= 0
+          ? 1
+          : 0
+        : clamp(1 - remaining / span, 0, 1);
+      previousTop = top;
     }
-    if (index > from) {
-      // Forward: the pictures passed go under; the new one slides in on top.
-      for (let k = from; k < index; k += 1) setState(medias[k], "under");
-      setState(medias[index], "active");
-      slide(medias[index], "in");
-    } else {
-      // Back: the pictures left behind slide out below; the one underneath
-      // comes back to full.
-      for (let k = index + 1; k <= from; k += 1) {
-        if (medias[k].getAttribute("data-rc-state")) slide(medias[k], "out");
+    return index;
+  }
+
+  /** Write one picture's place: its slide, its parallax, its dimming. */
+  function render(k) {
+    const media = medias[k];
+    const eased = smoothstep(progress[k]);
+    // Covered by the next picture as far as that one has come in.
+    const cover = k + 1 < count ? smoothstep(progress[k + 1]) : 0;
+    const last = rendered[k];
+    if (eased !== last.eased) {
+      media.style.translate = eased >= 1 ? "" : `0 ${(1 - eased) * 100}%`;
+      const picture = pictures[k];
+      if (picture) {
+        picture.style.translate =
+          eased >= 1 ? "" : `0 ${-parallax * (1 - eased)}%`;
       }
-      setState(medias[index], "active");
     }
+    if (cover !== last.cover) {
+      media.style.scale = cover <= 0 ? "" : String(1 - UNDER_SCALE * cover);
+      media.style.setProperty("--rc-step-stack-cover", String(cover));
+    }
+    const state =
+      eased <= 0
+        ? null
+        : eased < 1
+          ? "entering"
+          : cover > 0
+            ? "under"
+            : "active";
+    if (state !== last.state) setState(media, state);
+    rendered[k] = { eased, cover, state };
+  }
+
+  /** Every picture back to its resting place, inline styles gone. */
+  function clear() {
+    medias.forEach((media, k) => {
+      media.style.translate = "";
+      media.style.scale = "";
+      media.style.removeProperty("--rc-step-stack-cover");
+      if (pictures[k]) pictures[k].style.translate = "";
+      rendered[k] = { eased: NaN, cover: NaN, state: "" };
+    });
+  }
+
+  // The frame loop: runs on scroll and resize, and keeps running while the
+  // scrub is still catching up. Nothing runs while the stack is off screen.
+  let scheduled = false;
+  let lastFrame = 0;
+  function tick(now = performance.now(), instant = false) {
+    scheduled = false;
+    if (!onScreen || !wide.matches) return;
+    const index = measure();
+    const elapsed = lastFrame ? Math.min(now - lastFrame, 100) : 16;
+    lastFrame = now;
+    // No lag when told to land at once, when the scrub is off, or under
+    // reduced motion — the scrub itself would be a short slide.
+    const lag =
+      instant || scrub <= 0 || prefersReducedMotion()
+        ? 0
+        : Math.exp(-elapsed / scrub);
+    let settling = false;
+    for (let k = 1; k < count; k += 1) {
+      const gap = target[k] - progress[k];
+      if (Math.abs(gap) <= SETTLED) progress[k] = target[k];
+      else {
+        progress[k] = target[k] - gap * lag;
+        settling = true;
+      }
+    }
+    for (let k = 0; k < count; k += 1) render(k);
+    go(index);
+    if (settling) schedule();
+    else lastFrame = 0;
+  }
+
+  function schedule() {
+    if (scheduled) return;
+    scheduled = true;
+    requestAnimationFrame((now) => tick(now));
   }
 
   /** Narrow screens: the first picture, static; nothing moves. */
   function rest() {
-    settle();
-    shown = 0;
-    medias.forEach((media, i) => setState(media, i === 0 ? "active" : null));
+    clear();
+    for (let k = 1; k < count; k += 1) target[k] = progress[k] = 0;
+    medias.forEach((media, k) => setState(media, k === 0 ? "active" : null));
   }
 
   /**
@@ -235,44 +277,24 @@ export default function stepStack(root) {
     });
   }
 
-  /** Make step `index` the current one; on wide screens its picture follows. */
+  /** Make step `index` the current one; on wide screens its picture is on top. */
   function go(index) {
     if (index === current) return;
     current = index;
     steps.forEach((step, i) => setState(step, i === index ? "active" : null));
-    if (wide.matches) show(index);
+    if (wide.matches) shown = index;
     playVideos();
-  }
-
-  /** The last step whose top has crossed the trigger line. */
-  function aim() {
-    const y = window.innerHeight * line;
-    let index = 0;
-    for (let i = 0; i < count; i += 1) {
-      if (steps[i].getBoundingClientRect().top <= y) index = i;
-    }
-    go(index);
-  }
-
-  // One measurement per frame, and none while the stack is scrolled out of
-  // view: nothing can cross the line there. Coming back into view aims once
-  // at the spot the page landed on (a jump, a reload half-way down).
-  let scheduled = false;
-  function schedule() {
-    if (scheduled) return;
-    scheduled = true;
-    requestAnimationFrame(() => {
-      scheduled = false;
-      if (onScreen) aim();
-    });
   }
 
   /** The layout changed under the stack (a resize, a rotation). */
   function layout() {
     if (wide.matches) {
-      show(current, true);
+      shown = current;
+      clear();
       prepare();
+      tick(performance.now(), true);
     } else {
+      shown = 0;
       rest();
     }
     playVideos();
@@ -288,7 +310,9 @@ export default function stepStack(root) {
   new IntersectionObserver(
     ([entry]) => {
       onScreen = entry.isIntersecting;
-      if (onScreen) aim();
+      // Coming into view lands wherever the page is (a jump, a reload
+      // half-way down): no catching up to watch.
+      if (onScreen) tick(performance.now(), true);
     },
     { threshold: 0 },
   ).observe(root);
@@ -300,13 +324,20 @@ export default function stepStack(root) {
     { threshold: 0 },
   ).observe(frame);
   document.addEventListener("visibilitychange", playVideos);
-  onMotionPreferenceChange(playVideos);
+  onMotionPreferenceChange(() => {
+    playVideos();
+    schedule();
+  });
   wide.addEventListener("change", layout);
   window.addEventListener("scroll", schedule, { passive: true });
   window.addEventListener("resize", schedule);
 
   setState(steps[0], "active");
-  layout();
+  if (wide.matches) {
+    // Before the observer reports, the first picture is in place.
+    render(0);
+  } else {
+    rest();
+  }
   setState(root, "ready");
-  aim();
 }
