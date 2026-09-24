@@ -41,29 +41,36 @@ export default function dock(root) {
   }
   const stop = document.querySelector(STOP_SELECTOR);
 
-  let past = false;
-  let stopped = false;
+  // Measured from the live layout on every scrolled frame rather than with
+  // an IntersectionObserver: pinned sections (hero, horizontal-scroll) move
+  // the trigger through spacers and fixed positions, and an observer only
+  // reports crossings, so it could miss the way back above the trigger.
+  let shown = null;
+  let frame = 0;
 
-  function render() {
-    setState(root, past && !stopped ? "shown" : null);
+  function update() {
+    frame = 0;
+    // Past = the trigger's bottom edge is above the top of the viewport.
+    const past =
+      rendered(trigger) && trigger.getBoundingClientRect().bottom <= 0;
+    // Stopped = the stop element's top edge has entered the viewport.
+    const stopped =
+      stop !== null &&
+      rendered(stop) &&
+      stop.getBoundingClientRect().top < window.innerHeight;
+    const next = past && !stopped;
+    if (next === shown) return;
+    shown = next;
+    setState(root, shown ? "shown" : null);
   }
 
-  // Past = the trigger has left through the top edge.
-  new IntersectionObserver(([entry]) => {
-    past =
-      rendered(trigger) &&
-      !entry.isIntersecting &&
-      entry.boundingClientRect.bottom <= 0;
-    render();
-  }).observe(trigger);
-
-  // Stopped = the stop element is on screen, or already above it.
-  if (stop) {
-    new IntersectionObserver(([entry]) => {
-      stopped =
-        rendered(stop) &&
-        (entry.isIntersecting || entry.boundingClientRect.bottom <= 0);
-      render();
-    }).observe(stop);
+  function schedule() {
+    if (!frame) frame = requestAnimationFrame(update);
   }
+
+  window.addEventListener("scroll", schedule, { passive: true });
+  window.addEventListener("resize", schedule);
+  // Pins, lazy images and fonts change the layout without a scroll.
+  new ResizeObserver(schedule).observe(document.body);
+  update();
 }
