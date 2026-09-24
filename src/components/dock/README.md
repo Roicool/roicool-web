@@ -1,8 +1,9 @@
 # dock
 
 Ekranın altına yapışan CTA çubuğu: logo şeridi, "Get started", "Book a
-demo". İşaretlenen section'ı aşağı doğru geçince alttan kayarak gelir; o
-section'ın üstüne geri çıkınca ya da footer ekrana girince iner.
+demo". İşaretlenen section ekranın altından girdiği anda alttan kayarak
+gelir; geri kaydırıp section ekranın altından çıkınca ya da footer ekrana
+girince iner.
 
 **Sayfada tetikleyici yoksa çubuk hiç çıkmaz** — uyarı da yazmaz; bu normal
 bir sayfa. Böylece çubuk tüm sayfalarda duran bir Symbol'de yaşar, hangi
@@ -10,10 +11,10 @@ sayfada görüneceğine o sayfadaki section karar verir.
 
 ## Designer'daki yapı
 
-Üç ayrı yer: çubuğun kendisi, geçilecek section ve çubuğun indiği footer.
+Üç ayrı yer: çubuğun kendisi, çubuğu getiren section ve çubuğun indiği footer.
 
 ```
-Section (herhangi biri)           [data-rc-dock-trigger]         ← bu section geçilince çubuk gelir
+Section (herhangi biri)           [data-rc-dock-trigger]         ← ekrana alttan girince çubuk gelir
 
 …
 
@@ -32,9 +33,13 @@ Div (tag: aside)                  [data-rc="dock"]               ← çubuk; bod
 ```
 
 - **Tetikleyici** değersiz bir attribute: `data-rc-dock-trigger`. Sayfada
-  birden fazla varsa ilki sayılır. Section şart değil; boş bir Div de olur
-  ("bu noktadan sonra göster"). Tetikleyici o breakpoint'te `Display: None`
-  ise çubuk o breakpoint'te çıkmaz.
+  birden fazla varsa ilki (sayfada en üstteki) sayılır; başka section'a
+  taşırken eskisini sil. Section şart değil; boş bir Div de olur ("bu nokta
+  görününce göster"). Tetikleyici o breakpoint'te `Display: None` ise çubuk o
+  breakpoint'te çıkmaz.
+- `data-rc-dock-trigger="leave"` → çubuk section girerken değil, section
+  tamamen geçilince (alt kenarı ekranın üstünden çıkınca) gelir; section'a
+  geri girince iner.
 - **Durdurucu** yine değersiz: `data-rc-dock-stop`. Footer'ın kendisine ver
   (Symbol'ün içindeki kök eleman). Üst kenarı ekranın altından girdiği anda
   çubuk iner, footer'dan yukarı çıkınca geri gelir. Yoksa çubuk sayfanın
@@ -78,12 +83,15 @@ Hepsi CSS değişkeni; site ya da sayfa custom code'unda değiştirilir.
 
 ## Davranış
 
-- Tetikleyicinin alt kenarı ekranın üstünden çıkınca kök
-  `data-rc-state="shown"` alır; çubuk 0,5 sn'de alttan kayarak gelir.
-  Tetikleyiciye geri çıkınca ya da durdurucu (footer) ekrana girince durum
-  kalkar, çubuk 0,25 sn'de iner.
-- Sayfa tetikleyicinin altından açılırsa (yenileme, anchor linki) çubuk
-  hemen görünür.
+- Tetikleyicinin üst kenarı ekranın altından girince kök
+  `data-rc-state="shown"` alır; çubuk 0,5 sn'de alttan kayarak gelir. Geri
+  kaydırıp tetikleyici ekranın altından çıkınca ya da durdurucu (footer)
+  ekrana girince durum kalkar, çubuk 0,25 sn'de iner. (`leave` ile: alt
+  kenarı ekranın üstünden çıkınca gelir, geri girince iner.)
+- Sayfa tetikleyiciye ulaşılmış bir yerden açılırsa (yenileme, anchor
+  linki) çubuk hemen görünür.
+- Konum her kaydırılan karede sayfanın canlı düzeninden okunur; pinli
+  section'lar ve sonradan uzayan içerik doğru hesaplanır.
 - Nabız çubuk her gelişinde yarım saniye sonra başlar, iki kez atar, durur.
   İki nabız 4,8 sn: 5 saniyenin altında kaldığı için durdurma kontrolü
   gerekmez (WCAG 2.2.2). `infinite` yaparsan bu sınır aşılır.
