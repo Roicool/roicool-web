@@ -11,7 +11,9 @@
  * goes through the Web Animations API, and dragging simply scrubs the same
  * animation's current time: no inline transforms, nothing to hand back.
  * Hover and focus ease the strip to a stop and back up to speed; only a
- * press stops it dead, because the pointer is holding it.
+ * press stops it dead, because the pointer is holding it. The optional
+ * scroll shift (`data-rc-scroll-shift`) is the same scrub, driven by the
+ * page's scroll instead of the pointer.
  *
  * Without JavaScript the list simply renders once, static and fully visible.
  * With reduced motion the code does nothing at all — no clone, no animation —
@@ -163,6 +165,43 @@ function initDrag(root, loop) {
   root.addEventListener("pointercancel", release);
 }
 
+/**
+ * Scroll shift: the strip travels with the page. Every pixel the page
+ * scrolls moves the strip `factor` pixels along its own direction, and
+ * scrolling back winds it back — the same scrub the drag uses, so it works
+ * through a hover pause and never breaks the loop. Only while the strip is
+ * on screen; a jump made off screen is not replayed on return.
+ */
+function initScrollShift(root, loop, factor, reverse) {
+  let onScreen = false;
+  let last = window.scrollY;
+  let scheduled = false;
+  new IntersectionObserver(
+    ([entry]) => {
+      onScreen = entry.isIntersecting;
+      last = window.scrollY;
+    },
+    { threshold: 0 },
+  ).observe(root);
+  window.addEventListener(
+    "scroll",
+    () => {
+      if (scheduled) return;
+      scheduled = true;
+      requestAnimationFrame(() => {
+        scheduled = false;
+        const y = window.scrollY;
+        const dy = y - last;
+        last = y;
+        if (!onScreen || dy === 0) return;
+        // Forward is the strip's running direction: left unless reversed.
+        loop.shift((reverse ? 1 : -1) * dy * factor);
+      });
+    },
+    { passive: true },
+  );
+}
+
 export default function marquee(root) {
   const track = findTrack(root);
   if (!track) {
@@ -179,6 +218,7 @@ export default function marquee(root) {
   if (fade !== null) {
     root.style.setProperty("--rc-marquee-fade", fadeLength(fade));
   }
+  const scrollShift = numberOption(root, "scroll-shift", 0);
 
   const copy = cloneTrack(track);
   root.append(copy);
@@ -324,4 +364,6 @@ export default function marquee(root) {
   if (option(root, "drag") === null || flagOption(root, "drag")) {
     initDrag(root, loop);
   }
+
+  if (scrollShift > 0) initScrollShift(root, loop, scrollShift, reverse);
 }

@@ -45,14 +45,15 @@ kod kopyayı runtime'a yeniden taratır.
 
 ## Ayarlar (Wrapper'da)
 
-| Attribute                | Değer              | Ne yapar                                               |
-| ------------------------ | ------------------ | ------------------------------------------------------ |
-| `data-rc-speed`          | px/saniye, `70`    | Kayma hızı. Site genelinde aynı tut                    |
-| `data-rc-direction`      | `left` / `right`   | Yön. Varsayılan sola                                   |
-| `data-rc-pause-on-hover` | —                  | Fare üstündeyken yavaşlayıp durur (yalnız fare)        |
-| `data-rc-drag`           | `false`            | Sürüklemeyi kapatır; yoksa açık                        |
-| `data-rc-fade`           | `10%`, `4rem`, `0` | Kenar solması genişliği; `0` kapatır. Varsayılan `10%` |
-| `data-rc-eager`          | —                  | Görünüre girmeyi beklemeden yükle                      |
+| Attribute                | Değer              | Ne yapar                                                 |
+| ------------------------ | ------------------ | -------------------------------------------------------- |
+| `data-rc-speed`          | px/saniye, `70`    | Kayma hızı. Site genelinde aynı tut                      |
+| `data-rc-direction`      | `left` / `right`   | Yön. Varsayılan sola                                     |
+| `data-rc-pause-on-hover` | —                  | Fare üstündeyken yavaşlayıp durur (yalnız fare)          |
+| `data-rc-drag`           | `false`            | Sürüklemeyi kapatır; yoksa açık                          |
+| `data-rc-fade`           | `10%`, `4rem`, `0` | Kenar solması genişliği; `0` kapatır. Varsayılan `10%`   |
+| `data-rc-scroll-shift`   | oran, ör. `0.2`    | Sayfa kaydıkça şerit kendi yönünde ilerler; yoksa kapalı |
+| `data-rc-eager`          | —                  | Görünüre girmeyi beklemeden yükle                        |
 
 Süre otomatik: `mesafe ÷ hız`. 1500px'lik bir şerit 70 px/s'de ~21 saniyede
 döner — Square'in ölçtüğü değer.
@@ -79,6 +80,23 @@ transform yok, animasyona geri devir yok.
   işaretçi şeridi tutuyor.
 - Şerit yeniden ölçülünce (görsel gelince, pencere değişince) süre ve mesafe
   değişir; kod animasyonun kat ettiği oranı korur, konum sıçramaz.
+
+## Scroll kayması
+
+`data-rc-scroll-shift="0.2"`: sayfa aşağı kaydıkça şerit kendi yönünde
+ilerler, yukarı kaydıkça geri sarar — kaydırılan her piksel için `0.2`
+piksel (kaynak: riseatseven.com'daki "Chasing Consumers" bandı; orada
+kapsayıcı 120vw genişliğinde tutulup GSAP ile kaydırılıyor, burada aynı his
+sürüklemenin kullandığı `currentTime` scrub'ıyla alınır: kütüphane yok,
+şerit hiç kopmaz). `0.15`–`0.3` arası doğal; büyük değerler hızlı
+kaydırmada şeridi uçurur.
+
+- Hover duraklatması sırasında da çalışır: fare üstündeyken kaydırırsan
+  şerit kaydırmayı izler, kalkınca yeniden akar.
+- Yalnız şerit ekrandayken: sayfanın başka yerindeki kaydırma sayılmaz,
+  geri gelince sıçrama olmaz.
+- Dokunmatikte de çalışır (parmakla kaydırmak şeridi sürükler gibi).
+  `prefers-reduced-motion`'da kodun kalanı gibi kapalıdır.
 
 ## Kenar solması
 
