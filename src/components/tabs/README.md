@@ -37,14 +37,15 @@ Section                             [data-rc="tabs"]              ← kök; iki 
             Collection Item                                       ← panel; içi serbest, attribute yok
               Div                   görsel kutusu (relative, overflow hidden, radius)
                 Image               Görsel (alt CMS'ten), cover
-                Div                 rozet (absolute, alt-sol): Text Rakam + Text Rakam açıklaması
+                Div                 rozet (absolute, alt-sol; `rc-glass`): Text Rakam + Text Rakam açıklaması
               Div                   içerik (flex column)
                 H3                  Name
                 Paragraph           Açıklama
                 Link Block          `button-text` — Bağlantı metni + ok
                 Div                 vaka kutuları (grid 2 kolon)
-                  Link Block        → Vaka 1'in sayfası; içinde Image Vaka 1 logosu
-                  Link Block        → Vaka 2'nin sayfası; içinde Image Vaka 2 logosu
+                  Link Block        → Vaka 1'in sayfası (relative); içinde Image Vaka 1 logosu
+                    Div             ok rozeti, sağ üst köşe (absolute), `aria-hidden="true"`, içinde Text `→`
+                  Link Block        → Vaka 2'nin sayfası; aynı yapı
 ```
 
 Vaka kutuları neden multi-reference değil: Home'da nested Collection List
@@ -65,7 +66,13 @@ text-align: left; cursor: pointer; width: 100%`. `opacity` verme; dinlenme
 - **panels** (Collection List) → `display`, `grid` verme; kod yığar. Gap ve
   hizalama serbest. Wrapper'a stil verme.
 - Panelin içi tamamen CMS bağlı, attribute yok. Görsel kutusuna `position:
-relative; overflow: hidden`, rozet `absolute; bottom; left`.
+relative; overflow: hidden`, rozet `absolute; bottom; left`; cam efekti
+  `rc-glass` yardımcı class'ından gelir (`base/critical.css`), rozete
+  ayrıca `backdrop-filter` ya da arka plan verme.
+- Vaka kutusu (Link Block) `position: relative`; ok rozeti `absolute`, `top`
+  ve `right` ile köşeye; boyut, daire, arka plan, yazı rengi Designer'ın.
+  Kutunun hover'ı Designer'da (Link Block'un Hover durumu: arka plan). Ok
+  `aria-hidden`; linkin erişilebilir adı logonun `alt`'ıdır.
 - Dar ekran: sol kutu üstte (sekmeler yatay, kaydırılabilir satır ya da alt
   alta), paneller altında. Layout Designer'ın (`tab-flex-col`).
 

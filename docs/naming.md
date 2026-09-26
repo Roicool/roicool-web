@@ -64,6 +64,9 @@ bulur ve ona `data-rc-part="track"` basar. Kodun tanımladığı tek class ailes
 - `.rc-skip-link` — içeriğe atlama bağlantısı
 - `.rc-align-middle` — `vertical-align: middle` (Designer'da yok; `site.css`)
 - `.rc-grain` — data: URI doku + blend (Designer'da yok; `site.css`)
+- `.rc-glass` — buzlu cam yüzey: blur, gradyan dolgu, maskeli `::before`
+  ile 1px kenar; `.rc-glass-on-light` açık zemin varyantı (Designer'da yok;
+  `critical.css`, ilk boyamada düz görünmesin diye)
 - `.rc-scrollbar`, `.rc-scrollbar__thumb` — runtime'ın oluşturduğu yüzen
   kaydırma çubuğu (`runtime/scrollbar.js`, `base/scroll.css`)
 - `.rc-line`, `.rc-word` — SplitText'in bölme sırasında bastığı geçici

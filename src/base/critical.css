@@ -114,3 +114,110 @@ body {
 :where(p) {
   text-wrap: pretty;
 }
+
+/*
+ * Helper class: a frosted-glass surface (badges, pills, the KPI badge over a
+ * picture). Blurs what lies behind it, tints it with a faint white-to-clear
+ * gradient and draws a 1px edge that is bright at the top and fades out —
+ * the edge is a masked ::before, which Designer cannot make. Here and not in
+ * rc.css so a glass badge above the fold never paints plain first. Lands
+ * after Webflow's CSS in the head, so it also beats a backdrop-filter or
+ * background set on the element's own class at the same specificity.
+ * `rc-glass-on-light` is the variant for a light background: dark text,
+ * faint dark tint.
+ */
+
+/* Zero specificity: the ::before needs a positioned box, but an absolute or
+   sticky from Designer wins; a Designer text colour wins too. */
+:where(.rc-glass) {
+  position: relative;
+  border: 0;
+  color: var(--neutral--0, #fff);
+}
+
+:where(.rc-glass.rc-glass-on-light) {
+  color: var(--neutral--900, oklch(20% 0.005 260));
+}
+
+.rc-glass {
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  backdrop-filter: blur(20px) saturate(160%);
+  background: linear-gradient(
+    180deg,
+    oklch(100% 0 0 / 0.14),
+    oklch(100% 0 0 / 0.06)
+  );
+  box-shadow:
+    inset 0 1px 0 0 oklch(100% 0 0 / 0.35),
+    inset 0 -1px 0 0 oklch(0% 0 0 / 0.08),
+    0 8px 32px -8px oklch(0% 0 0 / 0.25);
+}
+
+/* The edge: a gradient painted over the whole box, then masked down to the
+   outer 1px ring. */
+.rc-glass::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  padding: 1px;
+  border-radius: inherit;
+  background: linear-gradient(
+    180deg,
+    oklch(100% 0 0 / 0.5),
+    oklch(100% 0 0 / 0.05)
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+.rc-glass.rc-glass-on-light {
+  background: linear-gradient(
+    180deg,
+    oklch(0% 0 0 / 0.04),
+    oklch(0% 0 0 / 0.02)
+  );
+  box-shadow:
+    inset 0 1px 0 0 oklch(100% 0 0 / 0.6),
+    0 8px 32px -8px oklch(0% 0 0 / 0.12);
+}
+
+.rc-glass.rc-glass-on-light::before {
+  background: linear-gradient(
+    180deg,
+    oklch(0% 0 0 / 0.12),
+    oklch(0% 0 0 / 0.03)
+  );
+}
+
+/* No backdrop-filter (older engines): an opaque fill instead of see-through. */
+@supports not (
+  (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))
+) {
+  .rc-glass {
+    background: oklch(20% 0.02 260 / 0.92);
+  }
+
+  .rc-glass.rc-glass-on-light {
+    background: oklch(98% 0 0 / 0.94);
+  }
+}
+
+/* The user asked the system for less transparency: no blur, near-opaque. */
+@media (prefers-reduced-transparency: reduce) {
+  .rc-glass {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background: oklch(20% 0.02 260 / 0.95);
+  }
+
+  .rc-glass.rc-glass-on-light {
+    background: oklch(98% 0 0 / 0.96);
+  }
+}

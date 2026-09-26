@@ -14,17 +14,18 @@ gördüğün şey gerçeği yansıtmamaya başlar, bu da en pahalı hata türü.
 
 **Hayır ise repo'ya yazılır.** Pratikte şunlar:
 
-| Repo'ya ait                              | Neden Designer yapamaz                   |
-| ---------------------------------------- | ---------------------------------------- |
-| `[data-rc-state]` geçişleri              | Durum JS tarafından basılıyor            |
-| Açılma/kapanma mekaniği (`0fr → 1fr`)    | Designer bu selector'ü üretemez          |
-| `@keyframes`                             | Designer'da tanımlanamaz                 |
-| `:has()`, `:focus-visible`, `:where()`   | Designer selector yazdırmaz              |
-| `@media (prefers-reduced-motion)`        | Designer'da yok                          |
-| `@media (forced-colors)`, `@media print` | Designer'da yok                          |
-| `.rc-sr-only`, `.rc-skip-link`           | Erişilebilirlik altyapısı, tasarım değil |
-| `.rc-align-middle`                       | `vertical-align` Designer'da yok         |
-| `.rc-grain`                              | data: URI doku + blend Designer'da yok   |
+| Repo'ya ait                              | Neden Designer yapamaz                                                                |
+| ---------------------------------------- | ------------------------------------------------------------------------------------- |
+| `[data-rc-state]` geçişleri              | Durum JS tarafından basılıyor                                                         |
+| Açılma/kapanma mekaniği (`0fr → 1fr`)    | Designer bu selector'ü üretemez                                                       |
+| `@keyframes`                             | Designer'da tanımlanamaz                                                              |
+| `:has()`, `:focus-visible`, `:where()`   | Designer selector yazdırmaz                                                           |
+| `@media (prefers-reduced-motion)`        | Designer'da yok                                                                       |
+| `@media (forced-colors)`, `@media print` | Designer'da yok                                                                       |
+| `.rc-sr-only`, `.rc-skip-link`           | Erişilebilirlik altyapısı, tasarım değil                                              |
+| `.rc-align-middle`                       | `vertical-align` Designer'da yok                                                      |
+| `.rc-grain`                              | data: URI doku + blend Designer'da yok                                                |
+| `.rc-glass`, `.rc-glass-on-light`        | Maskeli `::before` kenar, `@supports`, `prefers-reduced-transparency` Designer'da yok |
 
 ## Çakışmayı mimariyle önlüyoruz
 
@@ -73,6 +74,11 @@ Söylemen yeterli, ama nereye koyacağımız yazdığın şeye göre değişir:
 - **Designer yapabiliyor ama sen kodda tutmak istiyorsun** → yine
   `src/base/site.css`, ama **neden Designer'da olmadığını tek satır yorum olarak
   yazarız.** Bu kural olmadan o dosya altı ay içinde çöp çekmecesine döner.
+- **Ekranın üstünde ilk boyamada görünen bir yardımcı** (hero rozetinin cam
+  efekti gibi) → `src/base/critical.css`. `rc.css` async geldiği için orada
+  dursa rozet önce düz, sonra camlı boyanırdı. Kritik dosya her sayfada
+  satır içi gider; oraya giren her blok küçük kalır ve `head.html` yeniden
+  yapıştırılır.
 
 `src/base/site.css` içindeki yorumsuz her blok, code review'da Designer'a geri
 taşınmak üzere işaretlenir.
