@@ -1,0 +1,135 @@
+/*!
+ * reel.css — behavioural styles only. Row layout, type, borders, the
+ * strip's height, the photo's size, corner radius and every colour come
+ * from Designer.
+ *
+ * Three mechanics. The strip: while the reel rolls it is a clipped column
+ * with the track and its copies stacked inside, sliding up by one track
+ * height per loop — gated on the root's state, which only reel.js stamps,
+ * so a list without JS (or with reduced motion) keeps Designer's layout.
+ * The rows: once one is current the others rest at reduced opacity. The
+ * photos: under .rc-js their Wrapper is a fixed layer over the page that
+ * takes no clicks, the list inside stacks every photo in one cell and is
+ * moved by the code, and only the current photo shows.
+ */
+
+/* MECHANIC — the rolling strip: a clipped column, the track and its copies
+   stacked and sliding up by exactly one track height (measured by JS, gap
+   included), so a copy lands where the track started and the loop has no
+   seam. */
+[data-rc~="reel"]:is([data-rc-state="running"], [data-rc-state="paused"])
+  [data-rc-part="strip"] {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+[data-rc~="reel"]:is([data-rc-state="running"], [data-rc-state="paused"])
+  [data-rc-part="strip"]
+  > :is([data-rc-part="track"], [aria-hidden="true"]) {
+  flex: none;
+  animation: rc-reel var(--rc-reel-duration, 20s) linear infinite;
+}
+
+[data-rc~="reel"][data-rc-direction="down"]:is(
+    [data-rc-state="running"],
+    [data-rc-state="paused"]
+  )
+  [data-rc-part="strip"]
+  > * {
+  animation-direction: reverse;
+}
+
+@keyframes rc-reel {
+  to {
+    transform: translateY(calc(-1 * var(--rc-reel-distance, 100%)));
+  }
+}
+
+/* LOOK — the rolling strip fades at the top and bottom. --rc-reel-fade is
+   set from data-rc-fade (a length or a percentage); "0" turns it off. */
+:where(
+  [data-rc~="reel"]:is([data-rc-state="running"], [data-rc-state="paused"])
+    [data-rc-part="strip"]
+) {
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent,
+    #000 var(--rc-reel-fade, 10%),
+    #000 calc(100% - var(--rc-reel-fade, 10%)),
+    transparent
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent,
+    #000 var(--rc-reel-fade, 10%),
+    #000 calc(100% - var(--rc-reel-fade, 10%)),
+    transparent
+  );
+}
+
+/* LOOK — while one row is current the others rest at reduced opacity.
+   Zero specificity: Designer's row class may set its own opacity. */
+:where([data-rc~="reel"] [data-rc-part="row"]) {
+  transition: opacity 0.3s;
+}
+
+:where(
+  [data-rc~="reel"]
+    [data-rc-part="strip"]:has([data-rc-part="row"][data-rc-state="active"])
+    [data-rc-part="row"]:not([data-rc-state="active"])
+) {
+  opacity: var(--rc-reel-rest, 0.2);
+}
+
+/* MECHANIC — the photo layer covers the viewport and takes no clicks; the
+   list inside carries the photos, stacked in one cell, wherever the code
+   puts it. Gated on .rc-js: without JavaScript the photos are a plain list.
+   Keep the reel out of any ancestor with a transform or filter — that
+   would pin the layer to the ancestor instead of the viewport. */
+.rc-js [data-rc~="reel"] [data-rc-part="photos"] {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: var(--rc-reel-layer, 50);
+}
+
+.rc-js [data-rc~="reel"] [data-rc-part="cursor"] {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: grid;
+  grid-template-areas: "stack";
+  will-change: translate;
+}
+
+/* MECHANIC — only the current photo shows; the others wait faded and a
+   touch smaller, so a change reads as a cross-fade. */
+.rc-js [data-rc~="reel"] [data-rc-part="cursor"] > * {
+  grid-area: stack;
+  opacity: 0;
+  scale: 0.95;
+  transition:
+    opacity 0.4s,
+    scale 0.4s;
+}
+
+.rc-js [data-rc~="reel"] [data-rc-part="cursor"] > [data-rc-state="active"] {
+  opacity: 1;
+  scale: 1;
+}
+
+/* MECHANIC — a photo fills its box. */
+[data-rc~="reel"] [data-rc-part="cursor"] :is(img, video) {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* MECHANIC — without JavaScript the photos are a small wrapped row. */
+:where(html:not(.rc-js) [data-rc~="reel"] [data-rc-part="cursor"]) {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}

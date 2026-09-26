@@ -68,6 +68,19 @@
  * through the Web Animations API, and a CSS animation-play-state would be
  * ignored once that API has touched the animation.
  */[data-rc~=marquee][data-rc-state]{display:flex;overflow:hidden;touch-action:pan-y}:where([data-rc~=marquee][data-rc-state]){-webkit-mask-image:linear-gradient(to right,transparent,#000 var(--rc-marquee-fade, 10%),#000 calc(100% - var(--rc-marquee-fade, 10%)),transparent);mask-image:linear-gradient(to right,transparent,#000 var(--rc-marquee-fade, 10%),#000 calc(100% - var(--rc-marquee-fade, 10%)),transparent)}:where([data-rc~=marquee][data-rc-state]:not([data-rc-drag=false])){cursor:grab}[data-rc~=marquee][data-rc-state=dragging]{cursor:grabbing;user-select:none;-webkit-user-select:none}[data-rc~=marquee][data-rc-state]>[data-rc-part=track],[data-rc~=marquee][data-rc-state]>[aria-hidden=true]{flex:none;animation:rc-marquee var(--rc-marquee-duration, 20s) linear infinite}[data-rc~=marquee][data-rc-direction=right][data-rc-state]>*{animation-direction:reverse}@keyframes rc-marquee{to{transform:translate(calc(-1 * var(--rc-marquee-distance, 100%)))}}/*!
+ * reel.css — behavioural styles only. Row layout, type, borders, the
+ * strip's height, the photo's size, corner radius and every colour come
+ * from Designer.
+ *
+ * Three mechanics. The strip: while the reel rolls it is a clipped column
+ * with the track and its copies stacked inside, sliding up by one track
+ * height per loop — gated on the root's state, which only reel.js stamps,
+ * so a list without JS (or with reduced motion) keeps Designer's layout.
+ * The rows: once one is current the others rest at reduced opacity. The
+ * photos: under .rc-js their Wrapper is a fixed layer over the page that
+ * takes no clicks, the list inside stacks every photo in one cell and is
+ * moved by the code, and only the current photo shows.
+ */[data-rc~=reel]:is([data-rc-state=running],[data-rc-state=paused]) [data-rc-part=strip]{display:flex;flex-direction:column;overflow:hidden}[data-rc~=reel]:is([data-rc-state=running],[data-rc-state=paused]) [data-rc-part=strip]>:is([data-rc-part=track],[aria-hidden=true]){flex:none;animation:rc-reel var(--rc-reel-duration, 20s) linear infinite}[data-rc~=reel][data-rc-direction=down]:is([data-rc-state=running],[data-rc-state=paused]) [data-rc-part=strip]>*{animation-direction:reverse}@keyframes rc-reel{to{transform:translateY(calc(-1 * var(--rc-reel-distance, 100%)))}}:where([data-rc~=reel]:is([data-rc-state=running],[data-rc-state=paused]) [data-rc-part=strip]){-webkit-mask-image:linear-gradient(to bottom,transparent,#000 var(--rc-reel-fade, 10%),#000 calc(100% - var(--rc-reel-fade, 10%)),transparent);mask-image:linear-gradient(to bottom,transparent,#000 var(--rc-reel-fade, 10%),#000 calc(100% - var(--rc-reel-fade, 10%)),transparent)}:where([data-rc~=reel] [data-rc-part=row]){transition:opacity .3s}:where([data-rc~=reel] [data-rc-part=strip]:has([data-rc-part=row][data-rc-state=active]) [data-rc-part=row]:not([data-rc-state=active])){opacity:var(--rc-reel-rest, .2)}.rc-js [data-rc~=reel] [data-rc-part=photos]{position:fixed;inset:0;pointer-events:none;z-index:var(--rc-reel-layer, 50)}.rc-js [data-rc~=reel] [data-rc-part=cursor]{position:absolute;top:0;left:0;display:grid;grid-template-areas:"stack";will-change:translate}.rc-js [data-rc~=reel] [data-rc-part=cursor]>*{grid-area:stack;opacity:0;scale:.95;transition:opacity .4s,scale .4s}.rc-js [data-rc~=reel] [data-rc-part=cursor]>[data-rc-state=active]{opacity:1;scale:1}[data-rc~=reel] [data-rc-part=cursor] :is(img,video){display:block;width:100%;height:100%;object-fit:cover}:where(html:not(.rc-js) [data-rc~=reel] [data-rc-part=cursor]){display:flex;flex-wrap:wrap;gap:1rem}/*!
  * reveal.css — behavioural styles only: the start states of what reveal.js
  * animates, and the media frame's mechanics. Layout, typography, the media
  * layer's position and every look come from Designer.

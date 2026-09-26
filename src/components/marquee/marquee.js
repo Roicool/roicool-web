@@ -31,21 +31,12 @@ import {
   setState,
 } from "../../runtime/dom.js";
 import { prefersReducedMotion } from "../../runtime/motion.js";
+import { createLoop } from "../../runtime/loop.js";
 import { scan } from "../../runtime/registry.js";
 import { warn } from "../../runtime/log.js";
 
 /** Pixels per second when `data-rc-speed` is not set. */
 const DEFAULT_SPEED = 70;
-
-/** Milliseconds the strip takes to ease to a stop, and back up to speed. */
-const EASE = 450;
-
-/**
- * The slowest playback rate the ease reaches before the animation is paused
- * outright, and the rate it restarts from. Never 0: a running animation at
- * rate 0 has no usable current time to resume from.
- */
-const MINIMUM_RATE = 0.02;
 
 /** A press that travels less than this stays a click. */
 const DRAG_THRESHOLD = 4;
@@ -57,8 +48,6 @@ const FRICTION = 0.94;
 const REST_VELOCITY = 0.02;
 
 const ANIMATION_NAME = "rc-marquee";
-
-const smoothstep = (t) => t * t * (3 - 2 * t);
 
 function findTrack(root) {
   // Explicit part first; fall back to Webflow's own list class so a plain
@@ -92,7 +81,7 @@ function fadeLength(value) {
  * distance, releasing lets it glide to rest and then run again. Links inside
  * keep working — a press that never travels is a click.
  */
-function initDrag(root, loop) {
+function initDrag(root, loop, shift) {
   let pointerId = null;
   let startX = 0;
   let lastX = 0;
@@ -124,7 +113,7 @@ function initDrag(root, loop) {
     velocity = 0;
     dragged = false;
     cancelAnimationFrame(glide);
-    loop.hold("drag");
+    loop.hold("drag", { instant: true });
   });
 
   root.addEventListener("pointermove", (event) => {
@@ -138,7 +127,7 @@ function initDrag(root, loop) {
     }
     const dx = event.clientX - lastX;
     const dt = Math.max(1, event.timeStamp - lastTime);
-    loop.shift(dx);
+    shift(dx);
     velocity = dx / dt;
     lastX = event.clientX;
     lastTime = event.timeStamp;
@@ -151,7 +140,7 @@ function initDrag(root, loop) {
     const step = (now) => {
       const dt = now - last;
       last = now;
-      loop.shift(velocity * dt);
+      shift(velocity * dt);
       velocity *= FRICTION ** (dt / 16);
       if (Math.abs(velocity) > REST_VELOCITY) {
         glide = requestAnimationFrame(step);
@@ -172,7 +161,7 @@ function initDrag(root, loop) {
  * through a hover pause and never breaks the loop. Only while the strip is
  * on screen; a jump made off screen is not replayed on return.
  */
-function initScrollShift(root, loop, factor, reverse) {
+function initScrollShift(root, shift, factor, reverse) {
   let onScreen = false;
   let last = window.scrollY;
   let scheduled = false;
@@ -195,7 +184,7 @@ function initScrollShift(root, loop, factor, reverse) {
         last = y;
         if (!onScreen || dy === 0) return;
         // Forward is the strip's running direction: left unless reversed.
-        loop.shift((reverse ? 1 : -1) * dy * factor);
+        shift((reverse ? 1 : -1) * dy * factor);
       });
     },
     { passive: true },
@@ -261,85 +250,31 @@ export default function marquee(root) {
 
   setState(root, "running");
 
-  // Why the loop is not running right now; empty means it runs.
-  const holds = new Set();
-  let ramp = 0;
-  const loop = {
-    hold(reason) {
-      holds.add(reason);
-      loop.sync();
-    },
-    release(reason) {
-      holds.delete(reason);
-      loop.sync();
-    },
-    sync() {
-      // A press stops the strip dead — the pointer is holding it. Anything
-      // else eases it to a stop, and letting go eases it back up to speed.
-      loop.ease(holds.size ? 0 : 1, holds.has("drag") ? 0 : EASE);
+  // Hover and focus ease the strip to a stop and back up to speed; a press
+  // stops it dead (the pointer is holding it) and eases back on release.
+  const loop = createLoop(animations, {
+    onChange(holds) {
       setState(
         root,
         holds.has("drag") ? "dragging" : holds.size ? "paused" : "running",
       );
     },
-    /**
-     * Tween the playback rate to `rate` over `ms`; `ms` 0 switches at once.
-     * Rate 0 ends in pause(), so a scrub while held moves nothing but the
-     * scrub. Rates change through updatePlaybackRate(), never the setter:
-     * the setter re-syncs a compositor-driven animation on the spot and the
-     * strip visibly jumps.
-     */
-    ease(rate, ms) {
-      cancelAnimationFrame(ramp);
-      const list = animations();
-      if (list.length === 0) return;
-      if (ms <= 0) {
-        for (const a of list) {
-          if (rate > 0) {
-            a.updatePlaybackRate(rate);
-            a.play();
-          } else a.pause();
-        }
-        return;
-      }
-      // A paused strip restarts from a crawl, whatever rate it stopped at.
-      const paused = list[0].playState === "paused";
-      const from = paused ? MINIMUM_RATE : list[0].playbackRate;
-      const to = Math.max(rate, MINIMUM_RATE);
-      if (rate > 0) {
-        for (const a of list) {
-          if (paused) a.updatePlaybackRate(MINIMUM_RATE);
-          a.play();
-        }
-      }
-      const start = performance.now();
-      const step = (now) => {
-        const t = Math.min(1, (now - start) / ms);
-        const value = from + (to - from) * smoothstep(t);
-        for (const a of list) a.updatePlaybackRate(value);
-        if (t < 1) {
-          ramp = requestAnimationFrame(step);
-          return;
-        }
-        if (rate === 0) for (const a of list) a.pause();
-      };
-      ramp = requestAnimationFrame(step);
-    },
-    /**
-     * Move the strip by `dx` pixels. Speed is px per second, so the time to
-     * scrub is dx ÷ speed whatever the track's length; the sign follows the
-     * animation's direction.
-     */
-    shift(dx) {
-      const ms = (dx / speed) * 1000 * (reverse ? 1 : -1);
-      for (const a of animations()) {
-        const duration = a.effect.getComputedTiming().duration;
-        if (!duration) continue;
-        const t = (a.currentTime ?? 0) + ms;
-        a.currentTime = ((t % duration) + duration) % duration;
-      }
-    },
-  };
+  });
+
+  /**
+   * Move the strip by `dx` pixels. Speed is px per second, so the time to
+   * scrub is dx ÷ speed whatever the track's length; the sign follows the
+   * animation's direction.
+   */
+  function shift(dx) {
+    const ms = (dx / speed) * 1000 * (reverse ? 1 : -1);
+    for (const a of animations()) {
+      const duration = a.effect.getComputedTiming().duration;
+      if (!duration) continue;
+      const t = (a.currentTime ?? 0) + ms;
+      a.currentTime = ((t % duration) + duration) % duration;
+    }
+  }
 
   // Keyboard focus inside the strip stops it: nobody chases a moving target.
   // Only visible focus counts — a press with the mouse also focuses the link
@@ -362,8 +297,8 @@ export default function marquee(root) {
   }
 
   if (option(root, "drag") === null || flagOption(root, "drag")) {
-    initDrag(root, loop);
+    initDrag(root, loop, shift);
   }
 
-  if (scrollShift > 0) initScrollShift(root, loop, scrollShift, reverse);
+  if (scrollShift > 0) initScrollShift(root, shift, scrollShift, reverse);
 }
