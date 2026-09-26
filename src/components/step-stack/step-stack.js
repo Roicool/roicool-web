@@ -1,18 +1,19 @@
 /**
  * step-stack.js — a column of steps (number, title, a few lines) with one
  * picture frame that stays put while the steps scroll past it. Each step
- * has its own picture; as a step approaches the trigger line its picture
- * slides up into the frame over the previous one, which dims underneath,
- * and scrolling back slides it out again.
+ * has its own picture, and the step's top edge — the line Designer draws
+ * across the row — carries it: as the line rises through the frame the
+ * picture rides on it, over the previous one, which dims underneath; once
+ * the line reaches the frame's top the picture is in place. Scrolling back
+ * takes it out the same way.
  *
  * Reconstructed from webnomads.com's "Driving growth by design".
  *
  * The moves are driven by the scroll position, not by a clock: every frame
- * each picture's place is computed from where its step is, so the frame can
- * never fall behind a fast scroll, never queues moves, and a change of
- * direction simply runs the same path backwards. A short scrub (an
- * exponential lag) rounds off the steps of a mouse wheel; with Lenis the
- * scroll is smooth already.
+ * each picture's place is computed from where its step's line is, so the
+ * frame can never fall behind a fast scroll, never queues moves, and a
+ * change of direction simply runs the same path backwards. An optional
+ * scrub (`data-rc-scrub`) lets the pictures trail the line a little.
  *
  * The pinning is the browser's own `position: sticky` (step-stack.css), not
  * a scroll library, and only on wide screens, where the frame rides in a
@@ -38,38 +39,30 @@ import { warn } from "../../runtime/log.js";
 /** Pixels from the top of the viewport the frame docks at. `data-rc-top`. */
 const DEFAULT_TOP = 120;
 /**
- * Trigger line: a percent of the frame's height, measured from the frame's
- * top. A step is current once its top has passed the line. `data-rc-line`.
+ * Where a step becomes the current one (text highlight, video): a percent
+ * of the frame's height from its top that the step's line has to pass. The
+ * picture itself is carried by the line, whatever this is. `data-rc-line`.
  */
 const DEFAULT_LINE = 50;
 /**
- * Scroll distance a picture takes to slide in, as a percent of the viewport
- * height, ending as its step's top reaches the line. `data-rc-zone`.
+ * Seconds of lag the pictures trail the scroll by; 0 keeps a picture's edge
+ * exactly on its step's line. `data-rc-scrub`.
  */
-const DEFAULT_ZONE = 25;
-/** Seconds of lag the pictures trail the scroll by. `data-rc-scrub`. */
-const DEFAULT_SCRUB = 0.12;
+const DEFAULT_SCRUB = 0;
 /** Percent of the frame the picture inside lags. `data-rc-parallax`. */
 const DEFAULT_PARALLAX = 30;
 /** Brightness a covered picture dims to, 0–1. `data-rc-dim`. */
 const DEFAULT_DIM = 0.6;
 /** How much a covered picture shrinks. */
 const UNDER_SCALE = 0.04;
-/** A zone never spans more than this share of the way from the step before. */
-const ZONE_SHARE = 0.9;
 /** Where the frame is pinned and the pictures move; step-stack.css agrees. */
 const WIDE = "(min-width: 992px)";
 /** The pictures are fetched and decoded once the stack is this close. */
 const PREPARE_MARGIN = "100% 0px";
-/**
- * Below this gap the scrub snaps to its target. Invisible: smoothstep is
- * flat at both ends, so the eased gap is a hundredth of this.
- */
-const SETTLED = 0.01;
+/** Below this gap, a share of the frame's height, the scrub snaps home. */
+const SETTLED = 0.002;
 
 const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
-/** Ease applied to a picture's progress along its zone. */
-const smoothstep = (t) => t * t * (3 - 2 * t);
 
 export default function stepStack(root) {
   const stage = part(root, "stage");
@@ -93,7 +86,6 @@ export default function stepStack(root) {
   const pictures = medias.map(pictureOf);
 
   const line = numberOption(root, "line", DEFAULT_LINE) / 100;
-  const zone = numberOption(root, "zone", DEFAULT_ZONE) / 100;
   const scrub = numberOption(root, "scrub", DEFAULT_SCRUB) * 1000;
   const parallax = numberOption(root, "parallax", DEFAULT_PARALLAX);
   root.style.setProperty(
@@ -126,53 +118,45 @@ export default function stepStack(root) {
   const target = medias.map((_, k) => (k === 0 ? 1 : 0));
   const progress = target.slice();
   /** What each picture last rendered as, so the DOM is only written on change. */
-  const rendered = medias.map(() => ({ eased: NaN, cover: NaN, state: "" }));
+  const rendered = medias.map(() => ({ placed: NaN, cover: NaN, state: "" }));
 
   /**
-   * Measure where every picture should be and which step is current. The
-   * line is drawn across the frame (`line` of its height from its top), so
-   * a step can only reach it once the frame is docked and the steps move
-   * past it: until then the frame rides along with the steps and nothing
-   * changes, however the section sits in the viewport.
+   * Measure where every picture should be and which step is current. A
+   * step's top edge — the line across the row — carries its picture: while
+   * the line is below the frame the picture waits below it; as the line
+   * rises through the frame the picture's top edge rides on it; once the
+   * line reaches the frame's top the picture is in place. Until the frame
+   * docks it moves with the steps, so nothing changes while the section is
+   * merely scrolling into view.
    */
   function measure() {
     const frameBox = frame.getBoundingClientRect();
-    const lineOffset = line * frameBox.height;
-    const lineY = frameBox.top + lineOffset;
-    // The frame's resting place in the rail: where its top is until it
-    // docks. The way a step still has to go after docking follows from it.
-    // Not offsetTop: a docked sticky element reports where it is held.
-    const stageStyle = getComputedStyle(stage);
-    const restTop =
-      stage.getBoundingClientRect().top +
-      (Number.parseFloat(stageStyle.borderTopWidth) || 0) +
-      (Number.parseFloat(stageStyle.paddingTop) || 0) +
-      (Number.parseFloat(getComputedStyle(frame).marginTop) || 0);
+    const height = Math.max(frameBox.height, 1);
+    const lineY = frameBox.top + line * height;
     const reduced = prefersReducedMotion();
     let index = 0;
-    let previousTop = steps[0].getBoundingClientRect().top;
     for (let k = 1; k < count; k += 1) {
       const top = steps[k].getBoundingClientRect().top;
-      // The distance still to travel until this step reaches the line: the
-      // picture slides in over the last `zone` of it, and is in place when
-      // the step is.
-      const remaining = top - lineY;
-      if (remaining <= 0) index = k;
-      // The slide never spans more than the way from the step before, and
-      // never starts before the frame has docked: it fits in what the step
-      // travels after that.
-      const afterDock = top - restTop - lineOffset;
-      const span = Math.min(
-        zone * window.innerHeight,
-        ZONE_SHARE * Math.max(top - previousTop, 1),
-        Math.max(afterDock, 1),
-      );
+      const current = top <= lineY;
+      if (current) index = k;
       target[k] = reduced
-        ? remaining <= 0
+        ? current
           ? 1
           : 0
-        : clamp(1 - remaining / span, 0, 1);
-      previousTop = top;
+        : clamp((frameBox.top + height - top) / height, 0, 1);
+    }
+    return index;
+  }
+
+  /**
+   * Narrow screens: no frame to measure against, so the current step is
+   * the last one whose line has passed the same share of the viewport.
+   */
+  function measureNarrow() {
+    const lineY = line * window.innerHeight;
+    let index = 0;
+    for (let k = 1; k < count; k += 1) {
+      if (steps[k].getBoundingClientRect().top <= lineY) index = k;
     }
     return index;
   }
@@ -180,16 +164,16 @@ export default function stepStack(root) {
   /** Write one picture's place: its slide, its parallax, its dimming. */
   function render(k) {
     const media = medias[k];
-    const eased = smoothstep(progress[k]);
+    const placed = progress[k];
     // Covered by the next picture as far as that one has come in.
-    const cover = k + 1 < count ? smoothstep(progress[k + 1]) : 0;
+    const cover = k + 1 < count ? progress[k + 1] : 0;
     const last = rendered[k];
-    if (eased !== last.eased) {
-      media.style.translate = eased >= 1 ? "" : `0 ${(1 - eased) * 100}%`;
+    if (placed !== last.placed) {
+      media.style.translate = placed >= 1 ? "" : `0 ${(1 - placed) * 100}%`;
       const picture = pictures[k];
       if (picture) {
         picture.style.translate =
-          eased >= 1 ? "" : `0 ${-parallax * (1 - eased)}%`;
+          placed >= 1 ? "" : `0 ${-parallax * (1 - placed)}%`;
       }
     }
     if (cover !== last.cover) {
@@ -197,15 +181,15 @@ export default function stepStack(root) {
       media.style.setProperty("--rc-step-stack-cover", String(cover));
     }
     const state =
-      eased <= 0
+      placed <= 0
         ? null
-        : eased < 1
+        : placed < 1
           ? "entering"
           : cover > 0
             ? "under"
             : "active";
     if (state !== last.state) setState(media, state);
-    rendered[k] = { eased, cover, state };
+    rendered[k] = { placed, cover, state };
   }
 
   /** Every picture back to its resting place, inline styles gone. */
@@ -215,7 +199,7 @@ export default function stepStack(root) {
       media.style.scale = "";
       media.style.removeProperty("--rc-step-stack-cover");
       if (pictures[k]) pictures[k].style.translate = "";
-      rendered[k] = { eased: NaN, cover: NaN, state: "" };
+      rendered[k] = { placed: NaN, cover: NaN, state: "" };
     });
   }
 
@@ -225,7 +209,12 @@ export default function stepStack(root) {
   let lastFrame = 0;
   function tick(now = performance.now(), instant = false) {
     scheduled = false;
-    if (!onScreen || !wide.matches) return;
+    if (!onScreen) return;
+    if (!wide.matches) {
+      // Nothing moves on narrow screens; only the current step follows.
+      go(measureNarrow());
+      return;
+    }
     const index = measure();
     const elapsed = lastFrame ? Math.min(now - lastFrame, 100) : 16;
     lastFrame = now;
@@ -321,6 +310,7 @@ export default function stepStack(root) {
     } else {
       shown = 0;
       rest();
+      tick(performance.now(), true);
     }
     playVideos();
   }
