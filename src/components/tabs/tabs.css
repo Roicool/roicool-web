@@ -1,0 +1,84 @@
+/*!
+ * tabs.css — behavioural styles only. The two-column layout, the tab list's
+ * card, the tabs' type and colours, the panel's own grid, the picture, the
+ * badge and the case tiles come from Designer.
+ *
+ * Two mechanics. The panels stack in one grid cell and one shows at a time;
+ * that stacking is gated on .rc-js so that without JavaScript every panel is
+ * in normal flow, one under the other, and before the chunk arrives the
+ * first panel is the one on show. The tabs rest at reduced opacity until one
+ * is current, hovered or focused; a tab's icon shows only on the current
+ * tab.
+ */
+
+/* MECHANIC — the panels share one grid cell. The list's own look (gap,
+   alignment) stays Designer's; align-items is a zero-specificity default. */
+.rc-js [data-rc~="tabs"] [data-rc-part="panels"] {
+  display: grid;
+  grid-template-areas: "stack";
+}
+
+:where(.rc-js [data-rc~="tabs"] [data-rc-part="panels"]) {
+  align-items: start;
+}
+
+/* MECHANIC — a panel that is not on show fades out and stops taking clicks
+   and focus; the one on show fades and rises in over it. Until JS stamps an
+   active panel, the first one is on show. */
+.rc-js [data-rc~="tabs"] [data-rc-part="panels"] > * {
+  grid-area: stack;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  translate: 0 1rem;
+  transition:
+    opacity 0.3s,
+    translate 0.3s,
+    visibility 0s 0.3s;
+}
+
+.rc-js [data-rc~="tabs"] [data-rc-part="panels"] > [data-rc-state="active"],
+.rc-js
+  [data-rc~="tabs"]
+  [data-rc-part="panels"]:not(:has(> [data-rc-state="active"]))
+  > :first-child {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  translate: 0 0;
+  transition:
+    opacity var(--rc-tabs-duration, 0.7s)
+      var(--rc-tabs-ease, cubic-bezier(0.22, 1, 0.36, 1)),
+    translate var(--rc-tabs-duration, 0.7s)
+      var(--rc-tabs-ease, cubic-bezier(0.22, 1, 0.36, 1)),
+    visibility 0s;
+}
+
+/* LOOK — once the code runs, tabs rest at reduced opacity; the current,
+   hovered or focused one is full. Zero specificity: Designer's tab class
+   may set its own opacity. */
+:where(.rc-js [data-rc~="tabs"] [data-rc-part="tab"]) {
+  transition: opacity 0.3s;
+}
+
+:where(
+  .rc-js
+    [data-rc~="tabs"]
+    [data-rc-part="tab"]:not([data-rc-state="active"], :hover, :focus-visible)
+) {
+  opacity: var(--rc-tabs-rest, 0.5);
+}
+
+/* LOOK — the tab's icon (an arrow, say) shows on the current tab alone. */
+:where([data-rc~="tabs"] [data-rc-part="icon"]) {
+  transition: opacity 0.3s;
+}
+
+:where(
+  .rc-js
+    [data-rc~="tabs"]
+    [data-rc-part="tab"]:not([data-rc-state="active"])
+    [data-rc-part="icon"]
+) {
+  opacity: 0;
+}
