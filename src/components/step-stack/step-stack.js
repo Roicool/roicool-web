@@ -37,7 +37,10 @@ import { warn } from "../../runtime/log.js";
 
 /** Pixels from the top of the viewport the frame docks at. `data-rc-top`. */
 const DEFAULT_TOP = 120;
-/** Trigger line as a percent of the viewport height. `data-rc-line`. */
+/**
+ * Trigger line: a percent of the frame's height, measured from the frame's
+ * top. A step is current once its top has passed the line. `data-rc-line`.
+ */
 const DEFAULT_LINE = 50;
 /**
  * Scroll distance a picture takes to slide in, as a percent of the viewport
@@ -125,9 +128,26 @@ export default function stepStack(root) {
   /** What each picture last rendered as, so the DOM is only written on change. */
   const rendered = medias.map(() => ({ eased: NaN, cover: NaN, state: "" }));
 
-  /** Measure where every picture should be and which step is current. */
+  /**
+   * Measure where every picture should be and which step is current. The
+   * line is drawn across the frame (`line` of its height from its top), so
+   * a step can only reach it once the frame is docked and the steps move
+   * past it: until then the frame rides along with the steps and nothing
+   * changes, however the section sits in the viewport.
+   */
   function measure() {
-    const lineY = window.innerHeight * line;
+    const frameBox = frame.getBoundingClientRect();
+    const lineOffset = line * frameBox.height;
+    const lineY = frameBox.top + lineOffset;
+    // The frame's resting place in the rail: where its top is until it
+    // docks. The way a step still has to go after docking follows from it.
+    // Not offsetTop: a docked sticky element reports where it is held.
+    const stageStyle = getComputedStyle(stage);
+    const restTop =
+      stage.getBoundingClientRect().top +
+      (Number.parseFloat(stageStyle.borderTopWidth) || 0) +
+      (Number.parseFloat(stageStyle.paddingTop) || 0) +
+      (Number.parseFloat(getComputedStyle(frame).marginTop) || 0);
     const reduced = prefersReducedMotion();
     let index = 0;
     let previousTop = steps[0].getBoundingClientRect().top;
@@ -138,9 +158,14 @@ export default function stepStack(root) {
       // the step is.
       const remaining = top - lineY;
       if (remaining <= 0) index = k;
+      // The slide never spans more than the way from the step before, and
+      // never starts before the frame has docked: it fits in what the step
+      // travels after that.
+      const afterDock = top - restTop - lineOffset;
       const span = Math.min(
         zone * window.innerHeight,
         ZONE_SHARE * Math.max(top - previousTop, 1),
+        Math.max(afterDock, 1),
       );
       target[k] = reduced
         ? remaining <= 0

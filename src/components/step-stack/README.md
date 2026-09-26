@@ -65,15 +65,15 @@ genişliği> 1fr`; orta kolon boş, çerçeve oraya oturur) ya da 2 kolon
 
 ## Ayarlar (kökte)
 
-| Attribute          | Değer          | Ne yapar                                                                                        |
-| ------------------ | -------------- | ----------------------------------------------------------------------------------------------- |
-| `data-rc-top`      | px, `120`      | Geniş ekranda çerçevenin yapıştığı yükseklik (viewport üstünden)                                |
-| `data-rc-line`     | %, `50`        | Tetikleme çizgisi (viewport yüksekliğinin yüzdesi): üstü bu çizgiye gelen adım günceldir        |
-| `data-rc-zone`     | %, `25`        | Görselin kayarak girdiği kaydırma mesafesi, viewport yüksekliğinin yüzdesi; çizgiye varınca tam |
-| `data-rc-scrub`    | saniye, `0.12` | Görsellerin kaydırmayı izleme gecikmesi; `0` birebir                                            |
-| `data-rc-parallax` | yüzde, `30`    | Çerçeveye girerken içerideki görselin gecikme payı                                              |
-| `data-rc-dim`      | 0–1, `0.6`     | Altta kalan görselin parlaklığı; `1` kararmaz                                                   |
-| `data-rc-eager`    | —              | Görünüre girmeyi beklemeden yükle (önerilir)                                                    |
+| Attribute          | Değer          | Ne yapar                                                                                                    |
+| ------------------ | -------------- | ----------------------------------------------------------------------------------------------------------- |
+| `data-rc-top`      | px, `120`      | Geniş ekranda çerçevenin yapıştığı yükseklik (viewport üstünden)                                            |
+| `data-rc-line`     | %, `50`        | Tetikleme çizgisi: çerçevenin üstünden, çerçeve yüksekliğinin yüzdesi; üstü bu çizgiyi geçen adım günceldir |
+| `data-rc-zone`     | %, `25`        | Görselin kayarak girdiği kaydırma mesafesi, viewport yüksekliğinin yüzdesi; çizgiye varınca tam             |
+| `data-rc-scrub`    | saniye, `0.12` | Görsellerin kaydırmayı izleme gecikmesi; `0` birebir                                                        |
+| `data-rc-parallax` | yüzde, `30`    | Çerçeveye girerken içerideki görselin gecikme payı                                                          |
+| `data-rc-dim`      | 0–1, `0.6`     | Altta kalan görselin parlaklığı; `1` kararmaz                                                               |
+| `data-rc-eager`    | —              | Görünüre girmeyi beklemeden yükle (önerilir)                                                                |
 
 Kırılma noktası sabit: Webflow'un tablet eşiği (991 px). Üstünde yan ray ve
 görsel geçişleri, altında üstte sabit çerçeve.
@@ -86,13 +86,20 @@ görsel geçişleri, altında üstte sabit çerçeve.
   çerçevede ilk görsel durur, kaydırınca yukarı gider. Görsel geçişi yok;
   yalnız adım vurgusu (aşağıdaki "Metin") çalışır. Pencere genişleyip
   daralınca kod çerçeveyi o anki adıma anında getirir.
-- **Görselin yeri:** k. adımın üstünün tetikleme çizgisine kalan mesafesi
-  `zone`'un altına inince görseli girmeye başlar; adımın üstü çizgiye
-  değince tam yerindedir (`translate 100% → 0`, içindeki görsel `parallax`
-  kadar geriden gelir, smoothstep ile yumuşatılır). Aynı oranda alttaki
-  görsel kararır (`::after` katmanı, `1 − dim`) ve `%96`'ya küçülür. Zone,
-  bir önceki adıma olan mesafenin %90'ını geçemez; kısa adımlarda geçiş
-  ona sığar.
+- **Çizgi çerçevenin üstünde:** tetikleme çizgisi viewport'a değil
+  çerçeveye çizilir (`line`: çerçeve yüksekliğinin yüzdesi, üstten). Çerçeve
+  yapışana kadar adımlarla birlikte kayar, adımlar ona göre yer
+  değiştirmez; **section'a girerken hiçbir görsel değişmez.** Çerçeve
+  yapışınca adımlar altından geçmeye başlar ve her adım çizgiye gelince
+  kendi görselini getirir.
+- **Görselin yeri:** k. adımın üstünün çizgiye kalan mesafesi `zone`'un
+  altına inince görseli girmeye başlar; adımın üstü çizgiye değince tam
+  yerindedir (`translate 100% → 0`, içindeki görsel `parallax` kadar
+  geriden gelir, smoothstep ile yumuşatılır). Aynı oranda alttaki görsel
+  kararır (`::after` katmanı, `1 − dim`) ve `%96`'ya küçülür. Zone, bir
+  önceki adıma olan mesafenin %90'ını ve adımın çerçeve yapıştıktan sonra
+  çizgiye kadar aldığı yolu geçemez; kısa adımlarda geçiş ona sığar, hiçbir
+  geçiş yapışmadan önce başlamaz.
 - **Güncel adım:** üstü çizgiyi geçmiş son adım. Metin vurgusu ve video o
   an değişir; görsel ise tam o anda yerine oturmuş olur.
 - **Scrub:** görseller kaydırmayı `scrub` saniyelik üstel gecikmeyle izler;
