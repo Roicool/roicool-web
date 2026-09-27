@@ -46,6 +46,36 @@ Site canlıya çıkınca sürüm tag'lerine geçilir; o zaman her sürümde
 `head.html` yeniden yapıştırılır. İki modun tanımı:
 [`architecture.md › Sürümleme`](./architecture.md#sürümleme).
 
+## Yayına çıkarken — kontrol listesi
+
+Proje kapanırken, sırayla. Kod tarafı olanlar repoda yapılır, kalanı
+Webflow'da.
+
+1. **Fontlar (Webflow):** Project Settings › Fonts'tan Google Fonts girdisini
+   kaldır; `font-primary`, `font-secondary`, `font-mono` değişkenlerinin
+   gösterdiği aileleri **özel font** olarak yükle (woff2, yalnız kullanılan
+   ağırlıklar: normal, medium, bold), `font-display: swap`. Değişkenler aynı
+   aile adını gösterdiği sürece hiçbir class değişmez. `webfont.js` + Google
+   CSS zinciri ve font zıplaması biter.
+2. **Font preload (repo):** ana fontun Webflow'daki woff2 URL'si
+   `head.template.html`'e `<link rel="preload" as="font" type="font/woff2"
+crossorigin>` olarak eklenir, build alınır, `head.html` yapıştırılır.
+3. **Üretim modu (repo):** `package.json › config.cdnRef` → `"tag"`,
+   `npm version minor && git push --follow-tags`, `head.html` yapıştırılır.
+   Dosyalar jsDelivr'dan `v<sürüm>` ile gelir; `raw.githack` yalnız geliştirme
+   içindir ([`architecture.md › Sürümleme`](./architecture.md#sürümleme)).
+4. **Webflow CSS:** Style Manager › Clean up ile kullanılmayan class'lar
+   silinir (site CSS'i engelleyici kalır, tek küçültme yolu bu).
+5. **Görseller:** her `img`'de `width`/`height`, ekran dışındakilerde
+   `loading="lazy"`, hero video `poster` + `preload="metadata"`.
+6. **QA raporunun Webflow listesi** (27.09.2026): skip link + `header`/`nav`/
+   `footer` etiketleri, `<html lang="tr">`, `title` + meta description, tek
+   `h1`, boş `#` linkler, logo `alt`'ları, yer tutucu metinler, footer'a
+   `data-rc-dock-stop`, etiket şablon sayfası için `/hizmet-etiketleri/(.*)` →
+   `/hizmetler` yönlendirmesi.
+7. **Ölçüm:** 1–5 öncesi ve sonrası PageSpeed (mobil + masaüstü), Lighthouse
+   erişilebilirlik; `?rc-debug` ile konsolda uyarı kalmamalı.
+
 ## Performans — Webflow tarafı
 
 PageSpeed'de bizim dosyalarımız boyamayı bekletmez; bekleten şeyler Webflow'un
