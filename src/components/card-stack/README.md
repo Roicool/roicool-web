@@ -102,9 +102,10 @@ Designer'da ayarlanacaklar:
 
 ## Hareket
 
-- Pencere = yapışan `stack`; yüksekliği "en fazla `visible` şerit + en uzun
-  kart" (viewport'a sığacak şekilde), `body` yüksekliği = pencere + son
-  kartın yolu + her kartın `hold` payı.
+- Pencere = yapışan `stack`; yüksekliği viewport − `top` (ekranı doldurur,
+  sıradaki kart alt kenarda bekler ve oradan yükselir). Yığın "en fazla
+  `visible` şerit + en uzun kart"; pencereye sığmıyorsa şerit sayısı düşer.
+  `body` yüksekliği = pencere + son kartın yolu + her kartın `hold` payı.
 - Kaydırma 1:1: her kart pencerede sayfayla birlikte yukarı gider, kendi
   yuvasına (öncekilerin şeritlerinin altı) gelince durur, sütun `hold`
   kadar bekler; sonraki kart gelirken yığın bir şerit yukarı kayar ve en

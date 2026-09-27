@@ -15,8 +15,10 @@
  * from the top. If even that does not fit the viewport the cap drops by
  * itself, and when nothing fits the column is left static.
  *
- * The pin is `position: sticky` on the list's wrapper (card-stack.css); the
- * wrapper's parent is given the scroll distance as its height, and every
+ * The pin is `position: sticky` on the list's wrapper (card-stack.css),
+ * sized to fill the viewport below the pin line so the next card shows at
+ * its bottom edge; the wrapper's parent is given the scroll distance as its
+ * height on top of that, and every
  * card's place is written from the scroll position each frame — no scroll
  * library, no timeline, a change of direction runs the same path backwards.
  * Wide screens only; narrow screens, reduced motion and no JavaScript get
@@ -144,7 +146,7 @@ export default function cardStack(root) {
       if (height <= room || cap === 0) break;
       cap -= 1;
     }
-    return { height, fits: height <= room };
+    return { room, fits: height <= room };
   }
 
   /**
@@ -217,7 +219,7 @@ export default function cardStack(root) {
       setState(root, "static");
       return;
     }
-    const { height, fits } = measure();
+    const { room, fits } = measure();
     if (!fits || distance <= 0) {
       active = false;
       clear();
@@ -225,8 +227,11 @@ export default function cardStack(root) {
       return;
     }
     active = true;
-    stack.style.height = `${height}px`;
-    body.style.height = `${height + distance}px`;
+    // The window fills the viewport below the pin line, as in the source:
+    // the pile and the card being read take its top, and the next card is
+    // seen waiting at its bottom edge before it rises.
+    stack.style.height = `${room}px`;
+    body.style.height = `${room + distance}px`;
     rendered = cards.map(() => ({ y: NaN, state: "" }));
     setState(root, "stacking");
     tick();
