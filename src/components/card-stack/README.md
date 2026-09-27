@@ -67,6 +67,12 @@ Designer'da ayarlanacaklar:
 - Dar ekran: alt satır `mob-flex-col`; görsel istenmiyorsa o breakpoint'te
   Display: None.
 - Sabit header varsa `data-rc-top` = header yüksekliği (px).
+- **Görsel** statik karta CMS'ten bağlanamaz; dosya Assets'te olmalı, Image
+  oradan seçilir (alt metni dolu).
+- **Etiket linki**: Text Link'in Link ayarı → Collection page → `Hizmet` ›
+  hizmet sayfası. Etiket koleksiyonunun kendi şablon sayfası boş kalır;
+  Site Settings › Redirects'te `/hizmet-etiketleri/(.*)` → `/hizmetler`
+  yönlendirmesi ekle ki boş sayfa indekslenmesin.
 
 ## Ayarlar (kökte)
 
