@@ -12,6 +12,10 @@
  * values inline, "static" when GSAP never arrived — and either releases these
  * rules. Should rc.js itself never arrive, the rc-hero-reveal animation lets
  * everything in after three seconds: nothing stays hidden for want of a script.
+ * While rc.js is running (html.rc-runtime) that fallback is held: on a slow
+ * network the chunk can take longer than three seconds, and the tiles must
+ * not open and then snap shut when it arms. A chunk that fails drops the
+ * class again (runtime/registry.js) and the fallback plays on.
  */
 
 [data-rc~="hero"] {
@@ -121,5 +125,42 @@
       visibility: visible;
       transform: none;
     }
+  }
+
+  /* The runtime is up: the reveal is hero.js's job, the fallback waits. */
+  html.rc-runtime
+    [data-rc~="hero"]:not([data-rc-state])
+    :is(
+      [data-rc-part="tag"],
+      [data-rc-part="title"],
+      [data-rc-part="actions"],
+      [data-rc-part="secondary"] :is(h2, h3),
+      [data-rc-part="tile"],
+      [data-rc-part="tile"] img
+    ) {
+    animation-play-state: paused;
+  }
+}
+
+/* LOOK — on a phone the mosaic layer is wider than the screen (README) and
+   the second heading, spanning the whole grid, ran off both edges. It is
+   kept to the screen and wraps; Designer's own max-width wins. */
+@media (max-width: 767px) {
+  :where([data-rc~="hero"] [data-rc-part="secondary"] :is(h2, h3)) {
+    max-width: calc(100vw - 2rem);
+  }
+}
+
+/* Reduced motion: no pin and no choreography, so the track is two screens,
+   not three — the video with the title on the first, the mosaic with the
+   second heading below it — instead of every layer stacked on one screen
+   over two empty ones. */
+@media (prefers-reduced-motion: reduce) {
+  [data-rc~="hero"] {
+    --rc-hero-track: calc(2 * var(--rc-hero-stage));
+  }
+
+  [data-rc~="hero"] [data-rc-part="secondary"] {
+    translate: 0 100%;
   }
 }

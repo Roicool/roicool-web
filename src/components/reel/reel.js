@@ -38,7 +38,7 @@ import {
   setState,
 } from "../../runtime/dom.js";
 import { prefersReducedMotion } from "../../runtime/motion.js";
-import { createLoop } from "../../runtime/loop.js";
+import { createLoop, EASE } from "../../runtime/loop.js";
 import { createCursorPhoto } from "../../runtime/cursor-photo.js";
 import { scan } from "../../runtime/registry.js";
 import { warn } from "../../runtime/log.js";
@@ -114,6 +114,7 @@ export default function reel(root) {
     `${FINE_POINTER} and (min-width: ${minimumWidth}px)`,
   );
   const reduced = prefersReducedMotion();
+  const down = option(root, "direction") === "down";
 
   // ---- The roll --------------------------------------------------------
 
@@ -122,6 +123,8 @@ export default function reel(root) {
   /** Every list a row can belong to: the track and its copies. */
   const lists = new Set([track]);
   let loop = null;
+  /** Move the strip by `dy` pixels (down when positive); set up with the roll. */
+  let shift = () => {};
 
   if (!reduced) {
     const animations = () =>
@@ -185,6 +188,19 @@ export default function reel(root) {
         if (duration) a.currentTime = fraction * duration;
       }
     }
+
+    // Speed is px per second, so the time to scrub is dy ÷ speed whatever
+    // the track's length; the sign follows the animation's direction. Same
+    // scrub as the marquee's drag.
+    shift = (dy) => {
+      const ms = (dy / speed) * 1000 * (down ? 1 : -1);
+      for (const a of animations()) {
+        const duration = durationOf(a);
+        if (!duration) continue;
+        const t = (a.currentTime ?? 0) + ms;
+        a.currentTime = ((t % duration) + duration) % duration;
+      }
+    };
 
     loop = createLoop(animations, {
       onChange(holds) {
@@ -259,14 +275,40 @@ export default function reel(root) {
     loop?.release("hover");
   });
 
+  /**
+   * Scrub the strip until `row` sits inside its clear window — past the
+   * edge fade, and past the little the roll still travels while it eases to
+   * a stop. The roll loops, so any distance is one scrub.
+   */
+  function bringIntoView(row) {
+    const box = strip.getBoundingClientRect();
+    const rect = row.getBoundingClientRect();
+    if (box.height === 0 || rect.height === 0) return;
+    const fade = getComputedStyle(strip)
+      .getPropertyValue("--rc-reel-fade")
+      .trim();
+    const pad = fade.endsWith("%")
+      ? (box.height * Number.parseFloat(fade)) / 100
+      : Number.parseFloat(fade) || box.height * 0.1;
+    const drift = Math.ceil(speed * (EASE / 2000));
+    const top = box.top + pad + (down ? 0 : drift);
+    const bottom = box.bottom - pad - (down ? drift : 0);
+    if (rect.top < top) shift(top - rect.top);
+    else if (rect.bottom > bottom)
+      shift(Math.max(bottom - rect.bottom, top - rect.top));
+  }
+
   // Keyboard focus stops the roll and marks the row: nobody chases a moving
   // link. Only visible focus counts — a click also focuses the link under
   // the pointer, and that must not leave the strip standing still after.
+  // The row is also brought into the strip's window: the roll clips, and
+  // the next tab stop may be above or below it.
   strip.addEventListener("focusin", (event) => {
     if (!event.target.matches(":focus-visible")) return;
     const row = rowOf(event.target);
     if (row) select(row, false);
     loop?.hold("focus");
+    if (row && loop) bringIntoView(row);
   });
   strip.addEventListener("focusout", (event) => {
     if (strip.contains(event.relatedTarget)) return;

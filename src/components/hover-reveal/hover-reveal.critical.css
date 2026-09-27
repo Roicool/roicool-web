@@ -1,0 +1,17 @@
+/*!
+ * hover-reveal.critical.css — the picture's resting state before rc.css.
+ *
+ * Inlined into the head by the build. The picture waits folded (or, with
+ * data-rc-effect="fade", invisible) in hover-reveal.css, which loads async;
+ * a card above the fold showed its picture plainly until then and wiped it
+ * away on arrival. From the first paint it waits as it will under rc.css.
+ */
+
+.rc-js [data-rc~="hover-reveal"] [data-rc-part="media"] {
+  clip-path: inset(var(--rc-hover-reveal-inset, 100% 0 0 0));
+}
+
+.rc-js [data-rc~="hover-reveal"][data-rc-effect="fade"] [data-rc-part="media"] {
+  clip-path: none;
+  opacity: 0;
+}

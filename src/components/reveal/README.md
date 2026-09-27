@@ -125,15 +125,21 @@ seferlik modun ayrıntısı:
 - **JS yok:** başlangıç durumları `.rc-js`'e bağlı, hiçbir şey gizli
   başlamaz. Video poster'ıyla durur.
 - **`rc.js` gelmezse:** `.rc-js` var ama durum basılmaz; 3 sn sonra CSS
-  animasyonu her şeyi açar.
+  animasyonu her şeyi açar. `rc.js` çalışıyorsa (`html.rc-runtime`) bu yedek
+  bekler — chunk yavaş gelirse metin açılıp `armed` anında geri sönmesin;
+  chunk yüklenemezse registry sınıfı kaldırır, yedek oynar.
 - **Reduced motion:** kod `static` basar, timeline kurmaz; video da oynamaz,
   poster'ıyla durur (tercih oturum içinde değişirse kod uyar).
 - **GSAP gelmezse:** `static`, uyarı konsola düşer.
 
 ## Erişilebilirlik
 
-- Başlık ve etiket bölünürken ekran okuyucu tam metni okur (`aria: "auto"`);
-  bitince zaten düz metin.
+- Bölünürken ekran okuyucu tam metni okur; bitince zaten düz metin. Başlık
+  ve linkte SplitText'in kendi yolu (`aria: "auto"`: tam metin
+  `aria-label`'da, parçalar `aria-hidden`). Div ya da paragraf etiket
+  `aria-label` taşıyamaz (ARIA yasaklar; axe `aria-prohibited-attr`), orada
+  kod satırları `aria-hidden` yapar ve tam metni `.rc-sr-only` bir span'de
+  elemanın başına koyar; `revert()` bölmeyle birlikte onu da kaldırır.
 - Video `muted` + `playsinline`; kaba `aria-hidden="true"`. 5 sn'den uzun
   otomatik video için WCAG 2.2.2 durdurma kontrolü hero ile birlikte ele
   alınacak.

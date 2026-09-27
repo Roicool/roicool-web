@@ -1,0 +1,14 @@
+/*!
+ * statistics.critical.css — the photo stack's resting state before rc.css.
+ *
+ * Inlined into the head by the build. The photos are hidden in rc.css, which
+ * loads async; until it landed they painted as a plain row, and on arrival
+ * the layer went fixed to the viewport's corner and every photo faded out
+ * from full opacity there — a 400 ms flash on each cold load. Hidden from
+ * the first paint, the arrival changes nothing visible. Gated on .rc-js like
+ * the rules it fronts: without JavaScript the photos stay a plain row.
+ */
+
+.rc-js [data-rc~="statistics"] [data-rc-part="cursor"] > * {
+  opacity: 0;
+}

@@ -27,7 +27,9 @@ yorumsuz — her byte her ziyaretçiye gidiyor); `{{cdn-origin}}` ve
 3. Kritik CSS — inline `<style>`; odak halkası, skip link, `.rc-sr-only`
 4. `preconnect` → CDN kökü
 5. `rc.css` — async (`preload` → `stylesheet`), `<noscript>` yedeğiyle
-6. `rc.js` — `type="module"`, deferred
+6. `rc.js` — `type="module"`, deferred; yüklenemezse `onerror` `html.rc-js`
+   sınıfını kaldırır, `.rc-js`'e bağlı bütün gizleme kuralları çözülür ve
+   sayfa JS'siz haliyle okunur (sekme panelleri, vaka panelleri, dock)
 
 Dosyalarda açıklama yorumu tutulmaz: Webflow custom code'u olduğu gibi servis
 eder, her yorum satırı her ziyaretçiye gider. Açıklama burada.

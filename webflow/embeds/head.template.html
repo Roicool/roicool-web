@@ -30,4 +30,8 @@
 <noscript>
   <link rel="stylesheet" crossorigin href="{{cdn-base}}rc.css" />
 </noscript>
-<script type="module" src="{{cdn-base}}rc.js"></script>
+<script
+  type="module"
+  src="{{cdn-base}}rc.js"
+  onerror="document.documentElement.classList.remove('rc-js')"
+></script>

@@ -1,0 +1,15 @@
+/*!
+ * dock.critical.css — the bar's resting state before rc.css.
+ *
+ * Inlined into the head by the build. dock.css hides the bar until its
+ * trigger is passed, but that file loads async: until it landed the bar
+ * painted as a block at the end of the page, and on arrival it was fixed to
+ * the bottom of the viewport and slid out from there. Hidden from the first
+ * paint, the arrival changes nothing visible. Same gate and same escape as
+ * in dock.css: focus inside the bar keeps it.
+ */
+
+.rc-js [data-rc~="dock"]:not([data-rc-state="shown"]):not(:focus-within) {
+  visibility: hidden;
+  opacity: 0;
+}

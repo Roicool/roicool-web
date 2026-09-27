@@ -71,7 +71,12 @@ bulur ve ona `data-rc-part="track"` basar. Kodun tanımladığı tek class ailes
   kaydırma çubuğu (`runtime/scrollbar.js`, `base/scroll.css`)
 - `.rc-line`, `.rc-word` — SplitText'in bölme sırasında bastığı geçici
   satır ve kelime sınıfları (hero, reveal)
-- `html.rc-js` — JavaScript çalıştı işareti
+- `html.rc-js` — JavaScript çalıştı işareti (head'deki satır içi snippet
+  basar; `rc.js` yüklenemezse aynı script etiketinin `onerror`'u kaldırır)
+- `html.rc-runtime` — `rc.js` çalışıyor işareti (runtime basar). Kritik
+  CSS'teki "rc.js hiç gelmezse 3 sn sonra aç" yedek animasyonları bu sınıf
+  varken bekler; bir chunk yüklenemezse registry sınıfı kaldırır, yedekler
+  oynar
 
 Durum, class ile değil `data-rc-state` ile ifade edilir. Gerekçe: Designer'da
 bir combo class ile çakışma riski yok, ve HTML'e bakan biri durumun nereden
