@@ -40,9 +40,10 @@ const DEFAULT_TOP = 0;
 const DEFAULT_VISIBLE = 3;
 /**
  * Scroll pixels a card rests in the reading position before the next one
- * starts moving — reading time, so the stack does not race. `data-rc-hold`.
+ * starts moving. Off by default: a pause reads as the scroll snagging, the
+ * column moving 1:1 with the page is what feels smooth. `data-rc-hold`.
  */
-const DEFAULT_HOLD = 200;
+const DEFAULT_HOLD = 0;
 /** Below this viewport width nothing stacks. `data-rc-min-width`. */
 const DEFAULT_MINIMUM_WIDTH = 992;
 

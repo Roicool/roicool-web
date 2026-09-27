@@ -14,8 +14,9 @@ riseatseven.com/services "Our Services".
   yeni kart gelirken en eski başlık pencerenin üst kenarından çıkar, okunan
   kart hep aynı derinlikte başlar. Pencere viewport'a sığmıyorsa kod sınırı
   kendisi düşürür; hiç sığmıyorsa pinlemez, sütun düz kalır.
-- **Okuma payı:** kart yerine oturunca sütun `data-rc-hold` piksel (200)
-  durur, sonraki kart ondan sonra gelir; yığın kaydırmayla yarışmaz.
+- **Okuma payı (isteğe bağlı, kapalı):** `data-rc-hold` verilirse kart
+  yerine oturunca sütun o kadar piksel durur. Varsayılan 0: duraklama
+  kaydırmanın takılması gibi hissediliyor, sütun sayfayla 1:1 gidince akıcı.
 - **Kapanan kartta görsel yok:** görsel kaynaktaki gibi başlıkla aynı
   hizada sağda başlar; geçilen kartın (`stacked`) `visual` parçası 0,3 s'de
   söner, şeritte yalnız başlık kalır.
@@ -95,7 +96,7 @@ Designer'da ayarlanacaklar:
 | Attribute           | Değer     | Ne yapar                                                            |
 | ------------------- | --------- | ------------------------------------------------------------------- |
 | `data-rc-visible`   | sayı, `3` | Okunan kartın üstünde tutulan başlık sayısı; `0` yalnız okunan kart |
-| `data-rc-hold`      | px, `200` | Kart oturunca sütunun durduğu kaydırma; `0` durmadan (kaynaktaki)   |
+| `data-rc-hold`      | px, `0`   | Kart oturunca sütunun durduğu kaydırma; `0` durmadan (kaynaktaki)   |
 | `data-rc-top`       | px, `0`   | Pencerenin yapıştığı yükseklik (sabit header için)                  |
 | `data-rc-min-width` | px, `992` | Bunun altında yapışma yok                                           |
 | `data-rc-eager`     | —         | Görünüre girmeyi beklemeden yükle                                   |
@@ -107,9 +108,9 @@ Designer'da ayarlanacaklar:
   `visible` şerit + en uzun kart"; pencereye sığmıyorsa şerit sayısı düşer.
   `body` yüksekliği = pencere + son kartın yolu + her kartın `hold` payı.
 - Kaydırma 1:1: her kart pencerede sayfayla birlikte yukarı gider, kendi
-  yuvasına (öncekilerin şeritlerinin altı) gelince durur, sütun `hold`
-  kadar bekler; sonraki kart gelirken yığın bir şerit yukarı kayar ve en
-  eskisi kırpılır.
+  yuvasına (öncekilerin şeritlerinin altı) gelince durur (`hold` verildiyse
+  sütun o kadar bekler); sonraki kart gelirken yığın bir şerit yukarı kayar
+  ve en eskisi kırpılır.
 - Durumlar: geçilen kart `data-rc-state="stacked"`, okunan `active`,
   gelen `entering`; kök `stacking` ya da `static`.
 - Reduced motion, 992 px altı, sığmayan pencere: kök `static`, sütun düz.
