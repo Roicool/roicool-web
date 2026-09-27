@@ -1,0 +1,33 @@
+/*!
+ * card-stack.css — behavioural styles only. The cards' layout (the grid,
+ * the picture column, padding, borders), their opaque background — which
+ * is what hides a passed card's body under the next card — and every
+ * colour come from Designer.
+ *
+ * One mechanic. While the stack is on (root state `stacking`, stamped by
+ * card-stack.js on wide screens only) the list's wrapper sticks at
+ * --rc-card-stack-top and clips, its parent carries the scroll distance as
+ * height, and the cards' places are written by the code every frame. A
+ * later card paints over an earlier one because every card is positioned,
+ * in DOM order. Without JavaScript, on narrow screens and with reduced
+ * motion nothing here applies: the column is Designer's plain list.
+ */
+
+/* MECHANIC — a later card covers an earlier one: positioned, DOM order. */
+:where(.rc-js [data-rc~="card-stack"] [data-rc-part="card"]) {
+  position: relative;
+}
+
+/* MECHANIC — the window sticks and clips the strips pushed out of it. */
+.rc-js
+  [data-rc~="card-stack"][data-rc-state="stacking"]
+  [data-rc-part="stack"] {
+  position: sticky;
+  top: var(--rc-card-stack-top, 0px);
+  overflow: clip;
+}
+
+/* MECHANIC — the cards are moved every frame: their own layers. */
+.rc-js [data-rc~="card-stack"][data-rc-state="stacking"] [data-rc-part="card"] {
+  will-change: translate;
+}
