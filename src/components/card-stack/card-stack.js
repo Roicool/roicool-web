@@ -36,6 +36,11 @@ import { warn } from "../../runtime/log.js";
 const DEFAULT_TOP = 0;
 /** Heading strips kept in view above the card being read. `data-rc-visible`. */
 const DEFAULT_VISIBLE = 3;
+/**
+ * Scroll pixels a card rests in the reading position before the next one
+ * starts moving — reading time, so the stack does not race. `data-rc-hold`.
+ */
+const DEFAULT_HOLD = 200;
 /** Below this viewport width nothing stacks. `data-rc-min-width`. */
 const DEFAULT_MINIMUM_WIDTH = 992;
 
@@ -64,6 +69,7 @@ export default function cardStack(root) {
     0,
     Math.round(numberOption(root, "visible", DEFAULT_VISIBLE)),
   );
+  const hold = Math.max(0, numberOption(root, "hold", DEFAULT_HOLD));
   const wide = window.matchMedia(
     `(min-width: ${numberOption(root, "min-width", DEFAULT_MINIMUM_WIDTH)}px)`,
   );
@@ -71,11 +77,11 @@ export default function cardStack(root) {
 
   // ---- Geometry, from the last measure ----------------------------------
 
-  /** Scroll pixels into the pin at which card i sits in its slot. */
+  /** Column travel (pixels the cards have moved up) at which card i sits in its slot. */
   let offsets = [];
   /** How far the whole pile has been pushed up once card i is in its slot. */
   let shifts = [];
-  /** Scroll pixels the pin lasts: the last card's travel. */
+  /** Scroll pixels the pin lasts: the last card's travel plus every hold. */
   let distance = 0;
   /** Stacking is on: wide screen, motion allowed, the window fits. */
   let active = false;
@@ -122,7 +128,8 @@ export default function cardStack(root) {
       sum += strip;
     }
     offsets = tops.map((t, i) => Math.max(0, t - slots[i]));
-    distance = offsets[last];
+    // Every card but the last rests for `hold` once it is in place.
+    distance = offsets[last] + hold * last;
 
     const room = window.innerHeight - top;
     let cap = visible;
@@ -140,12 +147,31 @@ export default function cardStack(root) {
     return { height, fits: height <= room };
   }
 
+  /**
+   * Scroll pixels into the pin → pixels the column has travelled. The column
+   * moves with the page, except that it stands still for `hold` pixels each
+   * time a card lands.
+   */
+  function travelled(scrolled) {
+    let p = 0;
+    for (let i = 1; i <= last; i += 1) {
+      // Card i lands when the column has travelled offsets[i]; the scroll
+      // needed for that is the travel plus the holds of the cards before.
+      const lands = offsets[i] + hold * (i - 1);
+      if (scrolled <= lands) return scrolled - hold * (i - 1);
+      if (scrolled <= lands + hold) return offsets[i];
+      p = offsets[i];
+    }
+    return p;
+  }
+
   /** Write every card's place for the current scroll position. */
   let scheduled = false;
   function tick() {
     scheduled = false;
     if (!active || !onScreen) return;
-    const p = clamp(top - body.getBoundingClientRect().top, 0, distance);
+    const scrolled = clamp(top - body.getBoundingClientRect().top, 0, distance);
+    const p = travelled(scrolled);
     // The card arriving now is the first one not yet in its slot; while it
     // travels, the pile's push-up runs from the previous card's to its own.
     const arriving = offsets.findIndex((offset) => offset > p);
@@ -212,8 +238,15 @@ export default function cardStack(root) {
     if (!active || !event.target.matches(":focus-visible")) return;
     const index = cards.findIndex((card) => card.contains(event.target));
     if (index < 0) return;
-    const target =
-      window.scrollY + body.getBoundingClientRect().top - top + offsets[index];
+    // Rounded up: a scroll position lands on whole pixels, and a fraction
+    // short would leave the card "entering" instead of in its slot.
+    const target = Math.ceil(
+      window.scrollY +
+        body.getBoundingClientRect().top -
+        top +
+        offsets[index] +
+        hold * Math.max(0, index - 1),
+    );
     window.scrollTo({ top: target, behavior: "instant" });
     schedule();
   });
