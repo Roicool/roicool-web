@@ -40,7 +40,7 @@ geçmesin (Webflow sınırı).
 Yerleşim kaynaktaki gibi (riseatseven `services.css`): kart 12 kolonlu
 grid; solda 8 kolonluk içerik sütunu (flex column, `justify-between`:
 başlık üstte, açıklama + etiketler kartın altında yan yana), sağda 4
-kolonluk kare görsel; kartın yüksekliğini görsel belirler.
+kolonluk sabit yükseklikte görsel; kartın yüksekliğini görsel belirler.
 
 ```
 Section                    [data-rc="card-stack"]   ← kök, 100vw (container yok, yan padding kartta)
@@ -58,7 +58,7 @@ Section                    [data-rc="card-stack"]   ← kök, 100vw (container y
                 Collection List                      flex, wrap, gap
                   Collection Item
                     Text Link                        etiket: chip (border, radius, padding) → hizmet sayfası
-          Div              [data-rc-part="visual"]  ← sağ (4 kolon): kare, radius, overflow hidden, dikey margin
+          Div              [data-rc-part="visual"]  ← sağ (4 kolon): SABİT yükseklik, radius, overflow hidden, dikey margin
             Image                                    alt dolu, cover
         × 8
 ```
@@ -70,8 +70,11 @@ Designer'da ayarlanacaklar:
   `border-bottom` şeritleri ayırır. `position` verme (kod `relative`).
 - **heading** → kartın üstünden bu kutunun altına kadar olan yükseklik
   yığında kalan şerittir; üst padding'i karta değil buraya ver.
-- **visual** → `opacity` verme; geçilen kartta kod söndürür. Görselin üst
-  kenarı başlıkla hizalı olduğu için şeride girer; bu yüzden sönüyor.
+- **visual** → yüksekliği **sabit** ver (`height`, ör. 30rem; 1440+ için
+  32.5rem), `aspect-ratio` verme: oran kolon genişliğine bağlanır, geniş
+  ekranda kart viewport'a sığmaz. Kaynakta kart 590 px sabit. `opacity`
+  verme; geçilen kartta kod söndürür. Görselin üst kenarı başlıkla hizalı
+  olduğu için şeride girer; bu yüzden sönüyor.
 - **açıklama** → `max-width` ver (kaynakta 36rem); yoksa satır etiketleri
   sıkıştırır.
 - **body**, **stack** → yükseklik, `position`, `overflow` verme; kod
