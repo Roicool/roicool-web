@@ -31,3 +31,23 @@
 .rc-js [data-rc~="card-stack"][data-rc-state="stacking"] [data-rc-part="card"] {
   will-change: translate;
 }
+
+/*
+ * LOOK — a stacked card is its heading strip and nothing else. In the source
+ * layout the picture starts level with the title, so its top rows would stay
+ * in the strip; once the card is passed the picture fades out. (Under reduced
+ * motion nothing stacks, so no rule is needed there.)
+ */
+:where(
+  .rc-js
+    [data-rc~="card-stack"][data-rc-state="stacking"]
+    [data-rc-part="visual"]
+) {
+  transition: opacity 0.3s ease;
+}
+.rc-js
+  [data-rc~="card-stack"]
+  [data-rc-part="card"][data-rc-state="stacked"]
+  [data-rc-part="visual"] {
+  opacity: 0;
+}

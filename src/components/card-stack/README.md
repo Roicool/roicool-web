@@ -16,8 +16,9 @@ riseatseven.com/services "Our Services".
   kendisi düşürür; hiç sığmıyorsa pinlemez, sütun düz kalır.
 - **Okuma payı:** kart yerine oturunca sütun `data-rc-hold` piksel (200)
   durur, sonraki kart ondan sonra gelir; yığın kaydırmayla yarışmaz.
-- **Kapanan kartta görsel yok:** başlık şeridi kartın tam genişliğinde en
-  üstte, görsel alt satırda; istiflenen karttan yalnız başlık kalır.
+- **Kapanan kartta görsel yok:** görsel kaynaktaki gibi başlıkla aynı
+  hizada sağda başlar; geçilen kartın (`stacked`) `visual` parçası 0,3 s'de
+  söner, şeritte yalnız başlık kalır.
 
 **SEO/GEO:** her kartın metni ve etiket linkleri HTML'de; kod hiçbir şey
 üretmez ya da gizlemez, geçilen kartların gövdesi yalnız görsel olarak
@@ -36,22 +37,30 @@ referansı, Sıra; liste Hizmet = o kartın hizmeti diye filtrelenir, Sıra
 artan). Kart başına bir Collection List: Home'da liste sayısı 20'yi
 geçmesin (Webflow sınırı).
 
+Yerleşim kaynaktaki gibi (riseatseven `services.css`): kart 12 kolonlu
+grid; solda 8 kolonluk içerik sütunu (flex column, `justify-between`:
+başlık üstte, açıklama + etiketler kartın altında yan yana), sağda 4
+kolonluk kare görsel; kartın yüksekliğini görsel belirler.
+
 ```
-Section                    [data-rc="card-stack"]   ← kök, 100vw (container yok)
+Section                    [data-rc="card-stack"]   ← kök, 100vw (container yok, yan padding kartta)
+  H2                                                 yan padding (view-px)
   Div                      [data-rc-part="body"]    ← kayma mesafesini taşır; stil verme, kod yükseklik yazar
     Div                    [data-rc-part="stack"]   ← yapışan pencere; stil verme, kod yükseklik + sticky + clip
-      Div                  [data-rc-part="card"]    ← kart: flex column, OPAK arka plan, alt border, yatay padding
-        Div                [data-rc-part="heading"] ← başlık şeridi, tam genişlik: üst + alt padding, H3
-          H3
-        Div                                         alt satır: grid 12 kolon
-          Div                                       sol (4 kolon): Paragraph açıklama + etiketler
-            Collection List Wrapper                 etiketler (filtre: Hizmet = bu kart)
-              Collection List                       flex, wrap, gap
-                Collection Item
-                  Text Link                         etiket: chip (border, radius, padding) → hizmet sayfası
-          Div                                       sağ (8 kolon): görsel kutusu (aspect-ratio, radius, overflow hidden)
-            Image                                   alt dolu, cover
-      × 8
+      Div                                            liste
+        Div                [data-rc-part="card"]    ← kart: grid 12 kolon, OPAK arka plan, alt border, yan padding
+          Div                                        sol (8 kolon): flex column, items-start, justify-between
+            Div            [data-rc-part="heading"] ← başlık şeridi: üst + alt padding, H3
+              H3
+            Div                                      meta: flex row, items-start, gap, alt padding
+              Paragraph                              açıklama (max-width ~36rem)
+              Collection List Wrapper                etiketler (filtre: Hizmet = bu kart)
+                Collection List                      flex, wrap, gap
+                  Collection Item
+                    Text Link                        etiket: chip (border, radius, padding) → hizmet sayfası
+          Div              [data-rc-part="visual"]  ← sağ (4 kolon): kare, radius, overflow hidden, dikey margin
+            Image                                    alt dolu, cover
+        × 8
 ```
 
 Designer'da ayarlanacaklar:
@@ -61,11 +70,15 @@ Designer'da ayarlanacaklar:
   `border-bottom` şeritleri ayırır. `position` verme (kod `relative`).
 - **heading** → kartın üstünden bu kutunun altına kadar olan yükseklik
   yığında kalan şerittir; üst padding'i karta değil buraya ver.
+- **visual** → `opacity` verme; geçilen kartta kod söndürür. Görselin üst
+  kenarı başlıkla hizalı olduğu için şeride girer; bu yüzden sönüyor.
+- **açıklama** → `max-width` ver (kaynakta 36rem); yoksa satır etiketleri
+  sıkıştırır.
 - **body**, **stack** → yükseklik, `position`, `overflow` verme; kod
   yazar. Sütunun ve üstlerinin hiçbirinde `overflow: hidden` olmasın
   (Sticky kuralı).
-- Dar ekran: alt satır `mob-flex-col`; görsel istenmiyorsa o breakpoint'te
-  Display: None.
+- Dar ekran: kart ve meta `mob-flex-col`; görsel `hide-mobile`
+  (kaynakta da mobilde görsel yok).
 - Sabit header varsa `data-rc-top` = header yüksekliği (px).
 - **Görsel** statik karta CMS'ten bağlanamaz; dosya Assets'te olmalı, Image
   oradan seçilir (alt metni dolu).
