@@ -39,6 +39,7 @@ import {
 } from "../../runtime/dom.js";
 import { prefersReducedMotion } from "../../runtime/motion.js";
 import { createLoop } from "../../runtime/loop.js";
+import { createCursorPhoto } from "../../runtime/cursor-photo.js";
 import { scan } from "../../runtime/registry.js";
 import { warn } from "../../runtime/log.js";
 
@@ -46,10 +47,6 @@ import { warn } from "../../runtime/log.js";
 const DEFAULT_SPEED = 30;
 /** Below this viewport width no photo follows. `data-rc-min-width`. */
 const DEFAULT_MINIMUM_WIDTH = 992;
-/** Share of the remaining distance the photo covers per frame. */
-const FOLLOW = 0.25;
-/** Pixels of remaining distance under which the photo counts as arrived. */
-const SETTLED = 0.05;
 /** The most copies of the track the code will stack under it. */
 const MAXIMUM_COPIES = 6;
 const FINE_POINTER = "(hover: hover) and (pointer: fine)";
@@ -204,6 +201,16 @@ export default function reel(root) {
     setState(root, "static");
   }
 
+  // ---- The photo at the pointer ---------------------------------------
+
+  // Shared with statistics: runtime/cursor-photo.js moves the photo box to
+  // the pointer and shows one picture at a time. Watched while the strip is
+  // on screen.
+  const photo =
+    cursor && !reduced
+      ? createCursorPhoto({ cursor, pictures, within: strip, capable })
+      : null;
+
   // ---- The current row -------------------------------------------------
 
   /** Which item of its list a row is, so its photo can be found. */
@@ -225,14 +232,14 @@ export default function reel(root) {
     if (activeRow) setState(activeRow, null);
     activeRow = row;
     setState(row, "active");
-    if (withPhoto) showPhoto(indexOf(row));
-    else hidePhoto();
+    if (withPhoto) photo?.show(indexOf(row));
+    else photo?.hide();
   }
 
   function clear() {
     if (activeRow) setState(activeRow, null);
     activeRow = null;
-    hidePhoto();
+    photo?.hide();
   }
 
   const rowOf = (target) =>
@@ -266,100 +273,6 @@ export default function reel(root) {
     if (!finePointer.matches || !strip.matches(":hover")) clear();
     loop?.release("focus");
   });
-
-  // ---- The photo at the pointer ---------------------------------------
-
-  /** Index of the photo on show, -1 for none. */
-  let shown = -1;
-  /** The photo's box, from its own size; it is centred on the pointer. */
-  let width = 0;
-  let height = 0;
-  /** Where the pointer is and where the photo has got to, viewport px. */
-  let target = { x: 0, y: 0 };
-  let position = { x: 0, y: 0 };
-  let frame = 0;
-  let listening = false;
-
-  const place = () => {
-    cursor.style.translate = `${position.x - width / 2}px ${position.y - height / 2}px`;
-  };
-
-  function step() {
-    const dx = target.x - position.x;
-    const dy = target.y - position.y;
-    if (Math.abs(dx) > SETTLED || Math.abs(dy) > SETTLED) {
-      position = { x: position.x + dx * FOLLOW, y: position.y + dy * FOLLOW };
-      place();
-      frame = requestAnimationFrame(step);
-      return;
-    }
-    position = target;
-    place();
-    frame = 0;
-  }
-  const wake = () => {
-    if (shown >= 0 && !frame) frame = requestAnimationFrame(step);
-  };
-
-  const onPointerMove = (event) => {
-    target = { x: event.clientX, y: event.clientY };
-    wake();
-  };
-
-  function listen(on) {
-    if (on === listening) return;
-    listening = on;
-    document[on ? "addEventListener" : "removeEventListener"](
-      "pointermove",
-      onPointerMove,
-      { passive: true },
-    );
-  }
-
-  function showPhoto(index) {
-    if (!cursor || reduced || !capable.matches) return;
-    if (index < 0 || index >= pictures.length) {
-      hidePhoto();
-      return;
-    }
-    if (index === shown) return;
-    pictures.forEach((picture, i) =>
-      setState(picture, i === index ? "active" : null),
-    );
-    // A photo appears where the pointer is, not where the last one was left.
-    if (shown < 0) {
-      position = target;
-      place();
-    }
-    shown = index;
-    wake();
-  }
-
-  function hidePhoto() {
-    if (shown < 0) return;
-    pictures.forEach((picture) => setState(picture, null));
-    shown = -1;
-    cancelAnimationFrame(frame);
-    frame = 0;
-  }
-
-  if (cursor && !reduced) {
-    // The photo's size decides the centring offset; it changes with
-    // breakpoints and when the pictures load.
-    new ResizeObserver(() => {
-      const box = cursor.getBoundingClientRect();
-      width = box.width;
-      height = box.height;
-      if (shown >= 0) place();
-    }).observe(cursor);
-    // The pointer is watched only while the strip is on screen.
-    new IntersectionObserver(([entry]) => listen(entry.isIntersecting)).observe(
-      strip,
-    );
-    capable.addEventListener("change", () => {
-      if (!capable.matches) hidePhoto();
-    });
-  }
 
   setState(root, root.getAttribute("data-rc-state") ?? "static");
 }

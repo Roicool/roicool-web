@@ -1,0 +1,187 @@
+/*!
+ * statistics.css — behavioural styles only. The row of cards, their borders
+ * and padding, the figure's type, the caption, the photo's size and corner
+ * radius, the progress bar's height and colours come from Designer.
+ *
+ * Four mechanics. The odometer: a figure's characters become slots one
+ * character tall, each clipping a column that waits pushed down, blurred and
+ * invisible until the figure is counted, then rises to its character. The
+ * strip: on a narrow screen Designer lets the track scroll sideways; here it
+ * snaps card by card and hides its scrollbar. The progress bar: a line that
+ * fills as the strip is scrolled, driven by the scroll position alone (a
+ * scroll timeline), full where the strip does not scroll, absent where the
+ * browser cannot do it. The photos: under .rc-js their box is a fixed layer
+ * over the page that takes no clicks, stacks every photo in one cell and is
+ * moved by the code; only the current photo shows.
+ */
+
+/* MECHANIC — the odometer. --rc-statistics-offset (the character's place in
+   its column) and --rc-statistics-delay (the slot's stagger) are set by the
+   code on each column. Duration and easing are open to tuning. */
+[data-rc~="statistics"] [data-rc-part="reels"] {
+  display: inline-flex;
+  align-items: flex-start;
+  vertical-align: top;
+}
+
+[data-rc~="statistics"] [data-rc-part="slot"] {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  height: 1em;
+  line-height: 1;
+  white-space: pre;
+}
+
+[data-rc~="statistics"] [data-rc-part="placeholder"] {
+  display: block;
+  visibility: hidden;
+}
+
+[data-rc~="statistics"] [data-rc-part="column"] {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  opacity: 0;
+  filter: blur(8px);
+  translate: 0 0.4em;
+  transition:
+    translate var(--rc-statistics-duration, 1.1s)
+      var(--rc-statistics-ease, cubic-bezier(0.16, 1, 0.3, 1))
+      var(--rc-statistics-delay, 0s),
+    opacity 0.5s ease var(--rc-statistics-delay, 0s),
+    filter 0.8s ease var(--rc-statistics-delay, 0s);
+}
+
+[data-rc~="statistics"] [data-rc-part="column"] > * {
+  display: block;
+  height: 1em;
+  line-height: 1;
+}
+
+[data-rc~="statistics"]
+  [data-rc-part="figure"][data-rc-state="counted"]
+  [data-rc-part="column"] {
+  opacity: 1;
+  filter: blur(0);
+  translate: 0 calc(var(--rc-statistics-offset, 0) * -1em);
+}
+
+/* MECHANIC — where Designer lets the track scroll sideways (a narrow
+   screen), it snaps from card to card and shows no scrollbar. Zero
+   specificity: harmless on a grid that does not scroll, and open to
+   Designer. */
+:where([data-rc~="statistics"] [data-rc-part="track"]) {
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+
+:where([data-rc~="statistics"] [data-rc-part="track"])::-webkit-scrollbar {
+  display: none;
+}
+
+:where([data-rc~="statistics"] [data-rc-part="card"]) {
+  scroll-snap-align: start;
+}
+
+/* MECHANIC — the progress bar fills with the strip's scroll position: a
+   named scroll timeline on the track, scoped to the root so the bar can sit
+   outside the track. No scrolling (a wide screen), no timeline: the bar
+   stands full. Height, background and colour (the fill is currentColor) are
+   Designer's. --rc-statistics-progress-start is the fill at rest. */
+[data-rc~="statistics"] {
+  timeline-scope: --rc-statistics-track;
+}
+
+[data-rc~="statistics"] [data-rc-part="track"] {
+  scroll-timeline: --rc-statistics-track inline;
+}
+
+[data-rc~="statistics"] [data-rc-part="progress"] {
+  position: relative;
+  overflow: hidden;
+}
+
+[data-rc~="statistics"] [data-rc-part="progress"]::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: currentColor;
+  transform-origin: 0 50%;
+  animation: rc-statistics-progress linear both;
+  animation-timeline: --rc-statistics-track;
+}
+
+@keyframes rc-statistics-progress {
+  from {
+    scale: var(--rc-statistics-progress-start, 0.25) 1;
+  }
+
+  to {
+    scale: 1 1;
+  }
+}
+
+@supports not (animation-timeline: scroll()) {
+  [data-rc~="statistics"] [data-rc-part="progress"] {
+    display: none;
+  }
+}
+
+/* MECHANIC — the photo layer covers the viewport and takes no clicks; the
+   box inside carries the photos, stacked in one cell, wherever the code
+   puts it. Gated on .rc-js: without JavaScript the photos are a plain row.
+   Keep the section out of any ancestor with a transform or filter — that
+   would pin the layer to the ancestor instead of the viewport. */
+.rc-js [data-rc~="statistics"] [data-rc-part="photos"] {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: var(--rc-statistics-layer, 50);
+}
+
+.rc-js [data-rc~="statistics"] [data-rc-part="cursor"] {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: grid;
+  grid-template-areas: "stack";
+  will-change: translate;
+}
+
+/* MECHANIC — only the current photo shows; the others wait faded and a
+   touch smaller, so a change reads as a cross-fade. */
+.rc-js [data-rc~="statistics"] [data-rc-part="cursor"] > * {
+  grid-area: stack;
+  opacity: 0;
+  scale: 0.95;
+  transition:
+    opacity 0.4s,
+    scale 0.4s;
+}
+
+.rc-js
+  [data-rc~="statistics"]
+  [data-rc-part="cursor"]
+  > [data-rc-state="active"] {
+  opacity: 1;
+  scale: 1;
+}
+
+/* MECHANIC — a photo fills its box. */
+[data-rc~="statistics"] [data-rc-part="cursor"] :is(img, video) {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* MECHANIC — without JavaScript the photos are a small wrapped row. */
+:where(html:not(.rc-js) [data-rc~="statistics"] [data-rc-part="cursor"]) {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
