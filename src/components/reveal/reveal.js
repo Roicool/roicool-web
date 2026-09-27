@@ -177,17 +177,31 @@ export default async function reveal(root) {
   const { gsap, ScrollTrigger, SplitText } = motion;
   const rise = riseDistance();
 
-  // Only the text parts are split; the accessible name stays whole
-  // (aria: "auto" puts the full text on the element and hides the words).
-  const splits = texts.map(
-    (element) =>
-      new SplitText(element, {
-        type: "lines,words",
-        linesClass: "rc-line",
-        wordsClass: "rc-word",
-        aria: "auto",
-      }),
-  );
+  // Only the text parts are split, and the whole text stays readable. On a
+  // heading or a link SplitText's own way serves (aria: "auto": the full
+  // text as aria-label, the pieces hidden). A plain div or paragraph may
+  // not carry aria-label (ARIA prohibits it on elements without a naming
+  // role), so there the pieces are hidden by hand and the text rides along
+  // in a span only assistive technology sees; revert() takes it out again
+  // with the rest of the split.
+  const splits = texts.map((element) => {
+    const labelled = element.matches("h1, h2, h3, h4, h5, h6, a, button");
+    const text = (element.textContent || "").trim();
+    const split = new SplitText(element, {
+      type: "lines,words",
+      linesClass: "rc-line",
+      wordsClass: "rc-word",
+      aria: labelled ? "auto" : "none",
+    });
+    if (!labelled) {
+      for (const line of split.lines) line.setAttribute("aria-hidden", "true");
+      const reader = document.createElement("span");
+      reader.className = "rc-sr-only";
+      reader.textContent = text;
+      element.prepend(reader);
+    }
+    return split;
+  });
   const words = splits.flatMap((split) => split.words);
   const mediaChildren = medias.flatMap((media) => Array.from(media.children));
 

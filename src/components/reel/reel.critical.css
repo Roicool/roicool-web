@@ -1,0 +1,13 @@
+/*!
+ * reel.critical.css — the photo stack's resting state before rc.css.
+ *
+ * Inlined into the head by the build. Same reason as statistics.critical.css:
+ * the photos are hidden in rc.css, which loads async; on its arrival they
+ * were carried to the viewport's corner by the fixed layer and faded out
+ * from full opacity there. Hidden from the first paint, nothing flashes.
+ * Gated on .rc-js: without JavaScript the photos stay a plain list.
+ */
+
+.rc-js [data-rc~="reel"] [data-rc-part="cursor"] > * {
+  opacity: 0;
+}

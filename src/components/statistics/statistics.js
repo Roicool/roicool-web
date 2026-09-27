@@ -43,6 +43,9 @@ const DEFAULT_THRESHOLD = 0.4;
 const DEFAULT_STAGGER = 0.08;
 const FINE_POINTER = "(hover: hover) and (pointer: fine)";
 
+/** Every statistics root on the page gets its own id prefix. */
+let sequence = 0;
+
 function span(partName, text) {
   const el = document.createElement("span");
   if (partName) el.setAttribute("data-rc-part", partName);
@@ -127,6 +130,33 @@ export default function statistics(root) {
     for (const figure of figures) {
       if (buildReels(figure, stagger)) observer.observe(figure);
     }
+  }
+
+  // ---- The strip on a narrow screen -----------------------------------
+
+  // Where Designer lets the track scroll sideways, the keyboard must reach
+  // it too (WCAG 2.1.1): while it overflows it takes a tab stop — the arrow
+  // keys then scroll it — named after the section's heading when there is
+  // one. On a wide screen, where it does not scroll, it stays out of the
+  // tab order.
+  if (track !== root) {
+    const heading = root.querySelector("h1, h2, h3, h4");
+    if (heading && !heading.id) {
+      heading.id = `rc-statistics-${(sequence += 1)}-heading`;
+    }
+    const syncScrollable = () => {
+      if (track.scrollWidth > track.clientWidth + 1) {
+        track.tabIndex = 0;
+        track.setAttribute("role", "group");
+        if (heading) track.setAttribute("aria-labelledby", heading.id);
+      } else {
+        track.removeAttribute("tabindex");
+        track.removeAttribute("role");
+        track.removeAttribute("aria-labelledby");
+      }
+    };
+    new ResizeObserver(syncScrollable).observe(track);
+    syncScrollable();
   }
 
   // ---- The photo at the pointer ---------------------------------------

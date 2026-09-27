@@ -60,7 +60,10 @@ indirme yok) ve `aria-label="Görsel 2 / 3"` yazar, şablonu kaldırır; kök'e
 Gelen slayt seçildiği yönden (%100 dışarıdan) girer, giden ters yönden çıkar;
 içlerindeki görseller aynı sürede yalnız `parallax` kadar kayar, hareket
 derinlik kazanır. Web Animations API, `cubic-bezier(0.65, 0, 0.35, 1)`
-(GSAP `power3.inOut` karşılığı). Geçiş sürerken yeni istek yok sayılır.
+(GSAP `power3.inOut` karşılığı). Geçiş sürerken gelen istek yok sayılmaz,
+sıraya alınır: geçiş bitince son istenen slayta geçilir (aradakiler atlanır);
+hızlı art arda tuşlar hedeften itibaren sayılır, odak hemen hedef
+thumbnail'e gider.
 
 - **Thumbnail:** tıklama o slayta gider; yön sıraya göre.
 - **Kaydırma:** çerçevede 40px yatay hareket sonraki/önceki slayta geçer;

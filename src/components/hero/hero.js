@@ -74,17 +74,171 @@ const SCRUB = 0.6;
  * The choreography never rests half-way: once scrolling stops, the page is
  * carried to whichever end is nearer. Plain distance, no momentum guess —
  * with smoothed scrolling the measured velocity is not a reliable intent.
+ * snapTo is resolved in snapRule(): distance, or direction after a key press.
  */
 const SNAP = {
-  snapTo: [0, 1],
-  directional: false,
   inertia: false,
   delay: 0.1,
   duration: { min: 0.5, max: 1.2 },
   ease: "power2.inOut",
 };
 
+/**
+ * Keys that scroll the page. A snap that follows a press this recent goes
+ * the way the press went, not to the nearer end: a single PageDown or Space
+ * lands short of half-way, and "nearer" would carry it straight back up.
+ * Wheel and touch keep the distance rule.
+ */
+const SCROLL_KEYS = new Set([
+  "ArrowDown",
+  "ArrowUp",
+  "PageDown",
+  "PageUp",
+  " ",
+]);
+const KEY_SNAP_WINDOW = 1500;
+
 const PORTRAIT = "(max-width: 767px)";
+
+/** `SNAP` with snapTo resolved: by direction after a key, by distance else. */
+function snapRule() {
+  let keyedUntil = 0;
+  document.addEventListener(
+    "keydown",
+    (event) => {
+      if (SCROLL_KEYS.has(event.key)) {
+        keyedUntil = performance.now() + KEY_SNAP_WINDOW;
+      }
+    },
+    { passive: true },
+  );
+  return {
+    ...SNAP,
+    snapTo: (value, self) =>
+      performance.now() < keyedUntil
+        ? self.direction < 0
+          ? 0
+          : 1
+        : value < 0.5
+          ? 0
+          : 1,
+  };
+}
+
+/** The named timing functions a transition may report, as bezier points. */
+const NAMED_EASINGS = {
+  linear: [0, 0, 1, 1],
+  ease: [0.25, 0.1, 0.25, 1],
+  "ease-in": [0.42, 0, 1, 1],
+  "ease-out": [0, 0, 0.58, 1],
+  "ease-in-out": [0.42, 0, 0.58, 1],
+};
+
+/** y for a given x on a CSS cubic-bezier easing; identity when unknown. */
+function bezierAt(easing, x) {
+  const match = /cubic-bezier\(([^)]+)\)/.exec(easing);
+  const points = match
+    ? match[1].split(",").map(Number)
+    : NAMED_EASINGS[easing.trim()];
+  if (!points || points.length !== 4) return x;
+  const [x1, y1, x2, y2] = points;
+  const along = (t, a, b) =>
+    3 * (1 - t) ** 2 * t * a + 3 * (1 - t) * t ** 2 * b + t ** 3;
+  let low = 0;
+  let high = 1;
+  let t = x;
+  for (let i = 0; i < 24; i += 1) {
+    t = (low + high) / 2;
+    if (along(t, x1, x2) < x) low = t;
+    else high = t;
+  }
+  return along(t, y1, y2);
+}
+
+const NUMBER = /-?\d*\.?\d+(?:e[-+]?\d+)?/g;
+
+/**
+ * The rest of a transition as keyframes: from `current` (its value at
+ * `progress`) to `end`, along the same easing, sampled so each segment
+ * plays linear. Works number by number, so "50% 50%" carries as well.
+ */
+function remainingKeyframes(current, end, easing, progress, steps = 32) {
+  const from = (current.match(NUMBER) ?? []).map(Number);
+  const to = (end.match(NUMBER) ?? []).map(Number);
+  const y0 = bezierAt(easing, progress);
+  const frames = [];
+  for (let i = 0; i <= steps; i += 1) {
+    const share =
+      y0 >= 1
+        ? 1
+        : (bezierAt(easing, progress + ((1 - progress) * i) / steps) - y0) /
+          (1 - y0);
+    let n = 0;
+    frames.push(
+      end.replace(NUMBER, () => {
+        const value = from[n] + (to[n] - from[n]) * share;
+        n += 1;
+        return String(value);
+      }),
+    );
+  }
+  return frames;
+}
+
+const toCamel = (property) =>
+  property.replace(/^-/, "").replace(/-([a-z])/g, (_, c) => c.toUpperCase());
+
+/**
+ * The pin moves the stage in the DOM — when it is set up and on every
+ * refresh — and each move makes the video a new element to CSS: its
+ * first-paint reveal (hero.critical.css, a transition out of
+ * @starting-style) started again from black, three seconds long. Before the
+ * first move, whatever is left of that reveal is handed to the Web
+ * Animations API, which survives a move: the same curve from where it
+ * stands to its end, over the time it had left. The CSS transition is
+ * switched off on the element for good, so no later move can restart it.
+ */
+function carryVideoReveal(video) {
+  if (!video?.getAnimations) return;
+  const computed = getComputedStyle(video);
+  const carried = [];
+  for (const transition of video.getAnimations()) {
+    const property = transition.transitionProperty;
+    if (!property) continue;
+    const timing = transition.effect.getComputedTiming();
+    // Time fraction, not `timing.progress`: browsers report that one with
+    // the easing already applied, and the curve is sampled by time.
+    const elapsed = (transition.currentTime ?? 0) - timing.delay;
+    if (
+      timing.progress === null ||
+      !timing.duration ||
+      elapsed < 0 ||
+      elapsed >= timing.duration
+    ) {
+      continue;
+    }
+    carried.push({
+      property,
+      easing: timing.easing,
+      progress: elapsed / timing.duration,
+      remaining: timing.duration - elapsed,
+      current: computed.getPropertyValue(property),
+    });
+  }
+  // Cancels the transitions: the element now holds their end values, and
+  // the animations below take over before anything is painted.
+  video.style.transition = "none";
+  if (carried.length === 0) return;
+  const settled = getComputedStyle(video);
+  for (const { property, easing, progress, remaining, current } of carried) {
+    const end = settled.getPropertyValue(property);
+    const frames = remainingKeyframes(current, end, easing, progress);
+    video.animate(
+      frames.map((value) => ({ [toCamel(property)]: value })),
+      { duration: remaining, easing: "linear" },
+    );
+  }
+}
 
 /**
  * The video plays whenever any part of the hero is on screen and pauses off
@@ -190,11 +344,17 @@ export default async function hero(root) {
   const stage = part(root, "stage");
   if (!stage) {
     warn('hero needs a [data-rc-part="stage"] to pin.', root);
+    setState(root, "static");
     return;
   }
 
   const playVideo = initVideo(root);
-  if (prefersReducedMotion()) return;
+  // Reduced motion: no timeline, and hero.critical.css lays the two screens
+  // out on their own. The state only says the code has been here.
+  if (prefersReducedMotion()) {
+    setState(root, "static");
+    return;
+  }
 
   const motion = await loadGsap(["ScrollTrigger", "SplitText"]);
   if (!motion) {
@@ -247,6 +407,9 @@ export default async function hero(root) {
     },
   );
 
+  // The pin is about to move the stage; the video's reveal must outlive that.
+  carryVideoReveal(media?.querySelector("video"));
+
   const timeline = gsap.timeline({
     defaults: { ease: "none" },
     scrollTrigger: {
@@ -258,7 +421,7 @@ export default async function hero(root) {
       // distance, so no spacer must be added.
       pinSpacing: false,
       scrub: SCRUB,
-      ...(snapOn ? { snap: SNAP } : {}),
+      ...(snapOn ? { snap: snapRule() } : {}),
       anticipatePin: 1,
       // Function-based values (the media's target clip) are measured again on
       // every refresh: resize, orientation change, fonts arriving.

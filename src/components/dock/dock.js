@@ -28,7 +28,8 @@ import { debug } from "../../runtime/log.js";
 /** The section that brings the bar up; the first one on the page counts. */
 const TRIGGER_SELECTOR = "[data-rc-dock-trigger]";
 
-/** Where the bar leaves again — the footer; the first one counts. */
+/** Where the bar leaves again — the footer; the first one counts. Without
+ * the attribute, a <footer> element on the page serves. */
 const STOP_SELECTOR = "[data-rc-dock-stop]";
 
 /** A marker hidden with display: none reports a rect at 0; it does not count. */
@@ -42,7 +43,9 @@ export default function dock(root) {
     debug("dock: no [data-rc-dock-trigger] on this page — staying hidden.");
     return;
   }
-  const stop = document.querySelector(STOP_SELECTOR);
+  // The marked element, else the page's footer, else the bar stays to the end.
+  const stop =
+    document.querySelector(STOP_SELECTOR) ?? document.querySelector("footer");
   const afterLeaving = trigger.getAttribute("data-rc-dock-trigger") === "leave";
 
   // Measured from the live layout on every scrolled frame rather than with

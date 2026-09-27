@@ -69,6 +69,20 @@
     animation: rc-reveal-fallback 0.6s 3s both;
   }
 
+  /* The runtime is up (html.rc-runtime, set by rc.js): the reveal is the
+     chunk's job, the fallback waits. A chunk that fails drops the class
+     again and the fallback plays on. */
+  html.rc-runtime
+    [data-rc~="reveal"]:not([data-rc-state])
+    :is(
+      [data-rc-part="text"],
+      [data-rc-part="rise"],
+      [data-rc-part="media"],
+      [data-rc-part="media"] > *
+    ) {
+    animation-play-state: paused;
+  }
+
   @keyframes rc-reveal-fallback {
     to {
       opacity: 1;

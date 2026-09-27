@@ -114,8 +114,10 @@ yazıldığından class kazanır. Stage 100svh sabittir (pin boyu).
 
 **Snap:** kaydırma durunca timeline yarıda kalmaz; en yakın uca (başlangıç ya
 da son) 0.5–1.2 sn'de tamamlanır (`power2.inOut`). Ölçü yalnız mesafe: yarıyı
-geçmeyen kaydırma başa döner, geçen sona gider. Kaydırma yönünde tamamlansın
-istenirse `hero.js`'te `SNAP.directional: true` tek satırlık değişikliktir.
+geçmeyen kaydırma başa döner, geçen sona gider. Tek istisna klavye: son 1,5
+sn içinde PageDown / PageUp / Space / ↓ / ↑ basılmışsa snap mesafeye değil
+yöne bakar — tek PageDown yarıyı geçmez ve "en yakın uç" onu başa
+döndürüyordu (`snapRule()`). Tekerlek ve dokunmatik mesafe kuralında kalır.
 Kapatmak: köke `data-rc-snap="false"`.
 
 İkinci başlığın yükselme mesafesi sabit formül: `min(10rem, 20svh)` — masaüstünde
@@ -159,6 +161,11 @@ hover alamazdı. Gizlenince imleç grid'e geçer, butonlar Tab sırasından da
 çıkar; geri kaydırınca ikisi de döner.
 
 Video ilk açılışı saf CSS (`@starting-style`): opacity 3s + radial mask 20s.
+Pin `stage`'i DOM'da taşır (kurulumda ve her refresh'te) ve her taşıma
+videoyu CSS için "yeni eleman" yapar — geçiş siyahtan yeniden başlardı. Kod
+pin'i kurmadan önce geçişin kalanını Web Animations API'ye devreder
+(`carryVideoReveal`: aynı eğri, kaldığı yerden, kalan süreyle) ve elemandaki
+CSS geçişini kapatır; sonraki taşımalar açılışı etkilemez.
 
 **Yeniden kurulan kısım:** kaynak sitede media'nın çıkışı CSS'te çözülmüş
 değerlerle duruyordu, hareketi yakalanamadı. Burada her ScrollTrigger
@@ -171,10 +178,20 @@ oraya kırpılır; breakpoint değişimi ve font yüklenmesi hizayı bozmaz.
   section. Video poster'ıyla durur.
 - **`rc.js` gelmezse** (CDN kesik): `.rc-js` var ama durum basılmaz; kritik
   CSS'teki `rc-hero-reveal` animasyonu 3 sn sonra her şeyi saf CSS ile açar.
-  Hiçbir şey bir script uğruna gizli kalmaz.
+  Hiçbir şey bir script uğruna gizli kalmaz. `rc.js` çalışıyorsa
+  (`html.rc-runtime`) bu yedek bekler: yavaş ağda hero chunk'ı 3 sn'yi
+  geçebilir ve karolar açılıp `armed` anında kapanırdı. Chunk yüklenemezse
+  registry sınıfı kaldırır, yedek oynar.
 - **Reduced motion:** başlangıç durumları `no-preference` içinde → hiçbir şey
-  gizli başlamaz; kod timeline kurmaz, video oynamaz, poster durur (tercih
-  oturum içinde değişirse kod uyar).
+  gizli başlamaz; kod timeline kurmaz (kök `static`), video oynamaz, poster
+  durur (tercih oturum içinde değişirse kod uyar). Pin olmadığı için track
+  300svh yerine iki ekrandır: ilkinde video + başlık + butonlar, ikincisinde
+  mozaik + ikinci başlık (`secondary` katmanı `translate: 0 100%` ile bir
+  ekran aşağı iner). Katmanlar üst üste binmez, altta boşluk kalmaz.
+- **Telefonda ikinci başlık:** `secondary` ekrandan geniş olduğundan grid'i
+  boydan boya kaplayan h2 iki yandan taşıyordu; ≤767px'te
+  `max-width: calc(100vw - 2rem)` (sıfır specificity) ile ekrana sığar ve
+  satır kırar. Designer'daki bir `max-width` kazanır.
 - **GSAP CDN'den gelmezse:** kök `data-rc-state="static"` alır, başlangıç
   durumları çözülür, uyarı konsola düşer. Sayfa okunur.
 

@@ -18,7 +18,7 @@
  */
 
 /** Milliseconds the loop takes to ease to a stop, and back up to speed. */
-const EASE = 450;
+export const EASE = 450;
 
 /**
  * The slowest playback rate the ease reaches before the animation is paused
