@@ -119,8 +119,11 @@ gibi. `:where()` ile yazıldığından Designer'daki bir mask onu ezer.
   yine tıklanır (`inert` değil — şeridin yarısı klondur).
 - Şeridin içindeki bir link **klavyeyle** odak alınca (`:focus-visible`) şerit
   durur, odak çıkınca sürer — klavye kullanıcısı hareket eden hedefi kovalamaz.
-  Fareyle basınca oluşan odak durdurmaz; yoksa sürükleme sonrası şerit başka
-  bir yere tıklanana kadar dururdu.
+  Odaklanan öğe ekran dışındaysa (şerit döngü, sıradaki durak öbür uçta
+  kırpılmış olabilir) şerit onu kenar solmasının içine getirecek kadar
+  kaydırılır (sürüklemedeki scrub; `bringIntoView`). Fareyle basınca oluşan
+  odak durdurmaz; yoksa sürükleme sonrası şerit başka bir yere tıklanana
+  kadar dururdu.
 - Sürükleme yalnız işaretçi içindir; klavye için gerekmez, içerik zaten döner.
 - Logolar için Collection Item içindeki `img`'e anlamlı `alt` (marka adı).
   Dekoratif sayılıyorsa `alt=""`.

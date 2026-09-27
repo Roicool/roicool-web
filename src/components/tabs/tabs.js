@@ -60,6 +60,9 @@ export default function tabs(root) {
   // Webflow marks the list and its items as a list; to a reader this is a
   // tab list, and the items are only wrappers.
   tablist.setAttribute("role", "tablist");
+  // The panels' list too: a list may not hold tabpanels (ARIA), and the
+  // panels are only labelled by their tabs.
+  panelList.setAttribute("role", "presentation");
   for (const item of items) {
     if (item !== buttons[items.indexOf(item)]) {
       item.setAttribute("role", "presentation");

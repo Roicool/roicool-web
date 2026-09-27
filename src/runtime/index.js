@@ -20,6 +20,11 @@ import { startOverlayScrollbar } from "./scrollbar.js";
 import { debug } from "./log.js";
 
 debug("runtime ready");
+// `html.rc-runtime`: this module is running. The critical CSS holds its
+// "rc.js never arrived" fallback reveals while it is set (a slow chunk must
+// not let them play), and the registry drops it again if a chunk fails, so
+// the fallbacks resume and nothing stays hidden for want of a script.
+document.documentElement.classList.add("rc-runtime");
 // Chunks sit next to this module: dist/rc.js → dist/components/<name>.js
 locateChunks(new URL("./components/", import.meta.url));
 scan();

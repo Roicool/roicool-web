@@ -74,11 +74,13 @@ async function mount(root, name) {
     init = await loadComponent(name);
   } catch (cause) {
     warn(`"${name}" could not be loaded — skipping it.`, cause);
+    releaseFallbacks();
     return;
   }
 
   if (typeof init !== "function") {
     warn(`"${name}" has no default export — skipping it.`);
+    releaseFallbacks();
     return;
   }
 
@@ -87,7 +89,18 @@ async function mount(root, name) {
     debug(`mounted "${name}"`, root);
   } catch (cause) {
     error(`"${name}" failed to initialise.`, cause);
+    releaseFallbacks();
   }
+}
+
+/**
+ * A component that never ran cannot stamp its state, and the CSS fallback
+ * reveals (hero, reveal) wait on `html.rc-runtime` while the runtime is
+ * alive (rc.js sets it). Dropping the class lets them play, so the content
+ * of a component whose chunk failed is not left hidden.
+ */
+function releaseFallbacks() {
+  document.documentElement.classList.remove("rc-runtime");
 }
 
 function mountAll(root) {

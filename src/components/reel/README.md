@@ -94,7 +94,10 @@ z-index'i `--rc-reel-layer` (50).
   fotolar çapraz solar. Fare şeritten çıkınca gizlenir. İşaretçi yalnız
   şerit ekrandayken dinlenir.
 - **Klavye:** görünür odak (`:focus-visible`) alan satır güncel olur ve
-  akış durur; odak şeritten çıkınca sürer. Foto yok.
+  akış durur; odak şeritten çıkınca sürer. Foto yok. Satır şeridin görünür
+  penceresinin dışındaysa şerit onu kenar solmasının içine getirecek kadar
+  kaydırılır (`bringIntoView`; kat edilen mesafe animasyonun `currentTime`'ı
+  üzerinden, sıçrama loop'u bozmaz).
 - **Dokunmatik:** akış sürer, satırlar linktir; foto ve sönme yok.
 
 ## JS yoksa, hareket azaltılmışsa

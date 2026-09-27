@@ -99,7 +99,11 @@ CSS değişkenleri: `--rc-tabs-duration` (panel girişi, `0.7s`),
 ## JS yoksa, hareket azaltılmışsa
 
 - **JS yok:** sekmeler işlevsiz düz butonlar, paneller alt alta ve tam
-  görünür; ikonlar görünür.
+  görünür; ikonlar görünür. `rc.js` yüklenemezse de aynı: head'deki script
+  etiketinin `onerror`'u `html.rc-js`'i kaldırır.
+- Panellerin Collection List'i `role="presentation"` alır: Webflow'un
+  `role="list"`'i içinde `tabpanel` geçersizdir (axe
+  `aria-required-children`).
 - **Reduced motion:** geçiş süreleri `motion.css` ile sıfıra iner; seçim
   anında olur.
 

@@ -92,7 +92,10 @@ CSS değişkenleri: `--rc-statistics-duration` (hanenin yuvarlanma süresi,
   ve şeritten çıkınca kaybolur. Yalnız hover'lı ince işaretçi ve
   `min-width` üstünde.
 - **Şerit (dar ekran):** yerel kaydırma, kart başına snap; ilerleme
-  çizgisi kaydırma konumuyla dolar.
+  çizgisi kaydırma konumuyla dolar. Şerit taştığı sürece `track` Tab
+  durağıdır (`tabindex="0"`, `role="group"`, adı section'daki ilk başlıktan
+  `aria-labelledby` ile); ok tuşları kaydırır (WCAG 2.1.1). Geniş ekranda,
+  taşmıyorken, Tab sırasında değildir.
 
 ## JS yoksa, hareket azaltılmışsa
 

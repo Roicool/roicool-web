@@ -42,8 +42,9 @@ Div (tag: aside)                  [data-rc="dock"]               ← çubuk; bod
   geri girince iner.
 - **Durdurucu** yine değersiz: `data-rc-dock-stop`. Footer'ın kendisine ver
   (Symbol'ün içindeki kök eleman). Üst kenarı ekranın altından girdiği anda
-  çubuk iner, footer'dan yukarı çıkınca geri gelir. Yoksa çubuk sayfanın
-  sonuna kadar kalır.
+  çubuk iner, footer'dan yukarı çıkınca geri gelir. Attribute yoksa sayfadaki
+  `<footer>` etiketi sayılır; o da yoksa çubuk sayfanın sonuna kadar kalır ve
+  son section'ın altını örter.
 - **Çubuk** body'nin sonunda dursun (footer Symbol'ünün altı iyi bir yer).
   `transform`, `filter` ya da `backdrop-filter` taşıyan bir elemanın içine
   koyma: `position: fixed` o zaman ekrana değil o elemana yapışır.

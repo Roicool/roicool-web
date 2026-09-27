@@ -68,6 +68,10 @@ export default function slideshow(root) {
 
   let current = 0;
   let animating = false;
+  /** A switch asked for mid-move; it plays once the move has ended. */
+  let pending = null;
+  /** The slide the show is heading for: the queued one, else the current. */
+  const intended = () => pending?.index ?? current;
 
   slides.forEach((slide, i) => {
     if (i === 0) setState(slide, "active");
@@ -116,18 +120,21 @@ export default function slideshow(root) {
 
     strip.addEventListener("keydown", (event) => {
       const last = slides.length - 1;
+      // Counted from where the show is heading, so a quick run of presses
+      // adds up instead of each repeating the one before.
+      const from = intended();
       let index = null;
       if (event.key === "ArrowRight" || event.key === "ArrowDown") {
-        index = current === last ? 0 : current + 1;
+        index = from === last ? 0 : from + 1;
       } else if (event.key === "ArrowLeft" || event.key === "ArrowUp") {
-        index = current === 0 ? last : current - 1;
+        index = from === 0 ? last : from - 1;
       } else if (event.key === "Home") index = 0;
       else if (event.key === "End") index = last;
       if (index === null) return;
       event.preventDefault();
-      // Focus follows the switch; a key pressed mid-move changes nothing,
-      // so focus stays where it is.
-      if (go(index, index > current ? 1 : -1)) thumbnails[index].focus();
+      // Focus follows the switch — at once, even when the switch has to
+      // wait for the move under way.
+      if (go(index, index > from ? 1 : -1)) thumbnails[index].focus();
     });
   }
 
@@ -135,10 +142,16 @@ export default function slideshow(root) {
    * Switch to slide `index`. `direction` is where the new slide comes from:
    * 1 from the right (forward), -1 from the left (back). Wrapping round from
    * the last slide to the first is still forward. True when the switch
-   * starts; false when it is the current slide or a move is under way.
+   * starts or is queued behind the move under way (the last one asked for
+   * wins); false when it is the slide the show is already heading for.
    */
   function go(index, direction = Math.sign(index - current)) {
-    if (index === current || animating) return false;
+    if (index === intended()) return false;
+    if (animating) {
+      pending = index === current ? null : { index, direction };
+      return true;
+    }
+    pending = null;
     const outgoing = slides[current];
     const incoming = slides[index];
     animating = true;
@@ -175,13 +188,22 @@ export default function slideshow(root) {
         // no animation lingers on either element.
         for (const a of animations) a.cancel();
         animating = false;
+        playPending();
       },
       () => {
         // Cancelled from outside (unlikely); leave the DOM as it is.
         animating = false;
+        playPending();
       },
     );
     return true;
+  }
+
+  function playPending() {
+    if (!pending) return;
+    const { index, direction } = pending;
+    pending = null;
+    go(index, direction);
   }
 
   // A sideways swipe over the frame goes to the next or previous slide. A
@@ -216,8 +238,9 @@ export default function slideshow(root) {
       swiped = true;
       root.setPointerCapture(pointerId);
       const last = slides.length - 1;
-      if (dx < 0) go(current === last ? 0 : current + 1, 1);
-      else go(current === 0 ? last : current - 1, -1);
+      const from = intended();
+      if (dx < 0) go(from === last ? 0 : from + 1, 1);
+      else go(from === 0 ? last : from - 1, -1);
     });
     const endSwipe = (event) => {
       if (event.pointerId !== pointerId) return;

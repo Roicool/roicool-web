@@ -31,7 +31,7 @@ import {
   setState,
 } from "../../runtime/dom.js";
 import { prefersReducedMotion } from "../../runtime/motion.js";
-import { createLoop } from "../../runtime/loop.js";
+import { createLoop, EASE } from "../../runtime/loop.js";
 import { scan } from "../../runtime/registry.js";
 import { warn } from "../../runtime/log.js";
 
@@ -276,11 +276,38 @@ export default function marquee(root) {
     }
   }
 
+  /**
+   * Scrub the strip until `target` sits inside the wrapper's clear window —
+   * past the edge fade, and past the little the strip still travels while
+   * it eases to a stop. The loop wraps, so any distance is one scrub.
+   */
+  function bringIntoView(target) {
+    const box = root.getBoundingClientRect();
+    const rect = target.getBoundingClientRect();
+    if (box.width === 0 || rect.width === 0) return;
+    const fade = getComputedStyle(root)
+      .getPropertyValue("--rc-marquee-fade")
+      .trim();
+    const pad = fade.endsWith("%")
+      ? (box.width * Number.parseFloat(fade)) / 100
+      : Number.parseFloat(fade) || box.width * 0.1;
+    const drift = Math.ceil(speed * (EASE / 2000));
+    const left = box.left + pad + (reverse ? 0 : drift);
+    const right = box.right - pad - (reverse ? drift : 0);
+    if (rect.left < left) shift(left - rect.left);
+    else if (rect.right > right)
+      shift(Math.max(right - rect.right, left - rect.left));
+  }
+
   // Keyboard focus inside the strip stops it: nobody chases a moving target.
   // Only visible focus counts — a press with the mouse also focuses the link
   // underneath, and that must not leave the strip standing still afterwards.
+  // The focused item is also brought on screen: the strip loops, so the
+  // next tab stop may well be clipped away at the far side.
   root.addEventListener("focusin", (event) => {
-    if (event.target.matches(":focus-visible")) loop.hold("focus");
+    if (!event.target.matches(":focus-visible")) return;
+    loop.hold("focus");
+    bringIntoView(event.target);
   });
   root.addEventListener("focusout", (event) => {
     if (!root.contains(event.relatedTarget)) loop.release("focus");
