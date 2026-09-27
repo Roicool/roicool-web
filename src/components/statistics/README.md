@@ -51,6 +51,14 @@ column-gap`; snap ve gizli scrollbar koddan gelir. `scroll-snap`
   geniş ekranda çizgi dolu durur, istenmiyorsa o breakpoint'te Display:
   None. Kaydırmayla dolma scroll-driven animation'dır (Chrome, Edge, Safari
   26+); desteklemeyen tarayıcıda çizgi hiç görünmez.
+- **Rakam fotonun üstünde kalsın** (kaynaktaki görünüm: foto rakamın
+  arkasından geçer, rakam fotoda negatif/sepya tona döner) → figure'a
+  `position: relative; z-index: 60` (foto katmanının `50`'sinin üstü),
+  `color` beyaz, Effects › Blending `Difference`. Açık zeminde beyaz +
+  difference siyah okunur, fotonun üstünde ters çevrilmiş renk verir.
+  Hepsi Designer'da; koda bir şey gerekmez. Section'ın ve kartın hiçbir
+  üst elemanında `transform`, `opacity`, `isolation`, `overflow` dışı bir
+  stacking context olmasın, yoksa figure foto katmanının altında kalır.
 - **photos** → stil verme (kod `fixed; inset: 0; pointer-events: none`,
   z-index `--rc-statistics-layer`, 50).
 - **cursor** → `width` (ör. `clamp(12rem, 9rem + 6vw, 18rem)`),
