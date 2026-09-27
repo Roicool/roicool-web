@@ -173,12 +173,12 @@ export default function statistics(root) {
   /** The card under the pointer. */
   let activeCard = null;
 
-  function select(card) {
+  function select(card, point) {
     if (card === activeCard) return;
     if (activeCard) setState(activeCard, null);
     activeCard = card;
     setState(card, "active");
-    photo?.show(cards.indexOf(card));
+    photo?.show(cards.indexOf(card), point);
   }
 
   function clear() {
@@ -193,8 +193,10 @@ export default function statistics(root) {
   track.addEventListener("pointerover", (event) => {
     if (!finePointer.matches) return;
     const card = cardOf(event.target);
-    // Between two cards there is no card, and no photo.
-    if (card && cards.includes(card)) select(card);
+    // Between two cards there is no card, and no photo. The event's point
+    // places the photo: the page may have scrolled under a resting pointer.
+    if (card && cards.includes(card))
+      select(card, { x: event.clientX, y: event.clientY });
     else clear();
   });
   track.addEventListener("pointerleave", (event) => {

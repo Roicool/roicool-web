@@ -29,6 +29,8 @@ export function createCursorPhoto({ cursor, pictures, within, capable }) {
   /** Where the pointer is and where the photo has got to, viewport px. */
   let target = { x: 0, y: 0 };
   let position = { x: 0, y: 0 };
+  /** Whether the pointer has been seen at all; no photo before that. */
+  let known = false;
   let frame = 0;
   let listening = false;
 
@@ -55,6 +57,7 @@ export function createCursorPhoto({ cursor, pictures, within, capable }) {
 
   const onPointerMove = (event) => {
     target = { x: event.clientX, y: event.clientY };
+    known = true;
     wake();
   };
 
@@ -76,22 +79,35 @@ export function createCursorPhoto({ cursor, pictures, within, capable }) {
     frame = 0;
   }
 
-  function show(index) {
+  /**
+   * Show picture `index` at `point` (viewport px, from the event that chose
+   * it) or, without one, where the pointer was last seen. With neither the
+   * photo stays hidden: a page scrolling under a resting pointer raises
+   * pointerover without any pointermove, and the box would otherwise appear
+   * at the viewport's corner.
+   */
+  function show(index, point) {
     if (!capable.matches) return;
     if (index < 0 || index >= pictures.length) {
       hide();
       return;
     }
-    if (index === shown) return;
-    pictures.forEach((picture, i) =>
-      setState(picture, i === index ? "active" : null),
-    );
-    // A photo appears where the pointer is, not where the last one was left.
-    if (shown < 0) {
-      position = target;
-      place();
+    if (point) {
+      target = { x: point.x, y: point.y };
+      known = true;
     }
-    shown = index;
+    if (!known) return;
+    if (index !== shown) {
+      pictures.forEach((picture, i) =>
+        setState(picture, i === index ? "active" : null),
+      );
+      // A photo appears where the pointer is, not where the last one was left.
+      if (shown < 0) {
+        position = target;
+        place();
+      }
+      shown = index;
+    }
     wake();
   }
 
@@ -103,10 +119,12 @@ export function createCursorPhoto({ cursor, pictures, within, capable }) {
     height = box.height;
     if (shown >= 0) place();
   }).observe(cursor);
-  // The pointer is watched only while the component is on screen.
-  new IntersectionObserver(([entry]) => listen(entry.isIntersecting)).observe(
-    within,
-  );
+  // The pointer is watched only while the component is on screen, and a
+  // photo never outlives the component's stay there.
+  new IntersectionObserver(([entry]) => {
+    listen(entry.isIntersecting);
+    if (!entry.isIntersecting) hide();
+  }).observe(within);
   capable.addEventListener("change", () => {
     if (!capable.matches) hide();
   });

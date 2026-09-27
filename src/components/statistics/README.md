@@ -88,9 +88,12 @@ CSS değişkenleri: `--rc-statistics-duration` (hanenin yuvarlanma süresi,
   yükselir; haneler soldan sağa `stagger` arayla. Bir kez oynar.
 - **Foto:** fare karta gelince kart `data-rc-state="active"`, o kartın
   fotosu imlecin altında belirir ve kalan mesafenin %25'ini her karede
-  alarak izler; kart değişince çapraz solar; kartlar arasındaki boşlukta
-  ve şeritten çıkınca kaybolur. Yalnız hover'lı ince işaretçi ve
-  `min-width` üstünde.
+  alarak izler; kart değişince çapraz solar; kartlar arasındaki boşlukta,
+  şeritten çıkınca ve şerit ekrandan çıkınca kaybolur. Foto ancak imlecin
+  yeri bilinince belirir: kartı seçen `pointerover` olayının noktası
+  kullanılır, çünkü sayfa duran imlecin altında kaydığında hiç `pointermove`
+  gelmez (önceden foto ekranın sol üstünde beliriyordu). Yalnız hover'lı
+  ince işaretçi ve `min-width` üstünde.
 - **Şerit (dar ekran):** yerel kaydırma, kart başına snap; ilerleme
   çizgisi kaydırma konumuyla dolar. Şerit taştığı sürece `track` Tab
   durağıdır (`tabindex="0"`, `role="group"`, adı section'daki ilk başlıktan

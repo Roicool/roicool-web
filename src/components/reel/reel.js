@@ -243,12 +243,12 @@ export default function reel(root) {
   /** The row under the pointer or the keyboard's focus, in any copy. */
   let activeRow = null;
 
-  function select(row, withPhoto) {
+  function select(row, withPhoto, point) {
     if (row === activeRow) return;
     if (activeRow) setState(activeRow, null);
     activeRow = row;
     setState(row, "active");
-    if (withPhoto) photo?.show(indexOf(row));
+    if (withPhoto) photo?.show(indexOf(row), point);
     else photo?.hide();
   }
 
@@ -264,7 +264,10 @@ export default function reel(root) {
   strip.addEventListener("pointerover", (event) => {
     if (!finePointer.matches) return;
     const row = rowOf(event.target);
-    if (row && strip.contains(row)) select(row, true);
+    // The event's point places the photo: the strip rolls under a resting
+    // pointer, so a new row can arrive without any pointermove.
+    if (row && strip.contains(row))
+      select(row, true, { x: event.clientX, y: event.clientY });
   });
   strip.addEventListener("pointerenter", (event) => {
     if (event.pointerType === "mouse") loop?.hold("hover");

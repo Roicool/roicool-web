@@ -34,8 +34,10 @@ Designer'da ayarlanacaklar:
 
 Kod ne yapar: kartları ölçer, şerit ekranı rahatça kaplayana kadar item'ları
 klonlar (`aria-hidden`, odaklanamaz; içlerindeki component'ler klonda da
-çalışır), ilk kartı ortalar, her kartı transform ile taşır ve bir kenardan
-çıkanı öbür kenara sarar. `data-rc-state="running"`
+çalışır; klondaki görseller Webflow'un `loading="lazy"`'sini beklemez, hemen
+yüklenir — dosya zaten orijinalinkidir), ilk kartı ortalar, her kartı
+transform ile taşır ve bir kenardan çıkanı öbür kenara sarar.
+`data-rc-state="running"`
 basar; ortadaki karta (ve klonlarına) `data-rc-active` yazar — özel CSS'te
 `[data-rc-active]` ile aktif kartı öne çıkarabilirsin.
 
@@ -75,8 +77,10 @@ katlanarak yazılır. Hiçbir kütüphane yok; GSAP indirilmez.
   satır aynen kalır. Klon yok, otomatik geçiş yok.
 
 JS ilk kartı ortalarken şerit bir kez sola/sağa kayar (JS'siz satır soldan
-başlar). Component genelde ekranın altındadır; görünürde yakalanırsa küçük bir
-düzen kayması sayılır. `data-rc-eager` bunu erkene çeker.
+başlar). Runtime chunk'ı component ekrana bir viewport boyu kala getirir;
+yavaş bağlantıda bile klonlama ve ortalama çoğunlukla görünmeden biter.
+Görünürde yakalanırsa küçük bir düzen kayması sayılır; `data-rc-eager` bunu
+erkene çeker.
 
 ## Erişilebilirlik
 

@@ -27,8 +27,13 @@ export function locateChunks(base) {
   chunkBase = base;
 }
 
-/** Start loading before the root is on screen, so mounting is not visible. */
-const PRELOAD_MARGIN = "200px";
+/**
+ * Start loading before the root is on screen, so mounting is not visible.
+ * One viewport ahead: a chunk fetched from the CDN on a slow link then
+ * lands before the root scrolls into view (at 200px the carousel was seen
+ * cloning its loop and centring the first card in front of the visitor).
+ */
+const PRELOAD_MARGIN = "100%";
 
 /** name -> Promise<init>, so a component used twice is fetched once. */
 const modules = new Map();

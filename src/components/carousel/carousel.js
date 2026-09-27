@@ -78,6 +78,9 @@ function cloneItem(item) {
   for (const el of copy.querySelectorAll(FOCUSABLE)) {
     el.setAttribute("tabindex", "-1");
   }
+  // Webflow marks CMS pictures lazy; a clone's picture is needed the moment
+  // the strip moves, and its file is the original's, already on its way.
+  for (const img of copy.querySelectorAll("img")) img.loading = "eager";
   return copy;
 }
 

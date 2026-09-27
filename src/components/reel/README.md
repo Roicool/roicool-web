@@ -91,8 +91,12 @@ z-index'i `--rc-reel-layer` (50).
   `data-rc-min-width` üstünde. Güncel satırın fotosu (`cursor` listesinin n.
   öğesi) `active` olur ve imlecin olduğu yerde belirir; imleç hareket
   ettikçe kalan mesafenin %25'ini her karede alarak izler. Satır değişince
-  fotolar çapraz solar. Fare şeritten çıkınca gizlenir. İşaretçi yalnız
-  şerit ekrandayken dinlenir.
+  fotolar çapraz solar. Fare şeritten çıkınca ve şerit ekrandan çıkınca
+  gizlenir. İşaretçi yalnız şerit ekrandayken dinlenir; foto ancak imlecin
+  yeri bilinince belirir — satırı seçen `pointerover` olayının noktası
+  kullanılır, çünkü akış ya da sayfa kaydırması duran imlecin altına yeni
+  satır getirdiğinde hiç `pointermove` gelmez (önceden foto sol üst köşede
+  beliriyordu).
 - **Klavye:** görünür odak (`:focus-visible`) alan satır güncel olur ve
   akış durur; odak şeritten çıkınca sürer. Foto yok. Satır şeridin görünür
   penceresinin dışındaysa şerit onu kenar solmasının içine getirecek kadar
