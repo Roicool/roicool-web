@@ -32,7 +32,7 @@ import {
   prefersReducedMotion,
   onMotionPreferenceChange,
 } from "../../runtime/motion.js";
-import { warn } from "../../runtime/log.js";
+import { debug, warn } from "../../runtime/log.js";
 
 /** Pixels from the top of the viewport the window pins at. `data-rc-top`. */
 const DEFAULT_TOP = 0;
@@ -90,6 +90,9 @@ export default function cardStack(root) {
   let onScreen = false;
   /** What each card last rendered as, so the DOM is only written on change. */
   let rendered = cards.map(() => ({ y: NaN, state: "" }));
+  /** The last measure, for the debug log and the misconfiguration warning. */
+  let report = {};
+  let warnedNoStrips = false;
 
   /** Every card back in the column, inline sizes gone. */
   function clear() {
@@ -146,6 +149,16 @@ export default function cardStack(root) {
       if (height <= room || cap === 0) break;
       cap -= 1;
     }
+    report = {
+      viewport: window.innerHeight,
+      top,
+      room,
+      strips: strips.map(Math.round),
+      cards: heights.map(Math.round),
+      stripsKept: cap,
+      pileHeight: Math.round(height),
+      distance: Math.round(distance),
+    };
     return { room, fits: height <= room };
   }
 
@@ -224,9 +237,21 @@ export default function cardStack(root) {
       active = false;
       clear();
       setState(root, "static");
+      debug(
+        "card-stack: static, the tallest card does not fit the viewport",
+        report,
+      );
       return;
     }
     active = true;
+    debug("card-stack: stacking", report);
+    if (report.stripsKept === 0 && visible > 0 && !warnedNoStrips) {
+      warnedNoStrips = true;
+      warn(
+        `card-stack: no heading strip fits above the tallest card at this viewport (room ${Math.round(room)}px, card ${Math.max(...report.cards)}px, strip ${Math.max(...report.strips)}px); passed cards slide out of the window entirely. Lower the picture height or the heading strip in Designer, or data-rc-top.`,
+        root,
+      );
+    }
     // The window fills the viewport below the pin line, as in the source:
     // the pile and the card being read take its top, and the next card is
     // seen waiting at its bottom edge before it rises.
