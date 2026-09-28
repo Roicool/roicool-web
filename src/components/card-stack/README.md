@@ -32,11 +32,13 @@ liste.
 
 ## Designer'daki yapı
 
-Kartlar **statik** (Designer'da elle, 8 tane); her kartın etiketleri bir
-Collection List'ten gelir (koleksiyon `Hizmet etiketleri`: Name, Hizmet
-referansı, Sıra; liste Hizmet = o kartın hizmeti diye filtrelenir, Sıra
-artan). Kart başına bir Collection List: Home'da liste sayısı 20'yi
-geçmesin (Webflow sınırı).
+Kartlar **statik** (Designer'da elle, 8 tane); her kart bir hizmet kümesi
+(hub), etiketleri o kümenin alt hizmetleridir ve `Hizmetler`
+koleksiyonundan gelir (tek koleksiyon: Küme, Rol, Üst hizmet, H1, Sıra
+alanları; liste Üst hizmet = o kartın hub'ı diye filtrelenir, Sıra artan).
+Kart başına bir Collection List: Home'da liste sayısı 20'yi geçmesin
+(Webflow sınırı). Taslak kayıtlar canlı sitede listelenmez; bir kümenin
+çipleri boşsa alt hizmetleri yayına alınmamıştır.
 
 Yerleşim kaynaktaki gibi (riseatseven `services.css`): kart 12 kolonlu
 grid; solda 8 kolonluk içerik sütunu (flex column, `justify-between`:
@@ -55,7 +57,7 @@ Section                    [data-rc="card-stack"]   ← kök, 100vw (container y
               H3
             Div                                      meta: flex row, items-start, gap, alt padding
               Paragraph                              açıklama (max-width ~36rem)
-              Collection List Wrapper                etiketler (filtre: Hizmet = bu kart)
+              Collection List Wrapper                etiketler (Hizmetler; filtre: Üst hizmet = bu kartın hub'ı)
                 Collection List                      flex, wrap, gap
                   Collection Item
                     Text Link                        etiket: chip (border, radius, padding) → hizmet sayfası
@@ -86,10 +88,8 @@ Designer'da ayarlanacaklar:
 - Sabit header varsa `data-rc-top` = header yüksekliği (px).
 - **Görsel** statik karta CMS'ten bağlanamaz; dosya Assets'te olmalı, Image
   oradan seçilir (alt metni dolu).
-- **Etiket linki**: Text Link'in Link ayarı → Collection page → `Hizmet` ›
-  hizmet sayfası. Etiket koleksiyonunun kendi şablon sayfası boş kalır;
-  Site Settings › Redirects'te `/hizmet-etiketleri/(.*)` → `/hizmetler`
-  yönlendirmesi ekle ki boş sayfa indekslenmesin.
+- **Etiket linki**: Text Link'in Link ayarı → Current Hizmet › hizmet
+  sayfası (`/hizmetler/<slug>`); metin Name alanına bağlı.
 
 ## Ayarlar (kökte)
 

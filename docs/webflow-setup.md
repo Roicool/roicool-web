@@ -71,8 +71,7 @@ crossorigin>` olarak eklenir, build alınır, `head.html` yapıştırılır.
 6. **QA raporunun Webflow listesi** (27.09.2026): skip link + `header`/`nav`/
    `footer` etiketleri, `<html lang="tr">`, `title` + meta description, tek
    `h1`, boş `#` linkler, logo `alt`'ları, yer tutucu metinler, footer'a
-   `data-rc-dock-stop`, etiket şablon sayfası için `/hizmet-etiketleri/(.*)` →
-   `/hizmetler` yönlendirmesi.
+   `data-rc-dock-stop`.
 7. **Ölçüm:** 1–5 öncesi ve sonrası PageSpeed (mobil + masaüstü), Lighthouse
    erişilebilirlik; `?rc-debug` ile konsolda uyarı kalmamalı.
 
