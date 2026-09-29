@@ -40,6 +40,13 @@ jobs:
         with:
           node-version: 22
 
+      - name: Secret var mı
+        run: |
+          if [ -z "$SENTRY_AUTH_TOKEN" ]; then
+            echo "::error::SENTRY_AUTH_TOKEN repo secret'ı yok. Sentry › Settings › Auth Tokens'tan organization token al, GitHub › Settings › Secrets and variables › Actions'a bu adla ekle."
+            exit 1
+          fi
+
       - name: Release ve URL öneki
         id: release
         run: node scripts/sentry-release.mjs >> "$GITHUB_OUTPUT"
