@@ -78,6 +78,8 @@ test("ilk hata SDK'yı bir kez getirir, kuyruğu boşaltır, dinleyicileri bıra
     chunk.sdk.exceptions.map((entry) => entry.error.message),
     ["first", "second"],
   );
+  // Nobody on the page caught these; Sentry must file them as crashes.
+  assert.ok(chunk.sdk.exceptions.every((entry) => entry.event.unhandled));
   assert.deepEqual(
     chunk.sdk.messages.map((entry) => entry.text),
     ["plain reason"],
@@ -120,6 +122,7 @@ test("report: bağlamıyla birlikte gider", async () => {
   monitor.report(new Error("custom"), { component: "carousel" });
   await monitor.ready();
   assert.equal(chunk.sdk.exceptions[0].event.context.component, "carousel");
+  assert.equal(chunk.sdk.exceptions[0].event.unhandled, undefined);
   monitor.report("not an error");
   assert.deepEqual(chunk.sdk.messages[0], {
     text: "not an error",

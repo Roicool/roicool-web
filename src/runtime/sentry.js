@@ -52,10 +52,15 @@ export function start({ dsn, release, environment }) {
   });
 
   return {
-    exception(error, { message, context } = {}) {
+    exception(error, { message, context, unhandled = false } = {}) {
       const extra = { ...context };
       if (message && message !== error.message) extra.note = message;
-      captureException(error, { extra });
+      captureException(error, {
+        extra,
+        // Errors replayed from the watcher were uncaught on the page; the
+        // SDK's own handlers are not there yet to say so.
+        mechanism: { type: "rc.monitoring", handled: !unhandled },
+      });
     },
     message(text, context) {
       captureMessage(text, { level: "error", extra: context });

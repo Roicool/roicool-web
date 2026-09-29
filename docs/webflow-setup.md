@@ -74,8 +74,10 @@ crossorigin>` olarak eklenir, build alınır, `head.html` yapıştırılır.
    `data-rc-dock-stop`.
 7. **Ölçüm:** 1–5 öncesi ve sonrası PageSpeed (mobil + masaüstü), Lighthouse
    erişilebilirlik; `?rc-debug` ile konsolda uyarı kalmamalı.
-8. **Sentry:** DSN girildi, Allowed Domains ve IP ayarı yapıldı, canlıdan bir
-   test olayı düştü ([Hata izleme](#hata-izleme-sentry)).
+8. **Sentry:** DSN girildi, Allowed Domains ve IP ayarı yapıldı,
+   `SENTRY_AUTH_TOKEN` repo secret'ı var ve source map workflow'u yeşil,
+   canlıdan bir test olayı `src/` satırıyla düştü
+   ([Hata izleme](#hata-izleme-sentry)).
 
 ## Performans — Webflow tarafı
 
@@ -129,6 +131,14 @@ DSN girilene kadar kapalı. Kurulum bir kez, sahibi yapar:
    görünmeli; ortamı `production` ya da `staging`.
 6. Alerts: yeni issue'da e-posta yeter. Uyarılar (`warn`) tek başına
    gitmez, bir hataya breadcrumb olarak eşlik eder.
+7. **Source map'ler için token:** Sentry › Settings › Auth Tokens ›
+   Create New Token (organization token, varsayılan izinler yeter). Değeri
+   GitHub › repo › Settings › Secrets and variables › Actions › New repository
+   secret'a `SENTRY_AUTH_TOKEN` adıyla koy. Sonraki her `dist/` push'unda
+   "Sentry source maps" workflow'u map'leri yükler; Actions sekmesinde yeşil
+   olmalı. Sınama: staging'de konsola `setTimeout(() => rc.scan(null))` yaz;
+   Sentry'deki stack trace `src/runtime/registry.js` satırını göstermeli.
+   Token'ı repoya, `package.json`'a ya da `head.html`'e yazma.
 
 ## Doğrulama
 

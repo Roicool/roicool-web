@@ -59,6 +59,8 @@ export function createMonitor({ dsn, release, environment, target, load }) {
   let sdk = null;
   let failed = false;
 
+  // `unhandled` marks what nobody caught, so Sentry files it as a crash and
+  // not as something the page reported on purpose.
   const onError = (event) => {
     const error = event.error instanceof Error ? event.error : undefined;
     capture({
@@ -67,6 +69,7 @@ export function createMonitor({ dsn, release, environment, target, load }) {
       message: error
         ? error.message
         : String(event.message ?? event.error ?? "Unknown error"),
+      unhandled: true,
     });
   };
   const onRejection = (event) => {
@@ -75,6 +78,7 @@ export function createMonitor({ dsn, release, environment, target, load }) {
       level: "error",
       error: reason instanceof Error ? reason : undefined,
       message: reason instanceof Error ? reason.message : String(reason),
+      unhandled: true,
     });
   };
 

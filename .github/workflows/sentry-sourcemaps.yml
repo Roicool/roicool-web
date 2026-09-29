@@ -1,0 +1,55 @@
+# dist/ is served straight from the repository, so the moment a build lands on
+# main (or a v* tag) its source maps are what Sentry needs to turn a minified
+# stack trace back into src/ lines. Sentry could fetch the maps from the CDN
+# itself, but that fetch is best-effort and failed in practice; uploading them
+# here is deterministic.
+#
+# The maps are matched by release (roicool-web@<version>, stamped into every
+# event by the runtime) and by URL: url_prefix replaces the CDN host with `~`
+# so the same upload serves raw.githack in development and jsDelivr in
+# production. Nothing is injected into dist/; the committed files stay as
+# built.
+#
+# Needs one repository secret: SENTRY_AUTH_TOKEN, an organization auth token
+# from Sentry › Settings › Auth Tokens (the default scopes cover releases).
+
+name: Sentry source maps
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+    paths:
+      - "dist/**"
+      - "package.json"
+      - ".github/workflows/sentry-sourcemaps.yml"
+  workflow_dispatch:
+
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    env:
+      SENTRY_URL: https://de.sentry.io
+      SENTRY_ORG: roicool
+      SENTRY_PROJECT: roicool-web
+      SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+
+      - name: Release ve URL öneki
+        id: release
+        run: node scripts/sentry-release.mjs >> "$GITHUB_OUTPUT"
+
+      - name: Source map'leri yükle
+        run: |
+          npx --yes @sentry/cli@2 releases new "${{ steps.release.outputs.release }}"
+          npx --yes @sentry/cli@2 sourcemaps upload \
+            --release "${{ steps.release.outputs.release }}" \
+            --url-prefix "${{ steps.release.outputs.url_prefix }}" \
+            --validate \
+            dist
+          npx --yes @sentry/cli@2 releases finalize "${{ steps.release.outputs.release }}"

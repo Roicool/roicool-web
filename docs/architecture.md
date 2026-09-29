@@ -128,8 +128,18 @@ origin olmadan.
 - SDK npm paketinden (`@sentry/browser`, sürüm `package.json`'da) kendi
   chunk'ına paketlenir ve dist ile aynı CDN'den gelir: ~31 KB gzip, yalnız
   hata olan sayfada. Chunk'ın kendi source map'ini build atar (2 MB, kimseye
-  yaramaz); bizim dosyaların map'leri durur, Sentry stack trace'i onlardan
-  okur.
+  yaramaz).
+- **Source map'ler Sentry'ye push'ta yüklenir**
+  (`.github/workflows/sentry-sourcemaps.yml`): `main`'e ya da bir `v*`
+  tag'ine `dist/` değişikliği gidince workflow, `scripts/sentry-release.mjs`
+  ile release adını (`roicool-web@<sürüm>`, runtime'ın olaya yazdığıyla aynı)
+  ve URL önekini (CDN kökü `~` ile: `~/Roicool/roicool-web/main/dist`) çıkarır
+  ve `sentry-cli sourcemaps upload` ile `dist/`'i o release'e yükler. Dosyalara
+  hiçbir şey enjekte edilmez; Sentry stack trace'teki dosya yolunu release +
+  önekle eşler. Sentry'nin map'i CDN'den kendisi çekmesi (Enable JavaScript
+  source fetching) yedek olarak açık kalır ama güvenilmez; ilk denemede
+  çözmedi. Workflow tek gizli değer ister: repo secret `SENTRY_AUTH_TOKEN`
+  (Sentry › Settings › Auth Tokens, organization token).
 - DSN build'de gömülür: `package.json › config.sentryDsn` (deneme için
   `RC_SENTRY_DSN` ortam değişkeni onu ezer). Boşsa izleme kapalıdır,
   dinleyici bile kurulmaz. Release `roicool-web@<sürüm>`; ortam hostname'den:
