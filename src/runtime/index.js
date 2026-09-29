@@ -4,9 +4,10 @@
  *   <script type="module" src="…/dist/rc.js"></script>
  *
  * Module scripts are deferred by definition, so this never blocks the first
- * paint and needs no `defer` attribute. It discovers components (the work is
- * in registry.js), starts site-wide smooth scrolling (scroll.js) and the
- * floating scrollbar (scrollbar.js).
+ * paint and needs no `defer` attribute. It starts error monitoring
+ * (monitoring.js) first so nothing that follows fails unseen, discovers
+ * components (the work is in registry.js), starts site-wide smooth scrolling
+ * (scroll.js) and the floating scrollbar (scrollbar.js).
  *
  * `html.rc-js` is NOT set here on purpose. It is stamped by an inline snippet
  * in the Webflow head (webflow/embeds/head.html) so it lands before the first
@@ -14,11 +15,13 @@
  * flash open first.
  */
 
+import { startMonitoring } from "./monitoring.js";
 import { locateChunks, scan } from "./registry.js";
 import { startSmoothScroll, smoothScroll } from "./scroll.js";
 import { startOverlayScrollbar } from "./scrollbar.js";
 import { debug } from "./log.js";
 
+const monitor = startMonitoring();
 debug("runtime ready");
 // `html.rc-runtime`: this module is running. The critical CSS holds its
 // "rc.js never arrived" fallback reveals while it is set (a slow chunk must
@@ -37,5 +40,13 @@ globalThis.rc = Object.freeze({
   /** The Lenis instance once smooth scrolling is up; null otherwise. */
   get lenis() {
     return smoothScroll();
+  },
+  /**
+   * Send an error a component caught itself to Sentry, with optional
+   * context: `rc.report(error, { component: "carousel" })`. Does nothing
+   * when no DSN was built in.
+   */
+  report(error, context) {
+    monitor.report(error, context);
   },
 });

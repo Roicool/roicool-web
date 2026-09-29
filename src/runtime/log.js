@@ -9,6 +9,13 @@
 
 const PREFIX = "[rc]";
 
+/** Where warn() and error() are also sent; monitoring.js installs it. */
+let reporter = null;
+
+export function setReporter(fn) {
+  reporter = fn;
+}
+
 const debugEnabled = (() => {
   try {
     return (
@@ -27,8 +34,10 @@ export function debug(...args) {
 
 export function warn(...args) {
   console.warn(PREFIX, ...args);
+  reporter?.("warning", args);
 }
 
 export function error(...args) {
   console.error(PREFIX, ...args);
+  reporter?.("error", args);
 }

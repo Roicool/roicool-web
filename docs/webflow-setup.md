@@ -74,6 +74,8 @@ crossorigin>` olarak eklenir, build alınır, `head.html` yapıştırılır.
    `data-rc-dock-stop`.
 7. **Ölçüm:** 1–5 öncesi ve sonrası PageSpeed (mobil + masaüstü), Lighthouse
    erişilebilirlik; `?rc-debug` ile konsolda uyarı kalmamalı.
+8. **Sentry:** DSN girildi, Allowed Domains ve IP ayarı yapıldı, canlıdan bir
+   test olayı düştü ([Hata izleme](#hata-izleme-sentry)).
 
 ## Performans — Webflow tarafı
 
@@ -103,6 +105,30 @@ Sayfa bazında custom code yok. Component eklemek attribute yazmaktan ibaret:
 3. `data-rc` = component adı.
 4. Component'in `README.md`'sindeki yapıyı kur (parçalar, ayarlar).
 5. Yayınlanmış sayfada test et.
+
+## Hata izleme (Sentry)
+
+Kod tarafı hazır ([`architecture.md › Hata izleme`](./architecture.md#hata-izleme-sentry));
+DSN girilene kadar kapalı. Kurulum bir kez, sahibi yapar:
+
+1. sentry.io'da proje aç: platform **Browser JavaScript** (framework değil),
+   ad `roicool-web`. Project Settings › Client Keys (DSN) sayfasından DSN'i
+   kopyala.
+2. Project Settings › **Allowed Domains**: `roicool.com`, `*.roicool.com`,
+   `*.webflow.io`. DSN her ziyaretçinin sayfasında açıkta durur; bu liste
+   başkasının projeye olay basmasını keser.
+3. Project Settings › Security & Privacy: **Prevent Storing of IP Addresses**
+   açık, Data Scrubber açık. SDK kimlik verisi göndermez ve çerez koymaz; bu
+   ayar Sentry'nin sunucu tarafında IP yazmasını da durdurur. Gizlilik
+   metnine hata kayıtları için Sentry kullanıldığı eklenir (KVKK).
+4. DSN'i `package.json › config.sentryDsn`'e yaz, `npm run build`, commit,
+   push. Publish gerekmez, `head.html` değişmez.
+5. Sınama: siteyi `?rc-debug` ile aç; konsolda `[rc] monitoring: watching`
+   görünmeli. Sonra konsola `rc.report(new Error("test"))` yaz: ağ sekmesinde
+   `chunks/sentry-*.js` ve `ingest.sentry.io` isteği, Sentry'de "test" olayı
+   görünmeli; ortamı `production` ya da `staging`.
+6. Alerts: yeni issue'da e-posta yeter. Uyarılar (`warn`) tek başına
+   gitmez, bir hataya breadcrumb olarak eşlik eder.
 
 ## Doğrulama
 

@@ -35,18 +35,18 @@ npm run format
 
 ## Klasörler
 
-| Klasör            | Ne var                                                                |
-| ----------------- | --------------------------------------------------------------------- |
-| `src/runtime/`    | `rc.js` çekirdeği — component keşfi, DOM sözleşmesi, hareket tercihi  |
-| `src/a11y/`       | Planlandı, henüz yok: paylaşılan focus trap, live region              |
-| `src/base/`       | Senkron yüklenen kritik CSS + global hareket politikası               |
-| `src/components/` | Her component kendi klasöründe: js + css + README                     |
-| `src/effects/`    | Tek başına duran görsel efektler (component'e bağlı olmayan)          |
-| `webflow/`        | Designer'a yapıştırılan kod ve değişken referansı                     |
-| `assets/`         | İkon, marka görselleri, lottie kaynakları                             |
-| `scripts/`        | Build araçları                                                        |
-| `dist/`           | **Üretilir ve commit'lenir** — CDN buradan servis eder                |
-| `docs/`           | Mimari, isimlendirme, CSS sahipliği, erişilebilirlik, tarama, kurulum |
+| Klasör            | Ne var                                                                                     |
+| ----------------- | ------------------------------------------------------------------------------------------ |
+| `src/runtime/`    | `rc.js` çekirdeği — component keşfi, DOM sözleşmesi, hareket tercihi, hata izleme (Sentry) |
+| `src/a11y/`       | Planlandı, henüz yok: paylaşılan focus trap, live region                                   |
+| `src/base/`       | Senkron yüklenen kritik CSS + global hareket politikası                                    |
+| `src/components/` | Her component kendi klasöründe: js + css + README                                          |
+| `src/effects/`    | Tek başına duran görsel efektler (component'e bağlı olmayan)                               |
+| `webflow/`        | Designer'a yapıştırılan kod ve değişken referansı                                          |
+| `assets/`         | İkon, marka görselleri, lottie kaynakları                                                  |
+| `scripts/`        | Build araçları                                                                             |
+| `dist/`           | **Üretilir ve commit'lenir** — CDN buradan servis eder                                     |
+| `docs/`           | Mimari, isimlendirme, CSS sahipliği, erişilebilirlik, tarama, kurulum                      |
 
 ## Okuma sırası
 

@@ -66,7 +66,20 @@ async function findComponents() {
     .sort();
 }
 
-async function buildScripts(components) {
+/**
+ * What the runtime needs to know at build time. The Sentry DSN comes from
+ * package.json › config.sentryDsn (RC_SENTRY_DSN in the environment wins,
+ * for a local try-out); empty means monitoring is compiled out to a no-op.
+ * A browser DSN is not a secret — every visitor's page carries it — but the
+ * Sentry project must list the site's domains under Allowed Domains.
+ */
+function monitoring(manifest) {
+  const dsn = process.env.RC_SENTRY_DSN ?? manifest.config?.sentryDsn ?? "";
+  const release = `${manifest.name}@${manifest.version}`;
+  return { dsn, release };
+}
+
+async function buildScripts(components, manifest) {
   const candidates = { rc: path.join(src, "runtime", "index.js") };
   for (const name of components) {
     candidates[`components/${name}`] = path.join(
@@ -83,21 +96,46 @@ async function buildScripts(components) {
   }
   if (Object.keys(entryPoints).length === 0) return 0;
 
+  const { dsn, release } = monitoring(manifest);
   await esbuild.build({
     entryPoints,
     outdir: dist,
     bundle: true,
     // Shared runtime and a11y code lands in one chunk instead of being copied
-    // into every component.
+    // into every component; a dynamic import (the Sentry SDK) gets its own.
     splitting: true,
     chunkNames: "chunks/[name]-[hash]",
     format: "esm",
     target: "es2022",
     minify: true,
     sourcemap: true,
+    define: {
+      __RC_SENTRY_DSN__: JSON.stringify(dsn),
+      __RC_RELEASE__: JSON.stringify(release),
+    },
   });
+  await dropSentrySourceMap();
 
   return Object.keys(entryPoints).length;
+}
+
+/**
+ * Source maps are committed so Sentry can read our own stack traces; the
+ * map of the Sentry SDK's chunk is 2 MB of somebody else's code and helps
+ * nobody, so it goes, together with the comment that points at it.
+ */
+async function dropSentrySourceMap() {
+  const chunks = path.join(dist, "chunks");
+  for (const name of await readdir(chunks)) {
+    if (!/^sentry-.*\.js$/.test(name)) continue;
+    const file = path.join(chunks, name);
+    const code = await readFile(file, "utf8");
+    await writeFile(
+      file,
+      code.replace(/\n?\/\/# sourceMappingURL=\S*\s*$/, "\n"),
+    );
+    await rm(`${file}.map`, { force: true });
+  }
 }
 
 /**
@@ -143,13 +181,10 @@ async function buildStylesheet(components) {
  * location stamped into every URL. Every placeholder must be present in the
  * template; a silent no-op here would ship a broken head.
  */
-async function buildHead() {
+async function buildHead(manifest) {
   const template = await readFile(
     path.join(embeds, "head.template.html"),
     "utf8",
-  );
-  const manifest = JSON.parse(
-    await readFile(path.join(root, "package.json"), "utf8"),
   );
   const { ref, origin, base } = cdnLocation(manifest);
   // A component whose initial state must exist before first paint (anything
@@ -212,19 +247,24 @@ function report(label, bytes) {
 }
 
 async function main() {
+  const manifest = JSON.parse(
+    await readFile(path.join(root, "package.json"), "utf8"),
+  );
   const components = await findComponents();
 
   await clearOwnOutput();
 
-  const scriptCount = await buildScripts(components);
+  const scriptCount = await buildScripts(components, manifest);
   const stylesheetBytes = await buildStylesheet(components);
-  const head = await buildHead();
+  const head = await buildHead(manifest);
+  const { dsn, release } = monitoring(manifest);
 
   console.log(
     [
       `cdn             ${head.base}  (@${head.ref})`,
       `components      ${components.length} (${components.join(", ") || "none"})`,
       `js entries      ${scriptCount}`,
+      `monitoring      ${dsn ? `Sentry on, release ${release}` : "off (config.sentryDsn empty)"}`,
       report("rc.css", stylesheetBytes),
       report("critical (inline)", head.criticalBytes),
       `head.html       webflow/embeds/head.html`,

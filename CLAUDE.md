@@ -34,6 +34,8 @@ tutulur.
    component tam işlevsel kalır. Animasyon kütüphanesi yüklenmezse component
    çalışmaya devam eder.
 6. **Tek global:** `window.rc`. Başka global yok, `window` kirletilmez.
+   Bilinen tek istisna Sentry SDK'sının `__SENTRY__` taşıyıcısı; o da yalnız
+   hata olmuş sayfada, SDK o zaman gelir (`docs/architecture.md › Hata izleme`).
 
 ## Webflow kısıtları
 

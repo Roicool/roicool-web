@@ -33,6 +33,10 @@ DOM hazır
   7. her eleman için IntersectionObserver kurar
   8. eleman görünüre yaklaşınca chunk'ı import eder ve init'i çağırır
   9. runtime Lenis'i CDN'den getirir, yumuşak kaydırmayı başlatır (boyamadan sonra)
+
+Bir şey bozulursa
+ 10. ilk hata (yakalanmamış hata, reddedilen promise, runtime'ın error() kaydı)
+     Sentry chunk'ını getirir; o ana kadar birikenler ona aktarılır
 ```
 
 Boyamayı bekleten hiçbir ağ isteği yok. Kritik CSS `<style>` olarak `head.html`'in
@@ -107,6 +111,39 @@ anında import edilir. Sürüm tek yerde sabittir: ilgili dosyanın başındaki
   sürüklenir, kanala tıklanınca oraya kayar (Lenis üzerinden). Dokunmatikte
   devreye girmez; tarayıcının kendi çubuğu kalır. `aria-hidden`, klavye ve
   tekerlek etkilenmez.
+
+## Hata izleme: Sentry
+
+Sitedeki JS hatalarını Sentry toplar; SDK bir sayfa görüntülemesinde
+indirilmez. `runtime/monitoring.js` iki dinleyici kurar (`error`,
+`unhandledrejection`) ve `log.js`'in `warn()`/`error()` çağrılarını dinler.
+İlk rapor edilecek şey (yakalanmamış hata, reddedilen promise, runtime'ın
+`error()` kaydı, bir component'in `rc.report(hata, bağlam)` çağrısı)
+`dist/chunks/sentry-*.js`'i getirir; SDK kendi yakalayıcılarını kurar,
+biriken olaylar ona aktarılır. Uyarılar SDK'yı getirmez; bir hata gelirse
+breadcrumb olarak önden giderler. Sentry'nin kendi "loader script"i de böyle
+çalışır; burada rc.js'in içinde, ek script etiketi ve yüklemede üçüncü taraf
+origin olmadan.
+
+- SDK npm paketinden (`@sentry/browser`, sürüm `package.json`'da) kendi
+  chunk'ına paketlenir ve dist ile aynı CDN'den gelir: ~31 KB gzip, yalnız
+  hata olan sayfada. Chunk'ın kendi source map'ini build atar (2 MB, kimseye
+  yaramaz); bizim dosyaların map'leri durur, Sentry stack trace'i onlardan
+  okur.
+- DSN build'de gömülür: `package.json › config.sentryDsn` (deneme için
+  `RC_SENTRY_DSN` ortam değişkeni onu ezer). Boşsa izleme kapalıdır,
+  dinleyici bile kurulmaz. Release `roicool-web@<sürüm>`; ortam hostname'den:
+  `roicool.com` → production, `*.webflow.io` → staging, gerisi development.
+- Yalnız hata: tracing, replay, profiling, release-health session yok;
+  `sendDefaultPii: false`. Tarayıcı eklentilerinden gelen hatalar ve
+  ResizeObserver gürültüsü elenir (`runtime/sentry.js`).
+- SDK yüklenince `globalThis.__SENTRY__` taşıyıcısını koyar: `rc` dışındaki
+  tek global, o da yalnız hata olmuş sayfada.
+- `?rc-debug` ile konsolda: `monitoring: watching`, `off (no DSN built in)`
+  ya da `Sentry ready`.
+
+Sahibinin yapacağı kurulum (proje, DSN, alan adı ve gizlilik ayarları)
+[`webflow-setup.md › Hata izleme`](./webflow-setup.md#hata-izleme-sentry)'de.
 
 ## Build
 

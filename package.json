@@ -12,7 +12,8 @@
     "node": ">=22"
   },
   "config": {
-    "cdnRef": "main"
+    "cdnRef": "main",
+    "sentryDsn": ""
   },
   "scripts": {
     "prebuild": "prettier --write src scripts --log-level warn",
@@ -25,5 +26,8 @@
   "devDependencies": {
     "esbuild": "^0.25.0",
     "prettier": "^3.4.2"
+  },
+  "dependencies": {
+    "@sentry/browser": "^11.1.0"
   }
 }
