@@ -13,7 +13,7 @@
   },
   "config": {
     "cdnRef": "main",
-    "sentryDsn": ""
+    "sentryDsn": "https://de8ebab333c88d4ca52255d3f93096b7@o4511696212393984.ingest.de.sentry.io/4512169786474576"
   },
   "scripts": {
     "prebuild": "prettier --write src scripts --log-level warn",
