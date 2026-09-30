@@ -3,6 +3,10 @@
 Durum (30.09.2026): altyapı başka repolarda kurulu ve canlı; bu repoda henüz kod yok,
 kararlar bekliyor. Geliştirmeye başlamadan önce bu dosya ve üç referans okunur.
 
+**Zamanlama:** sahibinin kararı, bu işler site canlıya çıkmaya yakın ele alınacak.
+Aşağıdaki kararlar, bulgular ve parçalar o zamana kadar bekler; yayın kontrol listesinde
+madde olarak duruyor ([`webflow-setup.md › Yayına çıkarken`](./webflow-setup.md#yayına-çıkarken--kontrol-listesi)).
+
 ## Ne var
 
 | Parça             | Nerede                                                                                                          | Referans                                                                |
@@ -47,8 +51,11 @@ belgesi §5. Yeni kod bu ikisine göre yazılır, ad uydurulmaz.
    ile Meta kendi aralarında tutarlı; CRM kaydı farklı. CRM'den ileride offline dönüşüm
    yüklenirse hash'ler eşleşmez. Kısa form ad ve soyadı `fullName`'de birleştirdiği için
    CRM her gönderimde bölme yapıyor.
-2. **sGTM belgesi §6.4 eksik.** Meta CAPI tag'i sGTM'de (form belgesi §7) ama listede
-   yok. ChatGPT Ads CAPI sGTM'de değil, Webflow Cloud route'unda. Belge güncellenmeli.
+2. **sGTM belgesi eksik.** §6.4 tag listesinde Meta CAPI yok; form belgesi §7 onu sGTM'de
+   sayıyor, ikisinden biri düzeltilmeli. ChatGPT Ads CAPI sGTM'de değil, Webflow Cloud
+   route'unda. Kapsam, §7.1, §8.1 ve §14 lp'ye bağlı; lp kapanınca konteynerlerin yeni yeri
+   yazılmalı. §1'deki "tarayıcı üçüncü tarafla konuşmaz" cümlesi yalnız Google için doğru,
+   Meta ve OpenAI pixel'leri kendi alan adlarından yükleniyor.
 3. **Kişisel veri dataLayer'da düz metin, bilinçli.** Enhanced Conversions tarayıcıda,
    Meta sGTM'de kendi hash'ini alıyor; önceden hash'lemek ikisini bozar (form belgesi §6).
    Kalan risk tek: web container'daki GA4 tag'i `email`/`phone` anahtarlarını okumamalı.

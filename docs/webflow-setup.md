@@ -78,6 +78,10 @@ crossorigin>` olarak eklenir, build alınır, `head.html` yapıştırılır.
    `SENTRY_AUTH_TOKEN` repo secret'ı var ve source map workflow'u yeşil,
    canlıdan bir test olayı `src/` satırıyla düştü
    ([Hata izleme](#hata-izleme-sentry)).
+9. **Ölçüm ve lead:** GTM yükleyici, atıf script'i, olay katmanı, form kararı ve
+   `LEAD_ALLOWED_ORIGINS`; açık kararlar ve bulgular
+   [`measurement.md`](./measurement.md)'de. Sahibinin kararıyla canlıya yakın
+   yapılır.
 
 ## Performans — Webflow tarafı
 
