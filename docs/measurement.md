@@ -5,16 +5,20 @@ kararlar bekliyor. Geliştirmeye başlamadan önce bu dosya ve üç referans oku
 
 ## Ne var
 
-| Parça                  | Nerede                                                        | Referans                                                                |
-| ---------------------- | ------------------------------------------------------------- | ----------------------------------------------------------------------- |
-| Server-side GTM        | `t.roicool.com`, Google imajı, `Roicool/lp-roicool` reposu    | [`server-side-tag-manager.md`](./server-side-tag-manager.md)            |
-| Web GTM container      | `GTM-K5D24HJS`, `t.roicool.com/gtm.js` üzerinden first-party  | aynı belge §4, §7.2                                                     |
-| GA4 / Google Ads       | `G-3SE1MB5EMG` / `AW-17287475589`                             | aynı belge §4                                                           |
-| Lead endpoint          | `POST https://crm.roicool.com/s/webhook/lead`, token header'ı | [`lead-endpoint-contract.md`](./lead-endpoint-contract.md)              |
-| Form köprüsü           | `Roicool/roicool-main`: Webflow Cloud route + devlink form    | [`lead-form-bridge.md`](./lead-form-bridge.md)                          |
-| Consent Mode           | Kapalı, bilinçli karar                                        | sGTM belgesi §11                                                        |
-| Meta CAPI, OpenAI CAPI | Sahibinin beyanıyla sGTM üstünde kurulu                       | sGTM belgesi §6.4'te listelenmiyor, bkz. aşağıda                        |
-| Hata izleme            | Sentry, bu repoda hazır                                       | [`architecture.md › Hata izleme`](./architecture.md#hata-izleme-sentry) |
+| Parça             | Nerede                                                                                                          | Referans                                                                |
+| ----------------- | --------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| Server-side GTM   | `t.roicool.com`, Google imajı, `Roicool/lp-roicool` reposu                                                      | [`server-side-tag-manager.md`](./server-side-tag-manager.md)            |
+| Web GTM container | `GTM-K5D24HJS`, `t.roicool.com/gtm.js` üzerinden first-party                                                    | aynı belge §4, §7.2; form belgesi §7                                    |
+| GA4 / Google Ads  | `G-3SE1MB5EMG` / `AW-17287475589`                                                                               | sGTM belgesi §4                                                         |
+| Lead endpoint     | `POST https://crm.roicool.com/s/webhook/lead`, token header'ı                                                   | [`lead-endpoint-contract.md`](./lead-endpoint-contract.md)              |
+| Form sistemi      | `Roicool/roicool-main`: React code component `<LeadForm/>` + Webflow Cloud route `/app/api/lead`                | [`lead-form-system.md`](./lead-form-system.md)                          |
+| Atıf script'i     | `www.roicool.com/app/scripts/attribution.js`, `localStorage.roicool_attr`, 90 gün, son reklam tıklaması kazanır | form belgesi §4                                                         |
+| Mikro dönüşümler  | `www.roicool.com/app/scripts/measure.js`, yalnız OpenAI pixel'e                                                 | form belgesi §9                                                         |
+| dataLayer olayı   | `lead_submitted`: `event_id`, `lead_id`, kişisel veri düz metin, `form_type`, `lead_tier`                       | form belgesi §6                                                         |
+| Meta CAPI         | sGTM'de, `lead_id`'yi `event_id` olarak alır                                                                    | form belgesi §7; sGTM belgesi §6.4 listesinde yok                       |
+| ChatGPT Ads CAPI  | Webflow Cloud route'undan `bzr.openai.com/v1/events`, `event_id` ile tekilleştirme                              | form belgesi §8                                                         |
+| Consent Mode      | Kapalı, bilinçli karar; kapı `window.ROICOOL_MARKETING_CONSENT` hazır                                           | sGTM belgesi §11; form belgesi §6                                       |
+| Hata izleme       | Sentry, bu repoda hazır                                                                                         | [`architecture.md › Hata izleme`](./architecture.md#hata-izleme-sentry) |
 
 `lp.roicool.com` kapatılacak. sGTM konteynerleri, izleme paneli ve deploy akışı
 `lp-roicool` reposunda yaşıyor; kapatırken `t.roicool.com`'u ayakta tutan parça ayrılmalı.
@@ -23,44 +27,63 @@ kararlar bekliyor. Geliştirmeye başlamadan önce bu dosya ve üç referans oku
 
 Kararlar gelince yapılacaklar. Hiçbiri ilk boyamayı geciktirmez, hepsi `data-rc-*` üzerinden.
 
-| Parça         | Yer                                 | İş                                                                                                                                                                                                                                                                                                                                          |
-| ------------- | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| GTM yükleyici | `webflow/embeds/head.template.html` | Snippet `t.roicool.com/gtm.js?id=GTM-K5D24HJS` ile, `t.roicool.com` için preconnect. `dataLayer` ve `google_tag_manager` global'leri CLAUDE.md'ye istisna olarak yazılır.                                                                                                                                                                   |
-| Consent Mode  | `head.template.html`, GTM'den önce  | CMP kararı gelmeden dokunulmaz. CMP olmadan "denied" varsayılanı yalnız veri kaybettirir.                                                                                                                                                                                                                                                   |
-| Olay katmanı  | `src/runtime/analytics.js`          | `data-rc-track="<olay>"` tıklamaları dataLayer'a basar; form başarısı `generate_lead` + `event_id`. Olay adları web container'ın tetikleyicileriyle hizalanır.                                                                                                                                                                              |
-| Lead formu    | `src/components/lead-form/`         | Karar bekliyor: devlink form RC-Main'e mount edilirse iş yok; native Webflow form + bu bileşen köprüye JSON POST atarsa Turnstile, durumlar ve `event_id` burada.                                                                                                                                                                           |
-| Atıf          | `src/runtime/attribution.js`        | UTM ve tıklama kimlikleri ilk/son dokunuş olarak saklanır, formun gizli alanlarına yazılır. Köprünün okuduğu anahtar korunur. Endpoint'in beklediği adlar sözleşme §2.3: `gclid`, `fbclid`, `fbp`, `userAgent`, `utm_*`, `landingPageUrl`, `pageUrl`, `referrer`, `site`. Spam alanları §2.6: `formRenderedAt`, honeypot, `turnstileToken`. |
-| CRM           | —                                   | Endpoint ve sözleşme hazır, iş yok.                                                                                                                                                                                                                                                                                                         |
+| Parça         | Yer                                 | İş                                                                                                                                                                                                                                                                                     |
+| ------------- | ----------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| GTM yükleyici | `webflow/embeds/head.template.html` | Snippet `t.roicool.com/gtm.js?id=GTM-K5D24HJS` ile, `t.roicool.com` için preconnect. Global istisnaları CLAUDE.md'ye yazılır: `dataLayer`, `google_tag_manager`, `oaiq` (OpenAI pixel), `ROICOOL_MARKETING_CONSENT`.                                                                   |
+| Consent Mode  | `head.template.html`, GTM'den önce  | CMP kararı gelmeden dokunulmaz. CMP olmadan "denied" varsayılanı yalnız veri kaybettirir. CMP gelirse `window.ROICOOL_MARKETING_CONSENT` set edilir, form kodu değişmez.                                                                                                               |
+| Olay katmanı  | `src/runtime/analytics.js`          | `data-rc-track="<olay>"` tıklamaları dataLayer'a basar. Form başarısını `lead_submitted` zaten basıyor, yeniden üretilmez. `measure.js`'in dört mikro olayı (scroll/süre, form_start, phone_click, whatsapp_click) yalnız OpenAI pixel'e gidiyor; ikisi birleşecek mi karar (aşağıda). |
+| Lead formu    | `src/components/lead-form/`         | Karar bekliyor. React bileşeni RC-Main'e mount edilirse iş yok. Native Webflow form + bu bileşen route'a JSON POST atarsa: Turnstile, `eventId`, `formRenderedAt`, honeypot `fax`, durum mesajları, `lead_submitted` push burada; route ve CRM değişmez.                               |
+| Atıf          | `head.template.html` ya da runtime  | Script var (`attribution.js`), tek sorun yükleme biçimi: belge head'e **senkron** `<script src>` diyor, bu repoda ağdan senkron dosya yasak. `defer` ile girer ya da aynı mantık runtime'a taşınır; `roicool_attr` anahtarı ve "son reklam tıklaması kazanır" modeli korunur.          |
+| CRM           | —                                   | Endpoint ve sözleşme hazır, iş yok.                                                                                                                                                                                                                                                    |
+
+Endpoint'in beklediği alan adları sözleşme §2.3 ve §2.6, route'un gönderdiği tam gövde form
+belgesi §5. Yeni kod bu ikisine göre yazılır, ad uydurulmaz.
 
 ## İncelemede görülenler
 
-1. **Ad soyad bölme çelişkili.** Köprü belgesi ilk boşluktan böldüğünü ve bunun CRM'le
-   tutarlı olduğunu söylüyor; endpoint sözleşmesi son kelimeyi soyadı alıyor. Köprü
-   `firstName`/`lastName` gönderiyorsa sorun yok, `fullName` gönderiyorsa üç kelimeli adlar
-   iki yerde farklı bölünür ve hash'ler ayrışır.
-2. **sGTM tag listesinde Meta CAPI ve OpenAI CAPI yok.** §6.4 yalnız GA4, Ads Conversion,
-   Remarketing ve Conversion Linker sayıyor. Belge eski ya da bu ikisi web container'da.
-3. **Kişisel veri dataLayer'a düz metin giriyor** (köprü belgesi §17). Web container'daki
-   GA4 tag'i bunu alırsa GA4 şartlarına takılır. Tarayıcıda SHA-256 ile hash'leyip basmak
-   ya da GA4'ün okumadığı ayrı bir değişkende tutmak yeter.
-4. **`?token=` ile kimlik** access log'lara düşer. Köprü header kullanıyorsa query yolu
-   kapatılabilir.
+1. **Ad soyad bölme iki yerde farklı.** Form tarafı ilk boşluktan bölüyor (form belgesi
+   §6: "Ayşe" / "Nur Yılmaz"), CRM son kelimeyi soyadı alıyor (sözleşme §2.1: "Ayşe Nur" /
+   "Yılmaz"). Tarayıcı ve sGTM aynı dataLayer değerini kullandığı için Enhanced Conversions
+   ile Meta kendi aralarında tutarlı; CRM kaydı farklı. CRM'den ileride offline dönüşüm
+   yüklenirse hash'ler eşleşmez. Kısa form ad ve soyadı `fullName`'de birleştirdiği için
+   CRM her gönderimde bölme yapıyor.
+2. **sGTM belgesi §6.4 eksik.** Meta CAPI tag'i sGTM'de (form belgesi §7) ama listede
+   yok. ChatGPT Ads CAPI sGTM'de değil, Webflow Cloud route'unda. Belge güncellenmeli.
+3. **Kişisel veri dataLayer'da düz metin, bilinçli.** Enhanced Conversions tarayıcıda,
+   Meta sGTM'de kendi hash'ini alıyor; önceden hash'lemek ikisini bozar (form belgesi §6).
+   Kalan risk tek: web container'daki GA4 tag'i `email`/`phone` anahtarlarını okumamalı.
+   GTM'de kontrol edilir, kod işi değil.
+4. **`?token=` ile kimlik** access log'lara düşer. Route header kullanıyor; sözleşmedeki
+   query yolu kapatılabilir.
 5. **`LEAD_ALLOWED_ORIGINS`** yeni siteyle `roicoolmain.webflow.io` ve canlı alan adını
-   ister.
+   ister. Boşsa route origin kontrolü yapmıyor (form belgesi §10).
 6. **Çerez rızası.** KVKK çerez rehberi reklam ve analitik çerezleri için açık rıza ister;
    Conversion Linker rıza olmadan sunucudan çerez yazıyor. Kod işi değil, karar.
+7. **Atıf script'i senkron.** Form belgesi §4'teki `<script src>` satırında `defer` yok;
+   head'de render'ı bloklar. Bu repoya girerken `defer` olur.
+8. **`rc-` öneki iki repoda.** Form bileşeni `.rc-lead-form` sınıfını kullanıyor
+   (form belgesi §13). Bu repo `data-rc="lead-form"` adında bileşen açarsa çakışır; ad
+   seçiminde dikkat.
+9. **Mikro dönüşümler tek platforma gidiyor.** `measure.js` olayları yalnız `oaiq`'ya
+   basıyor, dataLayer'a değil; GA4 ve Meta bu olayları görmüyor. Olay katmanı dataLayer'a
+   basarsa hepsi görür, `measure.js` gereksizleşir.
+10. **`debug:true`** OpenAI pixel yükleyicisinde açık (form belgesi §7). Canlıya çıkmadan
+    GTM'de kapatılmalı.
 
 ## Açık kararlar
 
 1. GTM snippet'i RC-Main'in Custom Code alanında mı duracak, `head.html`'e mi girecek?
-2. Web container export'u ya da tetikleyici adları (olay katmanı bunlara göre yazılır).
-3. Form: devlink bileşeni mi, native Webflow form + `lead-form` mu? `roicool-main` hangi
+   Atıf ve `measure.js` satırları da aynı karara bağlı.
+2. Web container'ın `lead_submitted` dışındaki tetikleyicileri (sayfa görüntüleme,
+   tıklama olayları) — export ya da liste.
+3. Form: React bileşeni mi, native Webflow form + `lead-form` mu? `roicool-main` hangi
    Webflow sitesine mount edilmiş?
-4. Atıf script'inin kaynağı.
+4. Mikro dönüşümler: `measure.js` kalsın mı, `data-rc-track` dataLayer'a basıp GTM'den
+   dağıtılsın mı?
 5. CMP var mı, hangisi?
 
 ## Kopyaların durumu
 
-Üç referans sahibinin verdiği metinlerdir; asıl kopyalar kendi repolarında güncellenir.
-`server-side-tag-manager.md` ve `lead-endpoint-contract.md` tam. `lead-form-bridge.md`
-§16'nın ortasından (yapılandırma tablosu) başlıyor; §1–15 gelince tamamlanır.
+Üç referans sahibinin verdiği metinlerdir ve tamdır; asıl kopyalar kendi repolarında
+güncellenir. `lead-form-system.md` ve `lead-endpoint-contract.md` `Roicool/roicool-main`
+ve CRM tarafından, `server-side-tag-manager.md` `Roicool/lp-roicool`'dan.

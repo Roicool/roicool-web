@@ -62,4 +62,4 @@ npm run format
 - [`docs/measurement.md`](./docs/measurement.md) — özet, bu repoya düşen parçalar, açık kararlar
 - [`docs/server-side-tag-manager.md`](./docs/server-side-tag-manager.md) — sGTM kurulumu, kimlikler, doğrulama
 - [`docs/lead-endpoint-contract.md`](./docs/lead-endpoint-contract.md) — CRM lead endpoint'inin kabul ettiği alanlar
-- [`docs/lead-form-bridge.md`](./docs/lead-form-bridge.md) — Webflow Cloud köprüsü: sorun giderme, sınırlar, deploy
+- [`docs/lead-form-system.md`](./docs/lead-form-system.md) — form sistemi: bileşen, route, atıf, dataLayer, GTM, ChatGPT Ads
