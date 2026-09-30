@@ -56,3 +56,10 @@ npm run format
 4. [`docs/geo.md`](./docs/geo.md) — botların tarayabildiği HTML
 5. [`docs/accessibility.md`](./docs/accessibility.md) — erişilebilirlik eşiği
 6. [`docs/webflow-setup.md`](./docs/webflow-setup.md) — Designer tarafındaki kurulum
+
+Ölçüm ve lead altyapısı (kaynağı başka repolarda, burada referans kopyası):
+
+- [`docs/measurement.md`](./docs/measurement.md) — özet, bu repoya düşen parçalar, açık kararlar
+- [`docs/server-side-tag-manager.md`](./docs/server-side-tag-manager.md) — sGTM kurulumu, kimlikler, doğrulama
+- [`docs/lead-endpoint-contract.md`](./docs/lead-endpoint-contract.md) — CRM lead endpoint'inin kabul ettiği alanlar
+- [`docs/lead-form-bridge.md`](./docs/lead-form-bridge.md) — Webflow Cloud köprüsü: sorun giderme, sınırlar, deploy

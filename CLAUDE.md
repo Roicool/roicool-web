@@ -17,6 +17,11 @@ sahibi isterse serbest. Sitenin kendi agent kuralı da var:
 `rules/roicool-web.md` (Webflow › agent instructions) — bu dosyayla tutarlı
 tutulur.
 
+Ölçüm ve lead altyapısı (server-side GTM, CRM lead endpoint'i, Webflow Cloud
+form köprüsü) başka repolarda kurulu. Referans kopyaları, bu repoya düşen
+parçalar ve açık kararlar: [`docs/measurement.md`](./docs/measurement.md).
+O alanda kod yazmadan önce oku.
+
 ## Değiştirilemez kurallar
 
 1. **JS asla içerik üretmez.** Metin, başlık, liste, tablo — hepsi HTML'de
