@@ -23,14 +23,14 @@ kararlar bekliyor. Geliştirmeye başlamadan önce bu dosya ve üç referans oku
 
 Kararlar gelince yapılacaklar. Hiçbiri ilk boyamayı geciktirmez, hepsi `data-rc-*` üzerinden.
 
-| Parça         | Yer                                 | İş                                                                                                                                                                        |
-| ------------- | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| GTM yükleyici | `webflow/embeds/head.template.html` | Snippet `t.roicool.com/gtm.js?id=GTM-K5D24HJS` ile, `t.roicool.com` için preconnect. `dataLayer` ve `google_tag_manager` global'leri CLAUDE.md'ye istisna olarak yazılır. |
-| Consent Mode  | `head.template.html`, GTM'den önce  | CMP kararı gelmeden dokunulmaz. CMP olmadan "denied" varsayılanı yalnız veri kaybettirir.                                                                                 |
-| Olay katmanı  | `src/runtime/analytics.js`          | `data-rc-track="<olay>"` tıklamaları dataLayer'a basar; form başarısı `generate_lead` + `event_id`. Olay adları web container'ın tetikleyicileriyle hizalanır.            |
-| Lead formu    | `src/components/lead-form/`         | Karar bekliyor: devlink form RC-Main'e mount edilirse iş yok; native Webflow form + bu bileşen köprüye JSON POST atarsa Turnstile, durumlar ve `event_id` burada.         |
-| Atıf          | `src/runtime/attribution.js`        | UTM ve tıklama kimlikleri ilk/son dokunuş olarak saklanır, formun gizli alanlarına yazılır. Köprünün okuduğu anahtar korunur.                                             |
-| CRM           | —                                   | Endpoint ve sözleşme hazır, iş yok.                                                                                                                                       |
+| Parça         | Yer                                 | İş                                                                                                                                                                                                                                                                                                                                          |
+| ------------- | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| GTM yükleyici | `webflow/embeds/head.template.html` | Snippet `t.roicool.com/gtm.js?id=GTM-K5D24HJS` ile, `t.roicool.com` için preconnect. `dataLayer` ve `google_tag_manager` global'leri CLAUDE.md'ye istisna olarak yazılır.                                                                                                                                                                   |
+| Consent Mode  | `head.template.html`, GTM'den önce  | CMP kararı gelmeden dokunulmaz. CMP olmadan "denied" varsayılanı yalnız veri kaybettirir.                                                                                                                                                                                                                                                   |
+| Olay katmanı  | `src/runtime/analytics.js`          | `data-rc-track="<olay>"` tıklamaları dataLayer'a basar; form başarısı `generate_lead` + `event_id`. Olay adları web container'ın tetikleyicileriyle hizalanır.                                                                                                                                                                              |
+| Lead formu    | `src/components/lead-form/`         | Karar bekliyor: devlink form RC-Main'e mount edilirse iş yok; native Webflow form + bu bileşen köprüye JSON POST atarsa Turnstile, durumlar ve `event_id` burada.                                                                                                                                                                           |
+| Atıf          | `src/runtime/attribution.js`        | UTM ve tıklama kimlikleri ilk/son dokunuş olarak saklanır, formun gizli alanlarına yazılır. Köprünün okuduğu anahtar korunur. Endpoint'in beklediği adlar sözleşme §2.3: `gclid`, `fbclid`, `fbp`, `userAgent`, `utm_*`, `landingPageUrl`, `pageUrl`, `referrer`, `site`. Spam alanları §2.6: `formRenderedAt`, honeypot, `turnstileToken`. |
+| CRM           | —                                   | Endpoint ve sözleşme hazır, iş yok.                                                                                                                                                                                                                                                                                                         |
 
 ## İncelemede görülenler
 
@@ -61,6 +61,6 @@ Kararlar gelince yapılacaklar. Hiçbiri ilk boyamayı geciktirmez, hepsi `data-
 
 ## Kopyaların durumu
 
-Üç referans sahibinin yapıştırdığı metinlerdir; asıl kopyalar kendi repolarında güncellenir.
-`lead-form-bridge.md` §16'nın ortasından (yapılandırma tablosu) başlıyor,
-`lead-endpoint-contract.md` §2.1'de bitiyor; kalan bölümler yapıştırılınca tamamlanır.
+Üç referans sahibinin verdiği metinlerdir; asıl kopyalar kendi repolarında güncellenir.
+`server-side-tag-manager.md` ve `lead-endpoint-contract.md` tam. `lead-form-bridge.md`
+§16'nın ortasından (yapılandırma tablosu) başlıyor; §1–15 gelince tamamlanır.
