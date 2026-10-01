@@ -1,0 +1,20 @@
+/*!
+ * hero-video-scroll.css — behavioural styles that may arrive after first
+ * paint. Everything the scene needs before that (heights, the sticky
+ * stage, the layers, the start states) is in hero-video-scroll.critical.css;
+ * the frame's size, the words' typography and offsets and every colour are
+ * Designer's (README).
+ */
+
+/* MECHANIC — the frame and the word layers are moved every frame of the
+   scene: their own layers. */
+[data-rc~="hero-video-scroll"][data-rc-state="armed"] [data-rc-part="frame"],
+[data-rc~="hero-video-scroll"][data-rc-state="armed"]
+  :is([data-rc-part="heading-back"], [data-rc-part="heading-front"]) {
+  will-change: transform;
+}
+
+/* MECHANIC — a split letter is a box the code can move. */
+[data-rc~="hero-video-scroll"] .rc-char {
+  display: inline-block;
+}

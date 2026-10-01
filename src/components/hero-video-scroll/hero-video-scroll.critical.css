@@ -1,0 +1,151 @@
+/*!
+ * hero-video-scroll.critical.css — what the scene must look like before any
+ * script runs. Inlined into the head by the build. Three groups:
+ *   – the track and stage heights and the sticky stage, so the scene adds
+ *     no layout shift;
+ *   – the three layers in place and in order (word behind, video, word in
+ *     front), so nothing paints out of order before rc.css lands;
+ *   – the start states of what the code animates (the tilted frame, the
+ *     hidden words), so nothing flashes resolved and then jumps back.
+ *
+ * The start states are gated four ways: JS confirmed (.rc-js), a fine
+ * pointer, motion not reduced, and the root carrying no data-rc-state yet.
+ * hero-video-scroll.js stamps a state as its last step and either releases
+ * these rules. Should rc.js itself never arrive, the fallback animation
+ * lets everything in after three seconds; while rc.js is running
+ * (html.rc-runtime) that fallback waits, and a chunk that fails drops the
+ * class again (runtime/registry.js) so the fallback plays on.
+ */
+
+[data-rc~="hero-video-scroll"] {
+  --rc-hero-video-scroll-stage: 100svh;
+  /* Touch devices: one screen, no scene. */
+  --rc-hero-video-scroll-track: var(--rc-hero-video-scroll-stage);
+  --rc-hero-video-scroll-tilt: -5deg;
+  --rc-hero-video-scroll-scale: 0.5;
+  --rc-hero-video-scroll-radius-start: 2.5rem;
+  --rc-hero-video-scroll-radius: 1.5rem;
+  position: relative;
+  /* The words sit part-way off the sides; clip, not hidden — hidden would
+     make the root a scroll container and undo the sticky stage. */
+  overflow-x: clip;
+}
+
+@media (pointer: fine) {
+  [data-rc~="hero-video-scroll"] {
+    /* The stage sticks for one stage height: the scene's scroll distance. */
+    --rc-hero-video-scroll-track: calc(2 * var(--rc-hero-video-scroll-stage));
+  }
+}
+
+/* LOOK — the track is the scroll distance (track − stage). Designer may set
+   min-height on the section instead; this rule has no specificity. */
+:where([data-rc~="hero-video-scroll"]) {
+  min-height: var(--rc-hero-video-scroll-track);
+}
+
+/* MECHANIC — the stage sticks at the top for the length of the track. */
+[data-rc~="hero-video-scroll"] > [data-rc-part="stage"] {
+  position: sticky;
+  top: 0;
+  height: var(--rc-hero-video-scroll-stage);
+}
+
+/* LOOK — the three layers fill the stage, centre their content and stack
+   word-behind, video, word-in-front. Designer's own positioning on the
+   layer classes wins; the order is what the scene depends on. */
+:where(
+  [data-rc~="hero-video-scroll"]
+    :is(
+      [data-rc-part="heading-back"],
+      [data-rc-part="media"],
+      [data-rc-part="heading-front"]
+    )
+) {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+:where([data-rc~="hero-video-scroll"] [data-rc-part="heading-back"]) {
+  z-index: 1;
+  pointer-events: none;
+}
+
+:where([data-rc~="hero-video-scroll"] [data-rc-part="media"]) {
+  z-index: 2;
+  overflow: clip;
+}
+
+:where([data-rc~="hero-video-scroll"] [data-rc-part="heading-front"]) {
+  z-index: 3;
+  pointer-events: none;
+}
+
+/* MECHANIC — the frame clips its video; whatever sits directly inside
+   (Webflow wraps an Embed in a div of its own) fills it. */
+[data-rc~="hero-video-scroll"] [data-rc-part="frame"] {
+  position: relative;
+  overflow: clip;
+}
+
+[data-rc~="hero-video-scroll"] [data-rc-part="frame"] > * {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+[data-rc~="hero-video-scroll"] [data-rc-part="frame"] video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* LOOK — the corner the frame lands on; Designer's radius on the frame
+   class wins, and the code reads whichever applies. */
+:where([data-rc~="hero-video-scroll"] [data-rc-part="frame"]) {
+  border-radius: var(--rc-hero-video-scroll-radius);
+}
+
+/* MECHANIC — while the letters rise from below their line, the word clips
+   them. Only once armed: static and no-JS text is never clipped. */
+[data-rc~="hero-video-scroll"][data-rc-state="armed"] [data-rc-part="text"] {
+  overflow: clip;
+}
+
+@media (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  /* Start states: the frame tilted and half-size, the words hidden. */
+  .rc-js
+    [data-rc~="hero-video-scroll"]:not([data-rc-state])
+    [data-rc-part="frame"] {
+    transform: rotate(var(--rc-hero-video-scroll-tilt))
+      scale(var(--rc-hero-video-scroll-scale));
+    border-radius: var(--rc-hero-video-scroll-radius-start);
+    animation: rc-hero-video-scroll-reveal 0.6s 3s both;
+  }
+
+  .rc-js
+    [data-rc~="hero-video-scroll"]:not([data-rc-state])
+    [data-rc-part="text"] {
+    opacity: 0;
+    animation: rc-hero-video-scroll-reveal 0.6s 3s both;
+  }
+
+  @keyframes rc-hero-video-scroll-reveal {
+    to {
+      opacity: 1;
+      transform: none;
+      border-radius: var(--rc-hero-video-scroll-radius);
+    }
+  }
+
+  /* The runtime is up: the reveal is the chunk's job, the fallback waits. */
+  html.rc-runtime
+    [data-rc~="hero-video-scroll"]:not([data-rc-state])
+    :is([data-rc-part="frame"], [data-rc-part="text"]) {
+    animation-play-state: paused;
+  }
+}

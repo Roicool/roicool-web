@@ -15,9 +15,9 @@ ilk tag canlıya çıkışta). Siteye giren
 işareti, inline kritik CSS (odak halkası, skip link, `.rc-sr-only`, hero
 başlangıç durumları), async `rc.css`, deferred `rc.js` (component keşfi,
 site geneli yumuşak kaydırma, yüzen kaydırma çubuğu). Component'ler:
-`marquee`, `hero`, `carousel`, `hover-reveal`, `slideshow`, `horizontal-scroll`,
-`image-trail`, `reveal`, `case-switcher`, `step-stack`, `dock`, `reel`, `tabs`,
-`statistics`, `card-stack`.
+`marquee`, `hero`, `hero-video-scroll`, `carousel`, `hover-reveal`, `slideshow`,
+`horizontal-scroll`, `image-trail`, `reveal`, `case-switcher`, `step-stack`,
+`dock`, `reel`, `tabs`, `statistics`, `card-stack`.
 
 **Geliştirme modunda:** `head.html` `@main`'e bakar, her commit yayın demek
 (`raw.githack.com` üzerinden, en geç 5 dakikada). Site canlıya çıkınca sürüm
