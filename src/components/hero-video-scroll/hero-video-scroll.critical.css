@@ -110,6 +110,105 @@
   border-radius: var(--rc-hero-video-scroll-radius);
 }
 
+/*
+ * LOOK — the source's layout, kept in code at the owner's request so the
+ * section stands without Designer values: the section's colours, the
+ * frame's size, the words' type, and the offsets that put one word top-left
+ * of the video and the other bottom-right. Zero specificity throughout: a
+ * value on the Designer class wins. The offsets are percentages of the
+ * word's own box, so a different word wants a different offset; on narrow
+ * screens the video is nearly as wide as the screen and the words go above
+ * and below it instead. Inline here, not in rc.css, so the scene lays out
+ * the same from the first paint should it ever sit at the top of a page.
+ */
+:where([data-rc~="hero-video-scroll"]) {
+  background: #efeeec;
+  border-bottom: 1px solid #bebebe;
+}
+
+:where([data-rc~="hero-video-scroll"] [data-rc-part="frame"]) {
+  width: 60vw;
+  height: 110vw;
+}
+
+:where([data-rc~="hero-video-scroll"] [data-rc-part="text"]) {
+  font-size: 4.6875rem;
+  line-height: 0.9;
+  font-weight: 500;
+  letter-spacing: -0.035em;
+  color: #111212;
+  /* The word clips while its letters rise, and a 0.9 line box is shorter
+     than the glyphs: room at the bottom for descenders, at the right for
+     the last letter's edge. */
+  padding: 0 0.25rem 0.5rem 0;
+}
+
+:where([data-rc~="hero-video-scroll"] [data-rc-part="heading-back"] > *) {
+  translate: -100% -320%;
+}
+
+:where([data-rc~="hero-video-scroll"] [data-rc-part="heading-front"] > *) {
+  translate: 50% 320%;
+}
+
+@media (min-width: 768px) {
+  :where([data-rc~="hero-video-scroll"] [data-rc-part="frame"]) {
+    width: 40vw;
+    height: 70vw;
+  }
+
+  :where([data-rc~="hero-video-scroll"] [data-rc-part="heading-back"] > *) {
+    translate: -100% -420%;
+  }
+
+  :where([data-rc~="hero-video-scroll"] [data-rc-part="heading-front"] > *) {
+    translate: 50% 420%;
+  }
+}
+
+@media (min-width: 1024px) {
+  :where([data-rc~="hero-video-scroll"] [data-rc-part="frame"]) {
+    width: 45vh;
+    height: 80vh;
+  }
+
+  :where([data-rc~="hero-video-scroll"] [data-rc-part="text"]) {
+    font-size: 6.25rem;
+  }
+
+  :where([data-rc~="hero-video-scroll"] [data-rc-part="heading-back"] > *) {
+    translate: -100% -83.33%;
+  }
+
+  :where([data-rc~="hero-video-scroll"] [data-rc-part="heading-front"] > *) {
+    translate: 75% 83.33%;
+  }
+}
+
+@media (min-width: 1280px) {
+  :where([data-rc~="hero-video-scroll"] [data-rc-part="text"]) {
+    font-size: 13.75rem;
+  }
+
+  :where([data-rc~="hero-video-scroll"] [data-rc-part="heading-back"] > *) {
+    translate: -66.67% -83.33%;
+  }
+
+  :where([data-rc~="hero-video-scroll"] [data-rc-part="heading-front"] > *) {
+    translate: 66.67% 83.33%;
+  }
+}
+
+@media (min-width: 2200px) {
+  :where([data-rc~="hero-video-scroll"] [data-rc-part="heading-back"] > *) {
+    translate: -66.67% -130%;
+  }
+
+  :where([data-rc~="hero-video-scroll"] [data-rc-part="heading-front"] > *) {
+    translate: 66.67% 130%;
+  }
+}
+
 /* MECHANIC — while the letters rise from below their line, the word clips
    them. Only once armed: static and no-JS text is never clipped. */
 [data-rc~="hero-video-scroll"][data-rc-state="armed"] [data-rc-part="text"] {

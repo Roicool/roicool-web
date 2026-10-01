@@ -40,31 +40,38 @@ Section   [data-rc="hero-video-scroll" data-rc-eager]     hero-video-scroll     
         Text Block [data-rc-part="text"]  "2019"          hero-video-scroll__word
 ```
 
-Class'lar boş açıldı, değerler sahibinin. Kaynaktaki değerler:
+Class'lar boş açıldı. **Görünüm değerleri sahibinin isteğiyle kodda
+varsayılan olarak duruyor** (`hero-video-scroll.critical.css`, LOOK
+bloğu, sıfır specificity): Designer'da hiçbir değer girmeden section
+kaynaktaki gibi görünür; bir değeri class'a girersen class kazanır. Kodun
+seçicileri `data-rc-part` üzerinden, class'a dokunmaz; konum kutuları
+katmanın ilk çocuğu olarak seçilir. Koddaki değerler (kaynaktakiler):
 
-- **`hero-video-scroll__frame`** → `width: 60vw; height: 110vw`; tablet
-  (≥768) `40vw × 70vw`; masaüstü (≥1024) `45vh × 80vh`. `border-radius:
-1.5rem` (kod başlangıçta 2.5rem'den buraya indirir; verilmezse
-  `--rc-hero-video-scroll-radius`). `position`, `overflow`, `transform`
-  verme.
-- **`hero-video-scroll__word`** → `font-size: 75px` (4.6875rem); ≥1024
-  `100px`; ≥1280 `220px`; `line-height: 0.9`, `font-weight: 500`,
-  `letter-spacing: -0.035em`, renk `#111212`. `line-height` 1'in
-  altındaysa alt tarafa biraz `padding-bottom` (kaynakta 0.5rem) ve sağa
-  `padding-right: 0.25rem`: harfler yükselirken kelime kutusu kırpar
-  (`overflow: clip`, yalnız kod çalışınca), alçak satırda p ve g'nin
-  kuyruğu da kırpılır. `overflow`, `opacity`, `transform` verme.
-- **`hero-video-scroll__word-back`** ("Est.", videonun arkasında) →
-  `translate: -100% -320%`; ≥768 `-100% -420%`; ≥1024 `-100% -83%`;
-  ≥1280 `-66% -83%`; ≥2200 `-66% -130%`.
-- **`hero-video-scroll__word-front`** ("2019", önünde) → `translate: 50%
-320%`; ≥768 `50% 420%`; ≥1024 `75% 83%`; ≥1280 `66% 83%`; ≥2200 `66%
-130%`. Yüzdeler kelimenin kendi kutusuna göre; kelime değişince oran
-  gözle ayarlanır.
-- **Section** → arka plan (kaynakta `#efeeec`), alt çizgi (`border-bottom:
-1px solid #bebebe`). `min-height` verirsen sahne o kadar sürer (track −
-  sahne). `overflow: hidden` verme — sticky kapanır; yatay taşmayı kod
-  `overflow-x: clip` ile keser.
+- **frame** (`__frame`) → `width: 60vw; height: 110vw`; ≥768 `40vw ×
+70vw`; ≥1024 `45vh × 80vh`; `border-radius: 1.5rem` (kod başlangıçta
+  2.5rem'den buraya indirir; `--rc-hero-video-scroll-radius`). `position`,
+  `overflow`, `transform` verme.
+- **text** (`__word`) → `font-size: 4.6875rem` (75px); ≥1024 `6.25rem`;
+  ≥1280 `13.75rem`; `line-height: 0.9`, `font-weight: 500`,
+  `letter-spacing: -0.035em`, renk `#111212`, `padding: 0 0.25rem 0.5rem
+0`. Padding şart: harfler yükselirken kelime kutusu kırpar (`overflow:
+clip`, yalnız kod çalışınca) ve 0.9 satır kutusu harflerden alçak; alttaki
+  pay p ve g'nin kuyruğu, sağdaki son harfin kenarı için. `overflow`,
+  `opacity`, `transform` verme.
+- **heading-back'in ilk çocuğu** (`__word-back`; "Est.", videonun
+  arkasında) → `translate: -100% -320%`; ≥768 `-100% -420%`; ≥1024
+  `-100% -83.33%`; ≥1280 `-66.67% -83.33%`; ≥2200 `-66.67% -130%`.
+- **heading-front'un ilk çocuğu** (`__word-front`; "2019", önünde) →
+  `translate: 50% 320%`; ≥768 `50% 420%`; ≥1024 `75% 83.33%`; ≥1280
+  `66.67% 83.33%`; ≥2200 `66.67% 130%`. Yüzdeler kelimenin kendi
+  kutusuna göre; kelime değişince oran gözle ayarlanır (Designer'da
+  Transforms › Move, ya da kodda). Dar ekranda video ekran kadar geniş,
+  kelimeler yanına değil üstüne ve altına gider; dikey yüzdeler o yüzden
+  büyük.
+- **Section** → arka plan `#efeeec`, `border-bottom: 1px solid #bebebe`.
+  `min-height` verirsen sahne o kadar sürer (track − sahne). `overflow:
+hidden` verme — sticky kapanır; yatay taşmayı kod `overflow-x: clip` ile
+  keser.
 - **Katmanlar** (`__layer`, `__media`) → kod `absolute; inset: 0; flex;
 center` ve sırayı sıfır specificity'de verir; class'a bir şey yazmak
   gerekmez, yazılırsa class kazanır.

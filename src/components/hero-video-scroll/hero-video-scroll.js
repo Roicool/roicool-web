@@ -195,8 +195,10 @@ export default async function heroVideoScroll(root) {
         trigger: root,
         start: "top top",
         // The stage is stuck for the root's height beyond its own: that is
-        // the scene, whatever height Designer gave the section.
-        end: () => `+=${Math.max(1, root.offsetHeight - stage.offsetHeight)}`,
+        // the scene, whatever height Designer gave the section. Sticky is
+        // bounded by the root's padding box, so a border on the section
+        // (clientHeight leaves it out) does not stretch the scene.
+        end: () => `+=${Math.max(1, root.clientHeight - stage.offsetHeight)}`,
         scrub: true,
         invalidateOnRefresh: true,
         refreshPriority: numberOption(root, "priority", 9),
