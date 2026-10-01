@@ -19,6 +19,19 @@ herhangi bir otomatik yazma yolu kullanılmaz — karar kesin.
    sayfada görürsün. Önce sadece `*.webflow.io`'ya publish edip test etmek
    güvenli yol.
 
+**Karakter sınırı.** Webflow'un site geneli Head Code alanı 20.000 karakter
+alır. Projenin tamamı head'e girmez ve girmeyecek: head yalnız açılış kodudur
+(IX2 kapatıcı, `rc-js` işareti, satır içi kritik CSS, `rc.css` ve `rc.js`
+bağlantıları); `rc.css`, `rc.js` ve component chunk'ları CDN'den gelir, sayısı
+ve boyutu head'i etkilemez. Head'i büyüten tek şey kritik CSS'tir: her
+component'in `<name>.critical.css` dosyası oraya gömülür. Bu yüzden kritik
+dosyaya yalnız ilk boyamada görünmesi şart olan şey girer (ekranın üstündeki
+component'in başlangıç durumu, düzen kaymasını önleyen ölçüler); geri kalan her
+şey `<name>.css`'te, yani `rc.css`'tedir. Build her seferinde head'in kaç
+karakter olduğunu yazar, 17.000'de uyarır, 20.000'de durur. Sınıra yaklaşılırsa
+ilk viewport'ta olmayan bir component'in kritik dosyası `<name>.css`'e taşınır;
+o component yalnız JS gelene kadarki ilk karelerde durumsuz görünür.
+
 `head.html` içindeki IX2 kapatıcı bir karar: Designer'daki native interaction'lar
 çalışmaz. Animasyonların tamamı bu repo'dan yönetilecekse doğru; Designer'da
 interaction kullanılacaksa `head.template.html`'den o blok kaldırılır.
