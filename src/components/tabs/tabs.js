@@ -27,7 +27,11 @@
  *                  numbers them (--rc-tabs-order) for tabs.css;
  *   preview      — a box in the panel that shows the picture (image part)
  *                  of the card under the pointer or focus; the pictures are
- *                  moved there from their cards.
+ *                  moved there from their cards and slide in like the case
+ *                  studies' slideshow. That card is marked active and the
+ *                  other rows rest (tabs.css);
+ *   arrow        — a box whose glyph runs out and back in when its link is
+ *                  hovered (tabs.css only).
  * With data-rc-hash the current tab is in the address: a tab whose button
  * has an ID in Designer is opened by #<id> on load or from a link, and
  * choosing it writes #<id> back with replaceState (no history entry, no
@@ -46,6 +50,13 @@
 import { flagOption, part, parts, setState } from "../../runtime/dom.js";
 import { warn } from "../../runtime/log.js";
 import { prefersReducedMotion } from "../../runtime/motion.js";
+import { slideFrames } from "../../runtime/slide.js";
+
+/** Seconds a preview switch takes: the case studies' slideshow pace. */
+const PREVIEW_DURATION = 0.9;
+
+/** Percent of the preview the pictures move while their frames move 100. */
+const PREVIEW_PARALLAX = 30;
 
 /** Keys that move the selection, and by how much. */
 const STEPS = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 };
@@ -238,10 +249,22 @@ export default function tabs(root) {
 /**
  * A panel's preview: the picture of the card under the pointer or the
  * keyboard. Each card's picture (an image part, alt="") is moved into the
- * panel's preview part, in card order; the first one shows until another
- * card is pointed at or focused, and the last one chosen stays. Without
- * JavaScript the pictures stay in their own rows and the preview is not
- * shown (tabs.css). Nothing is copied or generated; the pictures only move.
+ * panel's preview part, in card order, inside a frame of its own; the first
+ * one shows until another card is pointed at or focused, and the last one
+ * chosen stays. The chosen card is marked active at once and the other rows
+ * rest (tabs.css).
+ *
+ * A switch slides like the case studies' slideshow, on the list's axis: a
+ * card further down brings its picture up from below, one further up brings
+ * it down from above, and the pictures lag behind their frames (parallax,
+ * runtime/slide.js). A switch asked for mid-move waits for it to end, and
+ * only the last one asked for plays. Reduced motion switches at once.
+ *
+ * The preview is stamped ready while it is laid out; when Designer hides it
+ * (on phones) the stamp goes and the rows stop resting, since no picture
+ * says which row is chosen. Without JavaScript the pictures stay in their
+ * own rows and the preview is not shown (tabs.css). Nothing is copied or
+ * generated; the pictures only move.
  */
 function preview(panel, cards) {
   const box = part(panel, "preview");
@@ -250,20 +273,82 @@ function preview(panel, cards) {
     .map((card) => [card, part(card, "image")])
     .filter(([, picture]) => picture);
   if (pairs.length === 0) return;
-  let current = null;
-  const show = (picture) => {
-    if (picture === current) return;
-    if (current) setState(current, null);
-    setState(picture, "active");
-    current = picture;
+
+  // The frame slides the full height of the box; the picture inside it
+  // slides a fraction of that.
+  const frames = pairs.map(([, picture]) => {
+    const frame = document.createElement("div");
+    frame.setAttribute("data-rc-part", "frame");
+    frame.append(picture);
+    box.append(frame);
+    return frame;
+  });
+
+  let current = 0;
+  let animating = false;
+  /** The card asked for while a switch was under way, or null. */
+  let pending = null;
+
+  const mark = (index) => {
+    pairs.forEach(([card], i) => setState(card, i === index ? "active" : null));
   };
-  for (const [card, picture] of pairs) {
-    box.append(picture);
-    card.addEventListener("pointerenter", () => show(picture));
-    card.addEventListener("focus", () => show(picture));
+
+  function play(index) {
+    const incoming = frames[index];
+    const outgoing = frames[current];
+    const direction = Math.sign(index - current);
+    current = index;
+    pending = null;
+    animating = true;
+    setState(incoming, "entering");
+    setState(outgoing, "leaving");
+    incoming.style.zIndex = "2";
+    outgoing.style.zIndex = "1";
+    const { animations, finished } = slideFrames({
+      incoming,
+      outgoing,
+      axis: "y",
+      direction,
+      duration: prefersReducedMotion() ? 0 : PREVIEW_DURATION * 1000,
+      parallax: PREVIEW_PARALLAX,
+    });
+    const settle = () => {
+      animating = false;
+      if (pending !== null) play(pending);
+    };
+    finished.then(() => {
+      setState(incoming, "active");
+      setState(outgoing, null);
+      incoming.style.zIndex = "";
+      outgoing.style.zIndex = "";
+      // Drop the fills once the states above hide the outgoing frame.
+      for (const animation of animations) animation.cancel();
+      settle();
+    }, settle);
   }
-  show(pairs[0][1]);
-  setState(box, "ready");
+
+  function show(index) {
+    if (index === (pending ?? current)) return;
+    mark(index);
+    if (animating) {
+      pending = index === current ? null : index;
+      return;
+    }
+    play(index);
+  }
+
+  pairs.forEach(([card], index) => {
+    card.addEventListener("pointerenter", () => show(index));
+    card.addEventListener("focus", () => show(index));
+  });
+  setState(frames[0], "active");
+  mark(0);
+
+  const measure = () => {
+    setState(box, box.getClientRects().length > 0 ? "ready" : null);
+  };
+  measure();
+  new ResizeObserver(measure).observe(box);
 }
 
 /**

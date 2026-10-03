@@ -9,10 +9,11 @@
  * is the one on show. A panel's cards, when it has them, rise one after
  * another. A tab's description is open on the current tab and folded on the
  * rest, and folded on all of them while the tabs sit side by side. A panel's
- * preview shows the picture of the card under the pointer. The tabs
- * rest at reduced opacity until one is current, hovered or focused; a tab's
- * icon shows only on the current tab. No content is hidden with
- * display: none.
+ * preview shows the picture of the card under the pointer, and the other
+ * cards' rows rest. An arrow's glyph runs out and back in when its link is
+ * hovered. The tabs rest at reduced opacity until one is current, hovered
+ * or focused; a tab's icon shows only on the current tab. No content is
+ * hidden with display: none.
  */
 
 /* MECHANIC — the panels share one grid cell. The list's own look (gap,
@@ -175,32 +176,40 @@
   contain: inline-size;
 }
 
-/* MECHANIC — a panel's preview: tabs.js moves every card's picture into it;
-   they stack on the box and the chosen one fades in. The pictures are
-   decorative (alt=""); the cards' names and texts stay in their rows. Until
-   the code has moved them, a card's picture is taken out of its row so the
-   rows do not jump when it leaves. Without JS there is no preview (it would
-   be an empty box) and each picture stays in its row. */
+/* MECHANIC — a panel's preview: tabs.js moves every card's picture into it,
+   each in a frame of its own; the frames stack on the box and only the ones
+   with a state (active, entering, leaving) are painted. The slide itself is
+   animated by tabs.js. `clip`, not `hidden`: a hidden overflow is a scroll
+   container. The pictures are decorative (alt=""); the cards' names and
+   texts stay in their rows. Until the code has moved them, a card's picture
+   is taken out of its row so the rows do not jump when it leaves. Without JS
+   there is no preview (it would be an empty box) and each picture stays in
+   its row. */
 .rc-js [data-rc~="tabs"] [data-rc-part="preview"] {
   position: relative;
+  overflow: clip;
+  isolation: isolate;
 }
 
-.rc-js [data-rc~="tabs"] [data-rc-part="preview"] > [data-rc-part="image"] {
+.rc-js [data-rc~="tabs"] [data-rc-part="preview"] > [data-rc-part="frame"] {
   position: absolute;
   inset: 0;
-  width: 100%;
-  height: 100%;
-  max-width: none;
-  object-fit: cover;
-  opacity: 0;
-  transition: opacity 0.4s;
+  overflow: hidden;
 }
 
 .rc-js
   [data-rc~="tabs"]
   [data-rc-part="preview"]
-  > [data-rc-part="image"][data-rc-state="active"] {
-  opacity: 1;
+  > [data-rc-part="frame"]:not([data-rc-state]) {
+  visibility: hidden;
+}
+
+.rc-js [data-rc~="tabs"] [data-rc-part="frame"] > [data-rc-part="image"] {
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  object-fit: cover;
 }
 
 .rc-js
@@ -218,6 +227,81 @@
 
 html:not(.rc-js) [data-rc~="tabs"] [data-rc-part="preview"] {
   display: none;
+}
+
+/* LOOK — while a panel's preview is on show (tabs.js stamps it ready), the
+   rows of the other cards rest so the chosen one, whose picture is in the
+   preview, stands out. Pointing at a row chooses it. Zero specificity, and
+   on the card's children: the card's own opacity belongs to its entrance. */
+:where(
+  .rc-js
+    [data-rc~="tabs"]
+    [data-rc-part="panels"]
+    > :has([data-rc-part="preview"][data-rc-state="ready"])
+    [data-rc-part="card"]
+    > *
+) {
+  transition: opacity 0.3s;
+}
+
+:where(
+  .rc-js
+    [data-rc~="tabs"]
+    [data-rc-part="panels"]
+    > :has([data-rc-part="preview"][data-rc-state="ready"])
+    [data-rc-part="card"]:not([data-rc-state="active"])
+    > *
+) {
+  opacity: var(--rc-tabs-card-rest, 0.4);
+}
+
+/* MECHANIC — an arrow part is a box that clips its glyph (the element inside
+   it); the box keeps Designer's look (a round badge, say). */
+[data-rc~="tabs"] [data-rc-part="arrow"] {
+  overflow: clip;
+}
+
+[data-rc~="tabs"] [data-rc-part="arrow"] > * {
+  display: inline-block;
+}
+
+/* LOOK — the arrow asks for the click. When its link is hovered or reached
+   by the keyboard, the glyph runs out of its box to the right and comes back
+   in from the left; the chosen card's arrow box also leans forward. Works
+   without JS. motion.css stops both under reduced motion. */
+:where([data-rc~="tabs"] [data-rc-part="arrow"]) {
+  transition: translate 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+:where(
+  [data-rc~="tabs"]
+    [data-rc-part="card"][data-rc-state="active"]
+    [data-rc-part="arrow"]
+) {
+  translate: var(--rc-tabs-arrow-shift, 0.25rem) 0;
+}
+
+[data-rc~="tabs"] a:is(:hover, :focus-visible) [data-rc-part="arrow"] > * {
+  animation: rc-tabs-arrow var(--rc-tabs-arrow-duration, 0.6s)
+    cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+@keyframes rc-tabs-arrow {
+  0% {
+    transform: translateX(0);
+  }
+
+  45% {
+    transform: translateX(var(--rc-tabs-arrow-travel, 2em));
+  }
+
+  45.01% {
+    transform: translateX(calc(-1 * var(--rc-tabs-arrow-travel, 2em)));
+  }
+
+  100% {
+    transform: translateX(0);
+  }
 }
 
 /* LOOK — once the code runs, tabs rest at reduced opacity; the current,
