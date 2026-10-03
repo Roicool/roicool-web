@@ -8,8 +8,8 @@
  * flow, one under the other, and before the chunk arrives the first panel
  * is the one on show. A panel's cards, when it has them, rise one after
  * another. A tab's description is open on the current tab and folded on the
- * rest, and folded on all of them while the tabs sit side by side. A card
- * list laid out as a sideways row snaps card by card. The tabs
+ * rest, and folded on all of them while the tabs sit side by side. A panel's
+ * preview shows the picture of the card under the pointer. The tabs
  * rest at reduced opacity until one is current, hovered or focused; a tab's
  * icon shows only on the current tab. No content is hidden with
  * display: none.
@@ -175,27 +175,49 @@
   contain: inline-size;
 }
 
-/* MECHANIC — a panel's card list that Designer lays out as a sideways row
-   (the mobile breakpoint) moves card by card, without a scrollbar, and keeps
-   the swipe from turning into the browser's back gesture. A list that does
-   not scroll (the desktop grid) is untouched by all of it. */
-[data-rc~="tabs"] [data-rc-part="panels"] :has(> * > [data-rc-part="card"]) {
-  scroll-snap-type: x mandatory;
-  overscroll-behavior-x: contain;
-  scrollbar-width: none;
+/* MECHANIC — a panel's preview: tabs.js moves every card's picture into it;
+   they stack on the box and the chosen one fades in. The pictures are
+   decorative (alt=""); the cards' names and texts stay in their rows. Until
+   the code has moved them, a card's picture is taken out of its row so the
+   rows do not jump when it leaves. Without JS there is no preview (it would
+   be an empty box) and each picture stays in its row. */
+.rc-js [data-rc~="tabs"] [data-rc-part="preview"] {
+  position: relative;
 }
 
-[data-rc~="tabs"]
+.rc-js [data-rc~="tabs"] [data-rc-part="preview"] > [data-rc-part="image"] {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 0.4s;
+}
+
+.rc-js
+  [data-rc~="tabs"]
+  [data-rc-part="preview"]
+  > [data-rc-part="image"][data-rc-state="active"] {
+  opacity: 1;
+}
+
+.rc-js
+  [data-rc~="tabs"]
   [data-rc-part="panels"]
-  :has(> * > [data-rc-part="card"])::-webkit-scrollbar {
+  > :has([data-rc-part="preview"])
+  [data-rc-part="card"]
+  [data-rc-part="image"] {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+html:not(.rc-js) [data-rc~="tabs"] [data-rc-part="preview"] {
   display: none;
-}
-
-[data-rc~="tabs"]
-  [data-rc-part="panels"]
-  :has(> * > [data-rc-part="card"])
-  > * {
-  scroll-snap-align: start;
 }
 
 /* LOOK — once the code runs, tabs rest at reduced opacity; the current,

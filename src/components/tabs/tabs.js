@@ -24,7 +24,10 @@
  *                  Designer. The code never writes it (rule 1); it checks it
  *                  against the panel's cards and warns when it is stale;
  *   card         — the panel's cards rise one after another; the code only
- *                  numbers them (--rc-tabs-order) for tabs.css.
+ *                  numbers them (--rc-tabs-order) for tabs.css;
+ *   preview      — a box in the panel that shows the picture (image part)
+ *                  of the card under the pointer or focus; the pictures are
+ *                  moved there from their cards.
  * With data-rc-hash the current tab is in the address: a tab whose button
  * has an ID in Designer is opened by #<id> on load or from a link, and
  * choosing it writes #<id> back with replaceState (no history entry, no
@@ -122,6 +125,7 @@ export default function tabs(root) {
       card.style.setProperty("--rc-tabs-order", String(order)),
     );
     checkCount(part(item, "count"), cards.length, button, root);
+    preview(panel, cards);
   }
 
   /** Scroll the chosen tab into the strip's view, sideways only. */
@@ -229,6 +233,37 @@ export default function tabs(root) {
   const start = fromHash();
   select(start >= 0 ? start : 0);
   setState(root, "ready");
+}
+
+/**
+ * A panel's preview: the picture of the card under the pointer or the
+ * keyboard. Each card's picture (an image part, alt="") is moved into the
+ * panel's preview part, in card order; the first one shows until another
+ * card is pointed at or focused, and the last one chosen stays. Without
+ * JavaScript the pictures stay in their own rows and the preview is not
+ * shown (tabs.css). Nothing is copied or generated; the pictures only move.
+ */
+function preview(panel, cards) {
+  const box = part(panel, "preview");
+  if (!box) return;
+  const pairs = cards
+    .map((card) => [card, part(card, "image")])
+    .filter(([, picture]) => picture);
+  if (pairs.length === 0) return;
+  let current = null;
+  const show = (picture) => {
+    if (picture === current) return;
+    if (current) setState(current, null);
+    setState(picture, "active");
+    current = picture;
+  };
+  for (const [card, picture] of pairs) {
+    box.append(picture);
+    card.addEventListener("pointerenter", () => show(picture));
+    card.addEventListener("focus", () => show(picture));
+  }
+  show(pairs[0][1]);
+  setState(box, "ready");
 }
 
 /**
