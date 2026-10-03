@@ -28,9 +28,26 @@ component'in `<name>.critical.css` dosyası oraya gömülür. Bu yüzden kritik
 dosyaya yalnız ilk boyamada görünmesi şart olan şey girer (ekranın üstündeki
 component'in başlangıç durumu, düzen kaymasını önleyen ölçüler); geri kalan her
 şey `<name>.css`'te, yani `rc.css`'tedir. Build her seferinde head'in kaç
-karakter olduğunu yazar, 17.000'de uyarır, 20.000'de durur. Sınıra yaklaşılırsa
-ilk viewport'ta olmayan bir component'in kritik dosyası `<name>.css`'e taşınır;
-o component yalnız JS gelene kadarki ilk karelerde durumsuz görünür.
+karakter olduğunu yazar, 17.000'de uyarır, 20.000'de durur.
+
+**Ölçü şu:** bir component'in `<name>.critical.css` dosyası olması için o
+component'in herhangi bir sayfanın **ilk ekranında** durması gerekir. Bugün
+bu `hero` ve `hero-video-scroll` (ikisi de sayfa tepesi hero'su; ikincisi
+Home'da aşağıda dursa da başka sayfalarda ilk ekranda kullanılacak) ve
+dock'un, hover-reveal'ın birkaç satırlık gizleme kuralları. Yalnız sayfa
+ortasında duran bir bölümün bütün CSS'i `rc.css`'ten gelir; ziyaretçi oraya
+kaydırana kadar `rc.css` çoktan inmiştir. Böyle tutulunca head'i yalnız
+hero tipi component'ler büyütür, tanesi 2–4 bin karakter; bugünkü 10.300 ile
+sınır üç dört hero'ya daha yeter.
+
+**Sayfa bazlı head (B planı):** o sınıra da gelinirse site geneli head
+yalnız açılış kodu kalır (script'ler, taban kritik CSS, bağlantılar; ~4.300
+karakter) ve her sayfa tipinin ilk ekran CSS'i o sayfanın Page Settings ›
+Custom Code › Head alanına gider (sayfa başına 10.000 karakter). Repoda sayfa
+→ component eşlemesi tutulur (`webflow/pages.json`), build sayfa başına bir
+`webflow/embeds/pages/<sayfa>.html` üretir. Bedeli: her sayfa tipi için ayrı
+bir yapıştırma noktası ve eşlemenin elle güncel tutulması. Bugün gerekmiyor;
+head 20.000'in yarısını geçince açılır.
 
 `head.html` içindeki IX2 kapatıcı bir karar: Designer'daki native interaction'lar
 çalışmaz. Animasyonların tamamı bu repo'dan yönetilecekse doğru; Designer'da
