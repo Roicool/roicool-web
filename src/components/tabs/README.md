@@ -81,10 +81,14 @@ Section  [data-rc="tabs"] [data-rc-hash] [data-rc-eager]        section__service
         … küme başına bir panel
 ```
 
-Sağdaki class'lar: `service-tabs__*` boş açıldı, değerler sahibinin; yanındaki
-yardımcı class'lar (`grid-12col`, `col-span-3`, `aspect-4/5` …) sitede zaten
-tanımlı olanlar. Kart görselinin `alt`'ı boş: kart bir link ve adı başlıktan
-gelir, görselin alt metni adı uzatırdı.
+Sağdaki ilk class elemanın ana class'ı: `service-tabs__*` boş açıldı, değerler
+sahibinin. Yanındaki yardımcı class'lar (`grid-12col`, `col-span-3`,
+`aspect-4/5` …) sitede tanımlı; ana class'ın üstüne **boş combo** olarak
+verildi, değer yardımcı class'tan gelir. MCP ile combo vermek için zincir önce
+boş stil olarak açılır (`create_style`, `parent_style_names` = önceki
+class'lar, değer yok), sonra elemana bütün liste verilir. Kart görselinin
+`alt`'ı boş: kart bir link ve adı başlıktan gelir, görselin alt metni adı
+uzatırdı.
 
 Designer'da ayarlanacaklar:
 
