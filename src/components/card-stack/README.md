@@ -3,8 +3,11 @@
 Alt alta kartlar (her biri bir hizmet alanı: başlık, açıklama, etiketler,
 görsel); sayfa kaydıkça sütun yapışır, her kart öncekilerin **başlık
 şeridinin** altına kayıp istiflenir: geçilen kartın yalnız başlığı görünür
-kalır, en yeni kart tam okunur. Home'da `section__services-stack`. Kaynak:
-riseatseven.com/services "Our Services".
+kalır, en yeni kart tam okunur. Kaynak: riseatseven.com/services "Our
+Services". Home'da 03.10.2026'ya kadar `section__services-stack` olarak
+duruyordu ("Service Stack" component'i); yerini sekmeli hizmet bölümü aldı
+(`tabs/README.md` › Hizmetler). Component kütüphanede duruyor, kod da
+burada; başka bir sayfada kullanılabilir.
 
 **Kaynaktan farkları:**
 

@@ -76,6 +76,11 @@ belgesi §5. Yeni kod bu ikisine göre yazılır, ad uydurulmaz.
    basarsa hepsi görür, `measure.js` gereksizleşir.
 10. **`debug:true`** OpenAI pixel yükleyicisinde açık (form belgesi §7). Canlıya çıkmadan
     GTM'de kapatılmalı.
+11. **Adres `#` ile değişiyor.** Home'daki hizmet sekmeleri seçilen kümeyi adrese yazar
+    (`/#seo`, `history.replaceState`; `tabs` component'i, `data-rc-hash`). GA4'ün
+    "geçmiş olaylarına göre sayfa değişimi" ayarı yalnız `#` değişen adresi yeni sayfa
+    görüntüleme saymamalı; ölçüm kurulunca DebugView'de doğrulanır, sayıyorsa o ayar
+    kapatılır ya da sekmelerden `data-rc-hash` kaldırılır.
 
 ## Açık kararlar
 
