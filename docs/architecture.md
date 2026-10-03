@@ -89,7 +89,7 @@ bilmez. Component component'i import etmez — ortak bir şey gerekiyorsa
 ya da live region ihtiyacında açılır (planı
 [`accessibility.md`](./accessibility.md)'de).
 
-## Dış kütüphaneler: GSAP ve Lenis
+## Dış kütüphaneler: GSAP, Lenis ve three.js
 
 İkisi de paketlenmez, head'e girmez; jsDelivr'dan ES modül olarak, ihtiyaç
 anında import edilir. Sürüm tek yerde sabittir: ilgili dosyanın başındaki
@@ -97,6 +97,11 @@ anında import edilir. Sürüm tek yerde sabittir: ilgili dosyanın başındaki
 
 - **GSAP** (+ ScrollTrigger, SplitText) — `runtime/motion.js`. Yalnız isteyen
   component indirir; gelmezse component statik kalır.
+- **three.js** (+ OrbitControls) — `runtime/three.js`. Yalnız WebGL sahnesi
+  kuran component (`website-ring`) indirir, o da kökü görünüre yaklaşınca;
+  ~170 KB gzip. jsDelivr'ın `+esm` derlemesinden gelir: OrbitControls'ün
+  `import 'three'`'i aynı sabit sürüme yazılır, import map gerekmez. Gelmezse
+  component statik görünümüne geçer.
 - **Lenis** — `runtime/scroll.js`. Runtime her sayfada başlatır (site geneli
   yumuşak kaydırma); gelmezse sayfa doğal kaydırılır. Reduced motion'ı kendisi
   tanır: yumuşatma kapanır, kaydırma girdiyi 1:1 izler. ScrollTrigger

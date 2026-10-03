@@ -1,0 +1,137 @@
+/*!
+ * website-ring.css — behavioural styles only. The section's size and black
+ * background, the scene's top and bottom gradients, the title's type, the
+ * pill's white capsule and the fallback's picture all come from Designer.
+ *
+ * States on the root: `running` (the canvas is up), `static` (no canvas, the
+ * list shows itself), `fallback` (no canvas, the fallback part shows). Until
+ * one is stamped the list waits off screen, so nothing flashes before the
+ * scene; without JavaScript the list and the fallback simply show.
+ */
+
+/* MECHANIC — the canvas fills the scene and fades in once the scene is half
+   on screen (`visible`, stamped on the scene). */
+[data-rc~="website-ring"] [data-rc-part="scene"] > canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transition: opacity 1s linear;
+}
+
+[data-rc~="website-ring"]
+  [data-rc-part="scene"][data-rc-state="visible"]
+  > canvas {
+  opacity: 1;
+}
+
+/* MECHANIC — no canvas: the scene steps aside. */
+[data-rc~="website-ring"]:is(
+    [data-rc-state="static"],
+    [data-rc-state="fallback"]
+  )
+  [data-rc-part="scene"] {
+  display: none;
+}
+
+/* MECHANIC — the fallback shows only when there is no canvas. */
+.rc-js
+  [data-rc~="website-ring"]:not([data-rc-state="fallback"])
+  [data-rc-part="fallback"] {
+  display: none;
+}
+
+/* MECHANIC — the title never takes the pointer: drags reach the scene under
+   it. From 1280px it tilts after the pointer (variables set by the code). */
+[data-rc~="website-ring"] [data-rc-part="title"] {
+  pointer-events: none;
+}
+
+@media (min-width: 1280px) and (prefers-reduced-motion: no-preference) {
+  [data-rc~="website-ring"] [data-rc-part="title"] {
+    transform: rotateX(var(--rc-website-ring-rotate-x, 0deg))
+      rotateY(var(--rc-website-ring-rotate-y, 0deg));
+  }
+}
+
+/* MECHANIC — the title's children rise into place once a tenth of it is on
+   screen. Should the code never arrive, they show after three seconds. */
+@media (prefers-reduced-motion: no-preference) {
+  .rc-js [data-rc~="website-ring"] [data-rc-part="title"] > * {
+    transition:
+      opacity 0.3s linear 0.15s,
+      translate 0.6s cubic-bezier(0.19, 1, 0.22, 1) 0.15s;
+  }
+
+  .rc-js
+    [data-rc~="website-ring"]
+    [data-rc-part="title"]:not([data-rc-state="revealed"])
+    > * {
+    opacity: 0;
+    translate: 0 25px;
+    animation: rc-website-ring-title-fallback 0s 3s forwards;
+  }
+}
+
+@keyframes rc-website-ring-title-fallback {
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+/* MECHANIC — while there is (or may be) a canvas the list waits off screen,
+   for screen readers and the keyboard only; Tab into it and it opens over
+   the section. Its screenshots stay unloaded: the canvas has its own. */
+.rc-js
+  [data-rc~="website-ring"]:not([data-rc-state="static"])
+  [data-rc-part="list"]:not(:focus-within) {
+  position: absolute;
+  top: auto;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+.rc-js
+  [data-rc~="website-ring"]:not([data-rc-state="static"])
+  [data-rc-part="list"]:focus-within {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1000;
+  height: 100%;
+  overflow: auto;
+}
+
+.rc-js
+  [data-rc~="website-ring"]:not([data-rc-state="static"])
+  [data-rc-part="list"]
+  img {
+  display: none;
+}
+
+/* LOOK — the opened list, as the original draws it; Designer classes win. */
+:where(
+  .rc-js
+    [data-rc~="website-ring"]:not([data-rc-state="static"])
+    [data-rc-part="list"]:focus-within
+) {
+  padding: 12px;
+  background-color: #000;
+}
+
+/* MECHANIC — the pill rides the pointer in a fixed layer and never takes it.
+   Hidden until a card is under the pointer; the code moves and fades it. */
+[data-rc~="website-ring"] [data-rc-part="pill"] {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1000;
+  pointer-events: none;
+}
+
+[data-rc~="website-ring"] [data-rc-part="pill"]:not([data-rc-state="active"]) {
+  display: none;
+}
