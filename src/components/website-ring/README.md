@@ -21,22 +21,23 @@ siteyi bir kez gösterir. 40'tan fazla site varsa silindire ilk 40'ı girer.
 ## Designer'daki yapı
 
 ```
-Section            .website-ring           [data-rc="website-ring"]
+Section            .website-ring           [data-rc="website-ring"]   ← görünürlük: Hizmetler › Site vitrinini göster
   Div              .website-ring__scene     [data-rc-part="scene"] aria-hidden="true"   ← canvas'ı kod ekler
     Div            .website-ring__gradient.is-top
     Div            .website-ring__gradient.is-bottom
   Div              .website-ring__list      [data-rc-part="list"] role="region" aria-label="Yaptığımız web siteleri"
     H2             .rc-sr-only              "Yaptığımız web siteleri"
-    Paragraph      .rc-sr-only              "Her link siteyi yeni sekmede açar."
+    Paragraph      .rc-sr-only              "… Her link siteyi yeni sekmede açar."
     Collection List Wrapper
       Collection List   .website-ring__items
         Collection Item
-          Link Block    .website-ring__link  [data-rc-part="card"]   ← Site adresi, yeni sekmede
-            Image       .website-ring__image                          ← Site görseli; alt = Name
+          Link Block    .website-ring__link  [data-rc-part="card"]   ← Site adresi; target="_blank" rel="noopener noreferrer"
+            Image       .website-ring__image                          ← Site görseli; alt = Name; loading="lazy"
             Text Block  .website-ring__label [data-rc-part="label"]   ← Site adı (ör. alaka.ai)
   Div              .website-ring__title-wrap
     Div            .website-ring__title     [data-rc-part="title"]
-      Paragraph    .website-ring__heading   "… ile yapıldı" + içte Span (ikinci satır)
+      Paragraph    .website-ring__heading   "Roicool ile yapılan "
+        Span       .website-ring__heading-line "web siteleri"   ← ikinci satır
   Div              .website-ring__pill      [data-rc-part="pill"] aria-hidden="true"
     Text Block     .website-ring__pill-text [data-rc-part="pill-text"]  ← kod domain'i yazar
     Text Block     .website-ring__pill-text "↗"
@@ -59,22 +60,22 @@ Section            .website-ring           [data-rc="website-ring"]
 
 ## Orijinal görünüm için Designer değerleri
 
-| Class                                  | Değerler                                                                                                                                                       |
-| -------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `.website-ring`                        | `position: relative`; `height: calc(100vh - 5rem)` (nav yüksekliği kadar eksik); `background-color: #000`                                                      |
-| `.website-ring__scene`                 | `position: relative`; `width: 100%`; `height: 100%`                                                                                                            |
-| `.website-ring__gradient`              | `position: absolute`; `left: 0`; `z-index: 1`; `width: 100%`; `height: 12vh`; `pointer-events: none`                                                           |
-| `.website-ring__gradient.is-top`       | `top: 0`; arka plan: linear-gradient 0°, şeffaf → `#000`                                                                                                       |
-| `.website-ring__gradient.is-bottom`    | `bottom: 0`; arka plan: linear-gradient 180°, şeffaf → `#000`                                                                                                  |
-| `.website-ring__title-wrap`            | `position: absolute`; `inset: 0`; `z-index: 100`; flex column, ortala; `pointer-events: none`                                                                  |
-| `.website-ring__title`                 | `text-align: center`                                                                                                                                           |
-| `.website-ring__heading`               | margin 0; `letter-spacing: -0.04em`; `line-height: 1.08`; renk beyaz; serif, weight 300; boy: 22 → 26 (375) → 32 (1020) → 36 (1280) → 40 (1440) → 50 px (1920) |
-| `.website-ring__heading` içindeki Span | `display: block`; sans, weight 400                                                                                                                             |
-| `.website-ring__items`                 | grid, 1 kolon (744 px'ten itibaren 2); `gap: 12px`; liste stili yok                                                                                            |
-| `.website-ring__link`                  | `display: inline-block`; renk beyaz                                                                                                                            |
-| `.website-ring__pill`                  | `display: flex`; ortala; `padding: 12px 16px`; `border-radius: 90px`; arka plan beyaz; gölge `0 18px 11px #0000000d, 0 8px 8px #00000017, 0 2px 5px #0000001a` |
-| `.website-ring__pill-text`             | 14 px, weight 500, `line-height: 1.2`, `letter-spacing: -0.01em`; renk siyah; `white-space: nowrap`                                                            |
-| `.website-ring__fallback`              | `display: block`; `width: 100%`; `height: 100%`; içindeki görsel `object-fit: cover`                                                                           |
+| Class                               | Değerler                                                                                                                                                                     |
+| ----------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `.website-ring`                     | `position: relative`; `height: calc(100vh - 5rem)` (nav yüksekliği kadar eksik); `background-color: #000`                                                                    |
+| `.website-ring__scene`              | `position: relative`; `width: 100%`; `height: 100%`                                                                                                                          |
+| `.website-ring__gradient`           | `position: absolute`; `left: 0`; `z-index: 1`; `width: 100%`; `height: 12vh`; `pointer-events: none`                                                                         |
+| `.website-ring__gradient.is-top`    | `top: 0`; arka plan: linear-gradient 0°, şeffaf → `#000`                                                                                                                     |
+| `.website-ring__gradient.is-bottom` | `bottom: 0`; arka plan: linear-gradient 180°, şeffaf → `#000`                                                                                                                |
+| `.website-ring__title-wrap`         | `position: absolute`; `inset: 0`; `z-index: 100`; flex column, ortala; `pointer-events: none`                                                                                |
+| `.website-ring__title`              | `text-align: center`                                                                                                                                                         |
+| `.website-ring__heading`            | margin 0; `letter-spacing: -0.04em`; `line-height: 1.08`; renk beyaz; serif, weight 300; boy: 22 → 26 (375) → 32 (1020) → 36 (1280) → 40 (1440) → 50 px (1920)               |
+| `.website-ring__heading-line`       | `display: block`; sans, weight 400                                                                                                                                           |
+| `.website-ring__items`              | grid, 1 kolon (744 px'ten itibaren 2); `gap: 12px`; liste stili yok                                                                                                          |
+| `.website-ring__link`               | `display: inline-block`; renk beyaz                                                                                                                                          |
+| `.website-ring__pill`               | `display: flex`; ortala; `gap: 0.3em`; `padding: 12px 16px`; `border-radius: 90px`; arka plan beyaz; gölge `0 18px 11px #0000000d, 0 8px 8px #00000017, 0 2px 5px #0000001a` |
+| `.website-ring__pill-text`          | 14 px, weight 500, `line-height: 1.2`, `letter-spacing: -0.01em`; renk siyah; `white-space: nowrap`                                                                          |
+| `.website-ring__fallback`           | `display: block`; `width: 100%`; `height: 100%`; içindeki görsel `object-fit: cover`                                                                                         |
 
 Başlık eğimi yalnız 1280 px ve üstünde, imleçle; dokunmatikte ve reduced
 motion'da düz durur.
@@ -87,9 +88,16 @@ motion'da düz durur.
 | Site adresi  | Link       | Link Block'un adresi; yeni sekme |
 | Site adı     | Plain text | `label` ve hap: `alaka.ai`       |
 
-Collection List filtresi: _Site görseli is set_. Sıralama silindirdeki
-sırayı belirler (kat kat, soldan sağa). `label` yoksa kod linkin
-adresinden domain'i kendisi çıkarır.
+Collection List filtresi: _Site görseli is set_; limit 40. Sıralama
+silindirdeki sırayı belirler (kat kat, soldan sağa). `label` yoksa kod
+linkin adresinden domain'i kendisi çıkarır.
+
+## Nerede
+
+Hizmetler template'i (`/hizmetler/…`). Section'ın görünürlüğü Hizmetler
+koleksiyonundaki **Site vitrinini göster** (Switch) alanına bağlı: açık
+olan hizmet sayfasında görünür, kapalı olanda HTML'e hiç girmez. Açık
+olanlar: Webflow ajansı, Web tasarım ajansı.
 
 ## Davranış
 
