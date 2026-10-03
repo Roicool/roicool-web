@@ -1,0 +1,48 @@
+# Reading time and word count live in the CMS as fields, so the listing card,
+# the article page, crawlers and LLMs all read the same number — rule 1 in
+# CLAUDE.md: JS never produces content. This job keeps those fields in step
+# with the body: every hour, and on demand from the Actions tab (tick "dry
+# run" to see what would change without touching the CMS).
+#
+# Needs one repository secret: WEBFLOW_API_TOKEN, a site API token from
+# Site settings › Apps & integrations › API access with the CMS read and
+# write scopes and nothing else. Which collections and fields: see
+# webflow/cms-derived-fields.json.
+
+name: CMS türetilen alanlar
+
+on:
+  schedule:
+    - cron: "17 * * * *"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Yalnız hesapla ve listele, CMS'e yazma"
+        type: boolean
+        default: false
+
+concurrency:
+  group: cms-derived-fields
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    env:
+      WEBFLOW_API_TOKEN: ${{ secrets.WEBFLOW_API_TOKEN }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+
+      - name: Secret var mı
+        run: |
+          if [ -z "$WEBFLOW_API_TOKEN" ]; then
+            echo "::error::WEBFLOW_API_TOKEN repo secret'ı yok. Webflow › Site settings › Apps & integrations › API access'ten CMS okuma-yazma izinli token al, GitHub › Settings › Secrets and variables › Actions'a bu adla ekle."
+            exit 1
+          fi
+
+      - name: Alanları güncelle
+        run: node scripts/cms-derived-fields.mjs ${{ inputs.dry_run == true && '--dry-run' || '' }}

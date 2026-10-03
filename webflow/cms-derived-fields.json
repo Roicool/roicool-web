@@ -1,0 +1,18 @@
+{
+  "site": "6aa96b0d060d8a6b0a1af2ec",
+  "wordsPerMinute": 200,
+  "collections": [
+    {
+      "slug": "blog",
+      "body": "icerik",
+      "readingTime": "okuma-suresi",
+      "wordCount": "kelime-sayisi"
+    },
+    {
+      "slug": "karsilastirmalar",
+      "body": "icerik",
+      "readingTime": "okuma-suresi",
+      "wordCount": "kelime-sayisi"
+    }
+  ]
+}

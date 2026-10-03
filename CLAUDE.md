@@ -13,7 +13,11 @@ Head alanına elle yapıştırılan `webflow/embeds/head.html`. Registered scrip
 custom code API'si, sayfa head'ine script yazmak — hiçbiri. Önerme bile.
 
 Webflow MCP ile **eleman kurmak** (DOM yapısı, class, attribute) bundan ayrı:
-sahibi isterse serbest. Sitenin kendi agent kuralı da var:
+sahibi isterse serbest. CMS'te **türetilen alanları** yazmak da ayrı: okuma
+süresi gibi başka bir alandan hesaplanan değerler CMS'te alan olarak durur
+ve `scripts/cms-derived-fields.mjs` onları Data API ile yazar (saatlik
+GitHub Action); bu içerik üretmek değil saymaktır ve custom code yasağına
+girmez. Tarayıcıda hesaplamak kural 1'i bozar. Sitenin kendi agent kuralı da var:
 `rules/roicool-web.md` (Webflow › agent instructions) — bu dosyayla tutarlı
 tutulur.
 

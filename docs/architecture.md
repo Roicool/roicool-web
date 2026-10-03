@@ -155,6 +155,29 @@ origin olmadan.
 Sahibinin yapacağı kurulum (proje, DSN, alan adı ve gizlilik ayarları)
 [`webflow-setup.md › Hata izleme`](./webflow-setup.md#hata-izleme-sentry)'de.
 
+## CMS'te türetilen alanlar
+
+Kural 1'in CMS tarafı: ziyaretçinin ya da botun okuduğu her değer bir CMS
+alanıdır, tarayıcı hiçbir değeri hesaplamaz. Okuma süresi bunun ilk örneği.
+Tarayıcıda hesaplansa üç yerde bozulurdu: Home'daki kartta gövde yok,
+hesaplanacak şey yok; bot ve LLM tarayıcıları JS çalıştırmaz, değeri görmez;
+JS gelene kadar alan boş durur.
+
+Mekanizma: `scripts/cms-derived-fields.mjs`, `webflow/cms-derived-fields.json`
+içindeki koleksiyonları Webflow Data API'den okur, gövdenin HTML'ini soyup
+kelime sayar, dakikayı yukarı yuvarlar (200 kelime/dk, en az 1), yalnız
+değeri değişen kayıtların **Kelime sayısı** ve **Okuma süresi** alanlarını
+yazar: taslak kayda her zaman, yayındaki kayda canlı uç noktasından da, site
+publish'i gerekmeden. Boşaltılmış gövde eski sayıları siler.
+`.github/workflows/cms-derived-fields.yml` bunu saatte bir ve Actions
+sekmesinden elle (dry run seçeneğiyle) çalıştırır; token `WEBFLOW_API_TOKEN`
+repo secret'ı. Alanı henüz açılmamış koleksiyon uyarıyla atlanır, workflow
+kırmızıya düşmez.
+
+Aynı kalıp ileride başka türetilen değerlere açılır (ses süresi, sayfa
+sayısı); yeni bir hesap yeni bir alan ve bu script'te bir satırdır,
+tarayıcıda bir satır değil.
+
 ## Build
 
 `src/` → `dist/`, esbuild ile. Her component ayrı bir chunk; paylaşılan kod

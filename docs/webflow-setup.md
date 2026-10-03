@@ -174,6 +174,35 @@ DSN girilene kadar kapalı. Kurulum bir kez, sahibi yapar:
    Sentry'deki stack trace `src/runtime/registry.js` satırını göstermeli.
    Token'ı repoya, `package.json`'a ya da `head.html`'e yazma.
 
+## Türetilen CMS alanları (okuma süresi)
+
+Okuma süresi ve kelime sayısı CMS'te alan olarak durur; repo'daki script
+saatte bir hesaplayıp yazar ([`architecture.md › CMS'te türetilen
+alanlar`](./architecture.md#cmste-türetilen-alanlar)). Kurulum bir kez,
+sahibi yapar:
+
+1. **Token:** Webflow › Site settings › Apps & integrations › API access ›
+   Generate API token. Ad `roicool-web cms`, izin yalnız **CMS: Read and
+   write**; başka izin verme. Değeri GitHub › repo › Settings › Secrets and
+   variables › Actions › New repository secret'a `WEBFLOW_API_TOKEN` adıyla
+   koy. Token'ı repoya, `package.json`'a ya da head'e yazma.
+2. **Alanlar:** Blog ve Karşılaştırmalar koleksiyonlarında üç alan:
+   **İçerik** (Rich text; gövde), **Okuma süresi** (Number) ve **Kelime
+   sayısı** (Number). Son ikisi "Türetilen" grubunda, açıklamasına "script
+   yazar, elle dokunma". Alan slug'ları `icerik`, `okuma-suresi`,
+   `kelime-sayisi` olmalı; farklıysa `webflow/cms-derived-fields.json`'da
+   düzeltilir. Başka koleksiyona açmak = aynı dosyaya bir satır.
+3. **İlk çalıştırma:** GitHub › Actions › "CMS türetilen alanlar" › Run
+   workflow, "dry run" işaretli. Günlükte her kaydın kelime ve dakikası
+   listelenir, CMS'e yazılmaz. Doğruysa bir daha, işaretsiz. Sonra saatte
+   bir kendisi çalışır; aceleyse elle.
+4. **Designer:** kartta ve yazı sayfasında Text Block'u Okuma süresi
+   alanına bağla ("{{Okuma süresi}} dk okuma"); alan boşken gizlemek için
+   Conditional Visibility › Okuma süresi is set.
+
+Yazı yayınlandıktan sonra gövde değişirse sayı en geç bir saat içinde
+düzelir; yayınlanmamış taslakta da hesaplanır, yayına girince hazırdır.
+
 ## Doğrulama
 
 Yayınlanmış sayfada konsola:
