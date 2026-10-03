@@ -55,7 +55,7 @@ Section  [data-rc="tabs"] [data-rc-hash] [data-rc-eager]        section__service
       Div  (sol sütun, sticky)                                  service-tabs__nav col-span-3 sticky
         Div  [data-rc-part="tablist"]                           service-tabs__tabs flex flex-col
           Div  (sekme öğesi)                                    service-tabs__tab-item
-            DOM `button`  [data-rc-part="tab"]  id="seo"        service-tabs__tab
+            DOM `button`  [data-rc-part="tab"]  id="seo"        service-tabs__tab + buton sıfırlama (aşağıda)
               DOM `span`  "SEO"                                 service-tabs__tab-label
               DOM `sup`   [data-rc-part="count"]  "6"           service-tabs__tab-count
               DOM `span`  " hizmet"                             rc-sr-only
@@ -72,7 +72,7 @@ Section  [data-rc="tabs"] [data-rc-hash] [data-rc-eager]        section__service
           Collection List Wrapper                               service-tabs__list-wrapper
             Collection List                                     service-tabs__list grid-3col gap-gutter
               Collection Item                                   service-tabs__item
-                Link Block [data-rc-part="card"] → hizmet sayfası   service-tabs__card
+                Link Block [data-rc-part="card"] → hizmet sayfası   service-tabs__card block
                   Div  (görsel kutusu)                          service-tabs__card-visual aspect-4/5 rounded-lg overflow-hidden
                     Image  Kart görseli, alt=""                 service-tabs__card-image w-full h-full fit-cover
                   Div                                           service-tabs__card-body
@@ -86,16 +86,17 @@ sahibinin. Yanındaki yardımcı class'lar (`grid-12col`, `col-span-3`,
 `aspect-4/5` …) sitede tanımlı; ana class'ın üstüne **boş combo** olarak
 verildi, değer yardımcı class'tan gelir. MCP ile combo vermek için zincir önce
 boş stil olarak açılır (`create_style`, `parent_style_names` = önceki
-class'lar, değer yok), sonra elemana bütün liste verilir. Kart görselinin
-`alt`'ı boş: kart bir link ve adı başlıktan gelir, görselin alt metni adı
-uzatırdı.
+class'lar, değer yok), sonra elemana bütün liste verilir. Buton sıfırlama da
+yardımcı class'larla, sektör sekmelerindeki gibi: `service-tabs__tab
+bg-transparent border-0 font-inherit px-0 py-0 text-left font-color-inherit
+w-full cursor-pointer`. Kart Link Block'u `block` alır (Webflow Link Block'u
+`inline-block` gelir). Kart görselinin `alt`'ı boş: kart bir link ve adı
+başlıktan gelir, görselin alt metni adı uzatırdı.
 
-Designer'da ayarlanacaklar:
+Designer'da ayarlanacaklar (yardımcı class'ı olmayanlar):
 
-- **Sekme butonu** (DOM `button`): tarayıcı görünümünü sıfırla
-  (`background: transparent; border: none; padding: 0; font: inherit;
-color: inherit; text-align: left; cursor: pointer`). `opacity` verme;
-  dinlenme opaklığı kodda (`--rc-tabs-rest`). **ID** ver: kümenin slug'ı
+- **Sekme butonu** (DOM `button`): `opacity` verme; dinlenme opaklığı kodda
+  (`--rc-tabs-rest`). **ID**'ler verildi: kümenin anahtarı
   (`performans-pazarlama`, `seo`, `geo`, `veri-ve-olcumleme`, `crm`,
   `lead-generation`, `web-tasarim`, `webflow`). Adres `/#seo` olunca o sekme
   açılır.
@@ -120,11 +121,10 @@ overflow-x: auto; gap`, öğeler `flex: 0 0 auto; white-space: nowrap`,
 - **Panel başı**: H3 küme adı ve hub linki. JS yokken paneller alt alta
   durduğunda hangi kümenin hangisi olduğunu bu başlık söyler; sekme modunda
   panelin başlığıdır. Gizleme.
-- **Kart** (Link Block): `display: block`; `opacity`, `translate` verme
-  (giriş kodda). Hover'da görsel büyütme Designer'da (görsel class'ı Hover
+- **Kart** (Link Block): `opacity`, `translate` verme (giriş kodda). Hover'da görsel büyütme Designer'da (görsel class'ı Hover
   → `scale`), kartın kendisine `transform` verme.
-- **Kart görseli**: Hizmetler › Kart görseli (4:5). Görsel kutusuna
-  `aspect-ratio: 4 / 5`.
+- **Kart görseli**: Hizmetler › Kart görseli (4:5); kutunun oranı
+  `aspect-4/5` yardımcı class'ından.
 
 ## Designer'daki yapı — Sektörler
 
