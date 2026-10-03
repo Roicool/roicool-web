@@ -52,17 +52,17 @@ Section  [data-rc="tabs"] [data-rc-hash] [data-rc-eager]        section__service
   Div                                                           service-tabs__inner container-xl mx-auto
     H2  "Hizmetler"                                             service-tabs__heading h2-style mb-12
     Div  (12 kolon; dar ekranda alt alta)                       service-tabs__layout grid-12col gap-gutter items-start tab-flex-col
-      Div  (sol sütun, sticky)                                  service-tabs__nav col-span-3 sticky
-        Div  [data-rc-part="tablist"]                           service-tabs__tabs flex flex-col
-          Div  (sekme öğesi)                                    service-tabs__tab-item
-            DOM `button`  [data-rc-part="tab"]  id="seo"        service-tabs__tab + buton sıfırlama (aşağıda)
+      Div  (sol sütun, sticky)                                  service-tabs__nav col-span-3 sticky tab-w-full
+        Div  [data-rc-part="tablist"]                           service-tabs__tabs flex flex-col tab-flex-row tab-overflow-auto
+          Div  (sekme öğesi)                                    service-tabs__tab-item flex-none
+            DOM `button`  [data-rc-part="tab"]  id="seo"        service-tabs__tab + buton sıfırlama (aşağıda) + tab-text-nowrap
               DOM `span`  "SEO"                                 service-tabs__tab-label
               DOM `sup`   [data-rc-part="count"]  "6"           service-tabs__tab-count
               DOM `span`  " hizmet"                             rc-sr-only
             Div  [data-rc-part="description"]                   service-tabs__tab-description
               Paragraph  kümenin bir cümlelik açıklaması        service-tabs__tab-text
           … küme başına bir sekme öğesi
-      Div  [data-rc-part="panels"]                              service-tabs__panels col-span-9
+      Div  [data-rc-part="panels"]                              service-tabs__panels col-span-9 tab-w-full
         Div  (panel)                                            service-tabs__panel
           Div  (panel başı)                                     service-tabs__panel-header
             H3  "SEO"                                           service-tabs__panel-title
@@ -70,8 +70,8 @@ Section  [data-rc="tabs"] [data-rc-hash] [data-rc-eager]        section__service
               DOM `span`  "Tüm SEO hizmetleri"
               DOM `span`  "→"  aria-hidden="true"
           Collection List Wrapper                               service-tabs__list-wrapper
-            Collection List                                     service-tabs__list grid-3col gap-gutter
-              Collection Item                                   service-tabs__item
+            Collection List                                     service-tabs__list grid-3col gap-gutter mob-flex-row mob-overflow-auto
+              Collection Item                                   service-tabs__item flex-none mob-w-3/4
                 Link Block [data-rc-part="card"] → hizmet sayfası   service-tabs__card block
                   Div  (görsel kutusu)                          service-tabs__card-visual aspect-4/5 rounded-lg overflow-hidden
                     Image  Kart görseli, alt=""                 service-tabs__card-image w-full h-full fit-cover
@@ -93,6 +93,27 @@ w-full cursor-pointer`. Kart Link Block'u `block` alır (Webflow Link Block'u
 `inline-block` gelir). Kart görselinin `alt`'ı boş: kart bir link ve adı
 başlıktan gelir, görselin alt metni adı uzatırdı.
 
+**Tablet ve mobil.** Tablette (991 px ve altı) yerleşim alt alta iner; sol
+sütun ve paneller `tab-w-full` ile tam genişlik alır (`items-start` sütunda
+genişliği daraltırdı). Sekmeler yan yana kayan bir şerit olur: kod bunu
+yerleşimden okur, açıklamaları katlı tutar, seçilen sekmeyi görünür alana
+kaydırır, scrollbar'ı gizler. Katlı açıklama sekmenin genişliğini belirlemez
+(kod `contain: inline-size` verir). Mobilde (478 px ve altı) kartlar tek
+satırda yana kayar, her kart ekranın 3/4'ü; kod kart kart snap ve gizli
+scrollbar verir, tarayıcının geri hareketine geçmez.
+
+Bu yerleşim için açılan duyarlı yardımcı class'lar boş açıldı; değerleri
+sahibi girer, yalnız adı geçen kırılımda:
+
+| Class               | Kırılım     | Değer                                                   |
+| ------------------- | ----------- | ------------------------------------------------------- |
+| `tab-flex-row`      | Tablet      | `display: flex; flex-direction: row; flex-wrap: nowrap` |
+| `tab-overflow-auto` | Tablet      | `overflow: auto`                                        |
+| `tab-text-nowrap`   | Tablet      | `white-space: nowrap`                                   |
+| `mob-flex-row`      | Mobil dikey | `display: flex; flex-direction: row; flex-wrap: nowrap` |
+| `mob-overflow-auto` | Mobil dikey | `overflow: auto`                                        |
+| `mob-w-3/4`         | Mobil dikey | `width: 75%`                                            |
+
 Designer'da ayarlanacaklar (yardımcı class'ı olmayanlar):
 
 - **Sekme butonu** (DOM `button`): `opacity` verme; dinlenme opaklığı kodda
@@ -108,10 +129,8 @@ Designer'da ayarlanacaklar (yardımcı class'ı olmayanlar):
   Paragraph'a `margin` verme (kod sıfırlar); sekmeyle arasındaki boşluk
   `--rc-tabs-description-gap` (6px).
 - **Sekme öğesi**: üst border, dikey padding (kaynakta `16px 0`); ilk öğenin
-  üst border'ı yok. Dar ekranda: `service-tabs__tabs` `flex-direction: row;
-overflow-x: auto; gap`, öğeler `flex: 0 0 auto; white-space: nowrap`,
-  alt border. Kod sekmeler yan yana dizildiğini görür, açıklamaları kapalı
-  tutar, seçilen sekmeyi görünür alana kaydırır; scrollbar'ı da gizler.
+  üst border'ı yok. Tablette şerit için öğeler arası boşluk (`service-tabs__tabs`
+  tablet `gap`) ve border'ın alta geçmesi.
 - **Sol sütun**: masaüstünde `position: sticky; top` (ör. `6rem`) — kartlar
   uzadığında sekmeler ekranda kalır. Section'ın ve üstlerinin hiçbirinde
   `overflow: hidden` olmasın (Sticky kuralı). Dar ekranda sekme şeridi

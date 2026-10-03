@@ -8,7 +8,8 @@
  * flow, one under the other, and before the chunk arrives the first panel
  * is the one on show. A panel's cards, when it has them, rise one after
  * another. A tab's description is open on the current tab and folded on the
- * rest, and folded on all of them while the tabs sit side by side. The tabs
+ * rest, and folded on all of them while the tabs sit side by side. A card
+ * list laid out as a sideways row snaps card by card. The tabs
  * rest at reduced opacity until one is current, hovered or focused; a tab's
  * icon shows only on the current tab. No content is hidden with
  * display: none.
@@ -165,6 +166,36 @@
 [data-rc~="tabs"]
   [data-rc-part="tablist"][data-rc-state="strip"]::-webkit-scrollbar {
   display: none;
+}
+
+/* MECHANIC — a description never sets its tab's width. In a strip each tab
+   is as wide as its own content, and a folded description's sentence would
+   still count there; contained, it takes the tab's width instead. */
+[data-rc~="tabs"] [data-rc-part="description"] {
+  contain: inline-size;
+}
+
+/* MECHANIC — a panel's card list that Designer lays out as a sideways row
+   (the mobile breakpoint) moves card by card, without a scrollbar, and keeps
+   the swipe from turning into the browser's back gesture. A list that does
+   not scroll (the desktop grid) is untouched by all of it. */
+[data-rc~="tabs"] [data-rc-part="panels"] :has(> * > [data-rc-part="card"]) {
+  scroll-snap-type: x mandatory;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+}
+
+[data-rc~="tabs"]
+  [data-rc-part="panels"]
+  :has(> * > [data-rc-part="card"])::-webkit-scrollbar {
+  display: none;
+}
+
+[data-rc~="tabs"]
+  [data-rc-part="panels"]
+  :has(> * > [data-rc-part="card"])
+  > * {
+  scroll-snap-align: start;
 }
 
 /* LOOK — once the code runs, tabs rest at reduced opacity; the current,
