@@ -47,6 +47,12 @@
   pointer-events: none;
 }
 
+/* MECHANIC — except its links and buttons (a call to action under the
+   heading), which take the pointer back. */
+[data-rc~="website-ring"] [data-rc-part="title"] :is(a, button) {
+  pointer-events: auto;
+}
+
 @media (min-width: 1280px) and (prefers-reduced-motion: no-preference) {
   [data-rc~="website-ring"] [data-rc-part="title"] {
     transform: rotateX(var(--rc-website-ring-rotate-x, 0deg))

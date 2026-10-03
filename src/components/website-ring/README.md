@@ -4,9 +4,10 @@ Yaptığımız web sitelerinin ekran görüntüleri, kameranın içinde durduğu
 silindirin üstünde: 5 kat × 8 kart, three.js (WebGL). Sürükleyince silindir
 döner; ilk sürüklemeye kadar kamera imlece hafifçe yaslanır. Karta gelince
 kart büyür ve imlecin yanında `domain ↗` hapı belirir; tık siteyi yeni
-sekmede açar. Ortadaki başlık imlece göre eğilir. Kaynak: squarespace.com
-"Made with Squarespace" — sahnenin bütün sayıları (yarıçap, kart boyu,
-kamera, kontroller, sönümler, yaylar) birebir.
+sekmede açar. Ortadaki başlık imlece göre eğilir; sayfa kaydıkça silindir
+hafifçe döner. Kaynak: squarespace.com "Made with Squarespace" — sahnenin
+bütün sayıları (yarıçap, kart boyu, kamera, kontroller, sönümler, yaylar)
+birebir. Kaydırma dönüşü ve yuvarlak köşeler bizim eklememiz.
 
 **Veri CMS'ten gelir.** Siteler bir Collection List'tir: her item siteye
 giden bir link, içinde ekran görüntüsü ve domain metni. Bu liste bölümün
@@ -38,6 +39,8 @@ Section            .website-ring           [data-rc="website-ring"]   ← görü
     Div            .website-ring__title     [data-rc-part="title"]
       Paragraph    .website-ring__heading   "Roicool ile yapılan "
         Span       .website-ring__heading-line "web siteleri"   ← ikinci satır
+      Div          .website-ring__actions   ← isteğe bağlı CTA satırı
+        button primary (component)          ← sitenin butonu
   Div              .website-ring__pill      [data-rc-part="pill"] aria-hidden="true"
     Text Block     .website-ring__pill-text [data-rc-part="pill-text"]  ← kod domain'i yazar
     Text Block     .website-ring__pill-text "↗"
@@ -48,6 +51,12 @@ Section            .website-ring           [data-rc="website-ring"]   ← görü
   kod ekler, gradyanlar onun üstünde kalır.
 - `title`'a `transform` verme (eğimi kod yazar, CSS uygular); çocuğuna
   `opacity`/`translate` verme (açılışı CSS yapar).
+- Başlık imleci almaz (sürükleme altındaki sahneye geçer); içindeki link ve
+  butonlar alır. CTA'yı `title`'ın içine koy, başlıkla birlikte gelir ve
+  eğilir.
+- Kartların köşesi `.website-ring__image`'in `border-radius`'undan gelir
+  (ör. `rounded-lg`). px değeri, kameraya bakan kartta ekranda aynı px
+  görünür; % kartın kısa kenarına göredir. Radius yoksa kart köşeli.
 - `pill`'e `position`, `transform`, `opacity` verme; kod sürer. Hap
   Designer'da görünür kalır, stil vermek kolay olur; sitede kart üstünde
   değilken gizlidir.
@@ -57,6 +66,12 @@ Section            .website-ring           [data-rc="website-ring"]   ← görü
 - Görselin `srcset`'inden 800 px'e en yakın üst boy doku olarak alınır
   (Webflow CMS görselleri `srcset` ile gelir). Oran ≈ 1.6:1 (1500 × 935
   ideal).
+
+## Ayar
+
+| Attribute (kökte)     | Varsayılan | Ne                                                                       |
+| --------------------- | ---------- | ------------------------------------------------------------------------ |
+| `data-rc-scroll-turn` | `45`       | Bölüm ekranı baştan sona geçerken silindirin döndüğü derece; `0` kapatır |
 
 ## Orijinal görünüm için Designer değerleri
 
@@ -111,6 +126,9 @@ olanlar: Webflow ajansı, Web tasarım ajansı.
   kaydırma silindiri çevirir.
 - Hover: kart 1.2 kat büyür (mobilde büyümez), saydamlığı 0.5 → 1
   (mobilde dinlenme saydamlığı 0.8). Hap yalnız hover'ı olan cihazlarda.
+- Kaydırma: bölüm ekranın altından girip üstünden çıkana kadar silindir
+  toplam `scroll-turn` derece döner (ortadayken düz), sönümlü. Sürükleme
+  kamerayı çevirir, kaydırma silindiri; ikisi birbirini bozmaz.
 - Döngü yalnız bölüm ekrandayken çalışır.
 - Durumlar: kökte `running` / `static` / `fallback`; `scene`'de
   `visible`; `title`'da `revealed`; `pill`'de `active`.

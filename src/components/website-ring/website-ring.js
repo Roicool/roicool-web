@@ -4,11 +4,14 @@
  * Dragging turns the cylinder, the camera leans after the pointer until the
  * first drag, a card grows under the pointer and a pill with its domain
  * follows the cursor; a click opens the site in a new tab. The title in the
- * middle tilts after the pointer.
+ * middle tilts after the pointer. Scrolling past the section turns the
+ * cylinder a little (`data-rc-scroll-turn`, degrees over the whole pass).
  *
  * Reconstructed from squarespace.com's "Made with Squarespace" section
  * (React Three Fiber there, plain three.js here). Every number — ring radius,
- * card size, camera, controls, damping, springs — is the original's.
+ * card size, camera, controls, damping, springs — is the original's. The
+ * scroll turn and the rounded corners are ours: the cards take the corner
+ * radius Designer gives the list's images.
  *
  * The sites come from a Webflow Collection List, not from this file: each
  * item is a link to the site holding its screenshot and its domain as text.
@@ -24,7 +27,7 @@
  * Structure: README.md in this folder.
  */
 
-import { part, parts, setState } from "../../runtime/dom.js";
+import { numberOption, part, parts, setState } from "../../runtime/dom.js";
 import { prefersReducedMotion } from "../../runtime/motion.js";
 import { loadThree } from "../../runtime/three.js";
 import { warn } from "../../runtime/log.js";
@@ -35,6 +38,12 @@ const RING_RADIUS = 3;
 const RING_HEIGHTS = [-4, -2, 0, 2, 4];
 const CARD_WIDTH = 1.5;
 const CARD_HEIGHT = 0.9345;
+
+/** From the camera's start to the card facing it, across the cylinder. */
+const FACING_DISTANCE = 2 * RING_RADIUS;
+
+/** Degrees the cylinder turns while the section crosses the viewport. */
+const SCROLL_TURN = 45;
 
 /** The screenshot width the texture is taken at, from the image's srcset. */
 const TEXTURE_WIDTH = 800;
@@ -170,6 +179,69 @@ function fillPlaces(sites) {
   ).flat();
 }
 
+/**
+ * The corner radius Designer gives the list's images, as CSS reports it:
+ * `{ value, unit }` with unit "px" or "%", or null when square.
+ */
+function readCornerRadius(root) {
+  const image = parts(root, "card")[0]?.querySelector("img");
+  if (!image) return null;
+  // Read even while the list hides its images: the value is still computed.
+  const [first = ""] = getComputedStyle(image)
+    .borderTopLeftRadius.trim()
+    .split(/\s+/);
+  const value = Number.parseFloat(first);
+  if (!(value > 0)) return null;
+  return { value, unit: first.endsWith("%") ? "%" : "px" };
+}
+
+/**
+ * The card's plane, with rounded corners when `radius` (world units) is
+ * above zero. UVs span the card edge to edge, as on the plain plane, so the
+ * screenshot's "cover" fit is unchanged.
+ */
+function cardGeometry(THREE, radius) {
+  const w = CARD_WIDTH / 2;
+  const h = CARD_HEIGHT / 2;
+  const r = Math.min(radius, w, h);
+  if (!(r > 0)) return new THREE.PlaneGeometry(CARD_WIDTH, CARD_HEIGHT, 20, 20);
+
+  const shape = new THREE.Shape();
+  shape.moveTo(-w + r, -h);
+  shape.lineTo(w - r, -h);
+  shape.absarc(w - r, -h + r, r, -Math.PI / 2, 0);
+  shape.lineTo(w, h - r);
+  shape.absarc(w - r, h - r, r, 0, Math.PI / 2);
+  shape.lineTo(-w + r, h);
+  shape.absarc(-w + r, h - r, r, Math.PI / 2, Math.PI);
+  shape.lineTo(-w, -h + r);
+  shape.absarc(-w + r, -h + r, r, Math.PI, Math.PI * 1.5);
+
+  const geometry = new THREE.ShapeGeometry(shape, 8);
+  const position = geometry.attributes.position;
+  const uv = geometry.attributes.uv;
+  for (let i = 0; i < position.count; i++) {
+    uv.setXY(
+      i,
+      (position.getX(i) + w) / CARD_WIDTH,
+      (position.getY(i) + h) / CARD_HEIGHT,
+    );
+  }
+  uv.needsUpdate = true;
+  return geometry;
+}
+
+/**
+ * How far the root has crossed the viewport: 0 as its top meets the
+ * viewport's bottom, 1 as its bottom leaves the viewport's top.
+ */
+function scrollProgress(root) {
+  const box = root.getBoundingClientRect();
+  const span = innerHeight + box.height;
+  if (span <= 0) return 0.5;
+  return Math.min(1, Math.max(0, (innerHeight - box.top) / span));
+}
+
 function revealTitle(title) {
   if (!title) return;
   const watcher = new IntersectionObserver(
@@ -275,8 +347,18 @@ export default async function websiteRing(root) {
   });
   syncCursor();
 
-  // Cards: a grey stand-in at 10% until the screenshot arrives.
-  const geometry = new THREE.PlaneGeometry(CARD_WIDTH, CARD_HEIGHT, 20, 20);
+  // The cylinder turns with the page's scroll; the controls turn the camera,
+  // so the two never fight.
+  const ring = new THREE.Group();
+  world.add(ring);
+  const scrollTurn =
+    (numberOption(root, "scroll-turn", SCROLL_TURN) * Math.PI) / 180;
+  let ringPlaced = false;
+
+  // Cards: a grey stand-in at 10% until the screenshot arrives. The shape is
+  // rebuilt in resize(), once the corner radius can be put in world units.
+  let geometry = new THREE.PlaneGeometry(CARD_WIDTH, CARD_HEIGHT, 20, 20);
+  let cornerRadius = 0;
   const cards = fillPlaces(sites).map(({ y, i, site }) => {
     const angle = (i / CARDS_PER_RING) * Math.PI * 2;
     const material = new THREE.MeshBasicMaterial({
@@ -292,7 +374,7 @@ export default async function websiteRing(root) {
     );
     mesh.rotation.set(0, Math.PI + angle, 0);
     mesh.userData = { ...site, hovered: false, loaded: false };
-    world.add(mesh);
+    ring.add(mesh);
     return mesh;
   });
 
@@ -463,6 +545,25 @@ export default async function websiteRing(root) {
     isMobile = innerWidth < DESKTOP_WIDTH || isTouch;
     camera.fov = isMobile ? 80 : 65;
     camera.updateProjectionMatrix();
+
+    // The images' radius in px is kept on screen for the card facing the
+    // camera; a % is taken of the card's shorter side (round corners, not
+    // CSS's ellipses).
+    const corner = readCornerRadius(root);
+    let radius = 0;
+    if (corner?.unit === "px") {
+      const visibleHeight =
+        2 * FACING_DISTANCE * Math.tan((camera.fov * Math.PI) / 360);
+      radius = (corner.value * visibleHeight) / height;
+    } else if (corner) {
+      radius = (corner.value / 100) * CARD_HEIGHT;
+    }
+    if (Math.abs(radius - cornerRadius) > 0.001) {
+      cornerRadius = radius;
+      geometry.dispose();
+      geometry = cardGeometry(THREE, radius);
+      for (const card of cards) card.geometry = geometry;
+    }
   }
   new ResizeObserver(resize).observe(scene);
   resize();
@@ -485,6 +586,8 @@ export default async function websiteRing(root) {
   function tick(now) {
     const dt = Math.min((now - last) / 1000, 0.1);
     last = now;
+    // Read before this frame writes any style, so the read forces no layout.
+    const progress = onScreen ? scrollProgress(root) : 0;
 
     // Title tilt, [0,1] → ±30°; the CSS applies it at 1280px and up.
     if (title) {
@@ -523,6 +626,12 @@ export default async function websiteRing(root) {
     }
 
     controls.update();
+    // Centred when the section is mid-viewport, half the turn either side.
+    // The first frame on screen starts in place rather than swinging there.
+    const turn = (progress - 0.5) * scrollTurn;
+    if (ringPlaced) damp(ring.rotation, "y", turn, 0.35, dt);
+    else ring.rotation.y = turn;
+    ringPlaced = true;
     // The camera leans after the pointer until the visitor first drags.
     if (!hasDragged)
       damp3(camera.position, [pointer.x, -pointer.y, -3], 0.3, dt);
