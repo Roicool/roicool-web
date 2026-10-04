@@ -92,9 +92,13 @@ export default function cardSlider(root) {
 
   /** Where each card starts, in the track's scroll coordinates. */
   function stops() {
-    const origin = track.getBoundingClientRect().left - track.scrollLeft;
+    // Measured from the first card, so a padded (full-bleed) row snaps each
+    // card to where the first one starts, not to the viewport's edge.
+    const list = cards();
+    if (list.length === 0) return [0];
+    const origin = list[0].getBoundingClientRect().left;
     const max = maxScroll();
-    const positions = cards().map((card) =>
+    const positions = list.map((card) =>
       Math.min(card.getBoundingClientRect().left - origin, max),
     );
     return [...new Set(positions.map(Math.round))].sort((a, b) => a - b);

@@ -6,6 +6,10 @@
  *
  * Card look, heading and buttons come from Designer. The card widths below
  * are defaults at zero specificity: a width on the Item's class wins.
+ *
+ * `data-rc-bleed`: the row runs out to both edges of the viewport while its
+ * first card still starts where the container starts — the container is
+ * only the starting line.
  */
 
 /* LOOK — defaults Designer can override: cards per view (a fraction shows
@@ -18,14 +22,14 @@
 
 @media (min-width: 768px) {
   :where([data-rc~="card-slider"]) {
-    --rc-card-slider-per-view: 2.2;
+    --rc-card-slider-per-view: 2.15;
     --rc-card-slider-gap: 1.25rem;
   }
 }
 
 @media (min-width: 992px) {
   :where([data-rc~="card-slider"]) {
-    --rc-card-slider-per-view: 3.25;
+    --rc-card-slider-per-view: 3;
     --rc-card-slider-gap: 1.5rem;
   }
 }
@@ -51,6 +55,43 @@
   overscroll-behavior-x: contain;
   scroll-snap-type: x mandatory;
   scrollbar-width: none;
+}
+
+/* LOOK — a card's picture spans the card (16:9 pictures in a 16:9 frame
+   fill it exactly). Zero specificity: the image's class wins. */
+:where([data-rc~="card-slider"] [data-rc-part="track"] img) {
+  width: 100%;
+}
+
+/* MECHANIC — full bleed. The row is pulled out to the viewport's edges and
+   padded back by the same amount, so the first card starts at the
+   container's edge and every card snaps there; the cards themselves are
+   sized against the container (the track's content box). The inset is
+   measured in container units (the Collection List Wrapper is the query
+   container), not percentages: scroll-padding would read a percentage
+   against the row itself. The section clips sideways so the pulled-out row
+   never widens the page. */
+[data-rc~="card-slider"][data-rc-bleed] {
+  overflow-x: clip;
+}
+
+[data-rc~="card-slider"][data-rc-bleed] :has(> [data-rc-part="track"]) {
+  container-type: inline-size;
+}
+
+[data-rc~="card-slider"][data-rc-bleed] [data-rc-part="track"] {
+  --rc-card-slider-inset: calc((100vw - 100cqw) / 2);
+  margin-inline: calc(-1 * var(--rc-card-slider-inset));
+  padding-inline: var(--rc-card-slider-inset);
+  scroll-padding-inline: var(--rc-card-slider-inset);
+}
+
+/* LOOK — in full bleed the fade lives in the gutter outside the container:
+   the cards inside it stay whole, the ones running past it fade out.
+   data-rc-fade still sets its own width. */
+:where([data-rc~="card-slider"][data-rc-bleed]:not([data-rc-fade]))
+  [data-rc-part="track"] {
+  --rc-card-slider-fade: clamp(1.5rem, var(--rc-card-slider-inset), 7rem);
 }
 
 /* MECHANIC — no other card to show (the only post is the one being read):

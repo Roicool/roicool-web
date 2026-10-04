@@ -39,20 +39,24 @@ Section            [data-rc="card-slider"]                 ← kök (role/aria-l
   kaydırma, snap, gizli scrollbar). `gap` verebilirsin; vermezsen aşağıdaki
   varsayılan.
 - **Item'a** genişlik vermezsen varsayılan: telefonda 1.15 kart (sonraki
-  kartın ucu görünür), 768 px'ten 2.2, 992 px'ten 3.25. Designer'da Item
+  kartın ucu görünür), 768 px'ten 2.15, 992 px'ten 3 (tam genişlikte
+  dördüncü kart container'ın dışında görünür). Designer'da Item
   class'ına genişlik verirsen o kazanır. Kart sayısını değiştirmenin kolay
   yolu: kökte `--rc-card-slider-per-view` (site custom code'unda `<style>`).
 - Düğmeler gerçek `<button>` (DOM element, tag `button`); site `button-round`
   class'ı uygun. `aria-disabled` kodundur, elle yazma.
+- Kart görselleri kartın genişliğini doldurur (`width: 100%`, sıfır
+  specificity); 16:9 görsel 16:9 kutuda tam oturur.
 - Kartın içi serbest: görsel, kategori, başlık, özet. Görsele hover büyütme
   Designer'da (görsel class'ının Hover durumu).
 
 ## Ayarlar (kökte)
 
-| Attribute       | Değer                   | Ne                                                                   |
-| --------------- | ----------------------- | -------------------------------------------------------------------- |
-| `data-rc-fade`  | uzunluk ya da `%`, `10` | Kenar solmasının genişliği; varsayılan `min(10%, 7rem)`; `0` kapatır |
-| `data-rc-eager` | —                       | Görünüre girmeyi beklemeden yükle                                    |
+| Attribute       | Değer                   | Ne                                                                                                                                                                                                                                                                                                                  |
+| --------------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `data-rc-fade`  | uzunluk ya da `%`, `10` | Kenar solmasının genişliği; varsayılan `min(10%, 7rem)`; `0` kapatır                                                                                                                                                                                                                                                |
+| `data-rc-bleed` | —                       | Tam genişlik: satır viewport'un iki kenarına taşar, ilk kart container'ın kenarından başlar ve her kart oraya oturur; container yalnız başlangıç çizgisi. Kart genişlikleri yine container'a göre. Solma bu modda container dışındaki boşlukta kalır (`clamp(1.5rem, boşluk, 7rem)`), içerideki kartlar tam görünür |
+| `data-rc-eager` | —                       | Görünüre girmeyi beklemeden yükle                                                                                                                                                                                                                                                                                   |
 
 CSS değişkenleri (kökte, sıfır specificity'de varsayılanlar):
 `--rc-card-slider-per-view`, `--rc-card-slider-gap`, `--rc-card-slider-fade`.
