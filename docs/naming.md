@@ -62,6 +62,9 @@ bulur ve ona `data-rc-part="track"` basar. Kodun tanımladığı tek class ailes
 
 - `.rc-sr-only` — yalnız ekran okuyucuya görünür
 - `.rc-skip-link` — içeriğe atlama bağlantısı
+- `.rc-breadcrumb` — breadcrumb listesinin maddeleri arasına ok (maskeli
+  `::before`, yazı rengi; Designer'da yok; `critical.css`, ilk boyamada
+  yerinde)
 - `.rc-align-middle` — `vertical-align: middle` (Designer'da yok; `site.css`)
 - `.rc-grain` — data: URI doku + blend (Designer'da yok; `site.css`)
 - `.rc-glass` — buzlu cam yüzey: blur, gradyan dolgu, maskeli `::before`

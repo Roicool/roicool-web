@@ -42,6 +42,42 @@
   transform: translateY(0);
 }
 
+/* HELPER — .rc-breadcrumb on a breadcrumb list (Webflow List, ordered):
+   an arrow between its items, drawn in the text colour. The arrow is a
+   masked box with no text in it, so screen readers do not read it; the
+   list reads as "Blog, Ramp news". Here and not in rc.css because a
+   breadcrumb sits at the top of the page: the arrows must not arrive late
+   and push the items aside. Layout at zero specificity, Designer's own
+   flex or gap wins. */
+:where(.rc-breadcrumb) {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--rc-breadcrumb-gap, 0.5em);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+:where(.rc-breadcrumb > li) {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--rc-breadcrumb-gap, 0.5em);
+}
+
+.rc-breadcrumb > li + li::before {
+  content: "";
+  flex: none;
+  width: var(--rc-breadcrumb-arrow, 1em);
+  height: var(--rc-breadcrumb-arrow, 1em);
+  background-color: currentColor;
+  opacity: var(--rc-breadcrumb-arrow-opacity, 1);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12h14M13 6l6 6-6 6'/%3E%3C/svg%3E")
+    center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12h14M13 6l6 6-6 6'/%3E%3C/svg%3E")
+    center / contain no-repeat;
+}
+
 /*
  * A visible focus ring on everything, whatever Designer sets. Written with
  * :where() so its specificity is zero and any deliberate design override wins.
