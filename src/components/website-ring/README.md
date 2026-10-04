@@ -22,7 +22,7 @@ siteyi bir kez gösterir. 40'tan fazla site varsa silindire ilk 40'ı girer.
 ## Designer'daki yapı
 
 ```
-Section            .website-ring           [data-rc="website-ring"]   ← görünürlük: Hizmetler › Site vitrinini göster
+Section            .website-ring           [data-rc="website-ring"]   ← görünürlük: Hizmetler › Show site showcase
   Div              .website-ring__scene     [data-rc-part="scene"] aria-hidden="true"   ← canvas'ı kod ekler
     Div            .website-ring__gradient.is-top
     Div            .website-ring__gradient.is-bottom
@@ -32,9 +32,9 @@ Section            .website-ring           [data-rc="website-ring"]   ← görü
     Collection List Wrapper
       Collection List   .website-ring__items
         Collection Item
-          Link Block    .website-ring__link  [data-rc-part="card"]   ← Site adresi; target="_blank" rel="noopener noreferrer"
-            Image       .website-ring__image                          ← Site görseli; alt = Name; loading="lazy"
-            Text Block  .website-ring__label [data-rc-part="label"]   ← Site adı (ör. alaka.ai)
+          Link Block    .website-ring__link  [data-rc-part="card"]   ← Site URL; target="_blank" rel="noopener noreferrer"
+            Image       .website-ring__image                          ← Site screenshot; alt = Name; loading="lazy"
+            Text Block  .website-ring__label [data-rc-part="label"]   ← Site name (ör. alaka.ai)
   Div              .website-ring__title-wrap
     Div            .website-ring__title     [data-rc-part="title"]
       Paragraph    .website-ring__heading   "Roicool ile yapılan "
@@ -97,20 +97,20 @@ motion'da düz durur.
 
 ## CMS alanları (Projects)
 
-| Alan         | Tip        | Kullanım                         |
-| ------------ | ---------- | -------------------------------- |
-| Site görseli | Image      | Kartın dokusu; ≈ 1500 × 935      |
-| Site adresi  | Link       | Link Block'un adresi; yeni sekme |
-| Site adı     | Plain text | `label` ve hap: `alaka.ai`       |
+| Alan            | Tip        | Kullanım                         |
+| --------------- | ---------- | -------------------------------- |
+| Site screenshot | Image      | Kartın dokusu; ≈ 1500 × 935      |
+| Site URL        | Link       | Link Block'un adresi; yeni sekme |
+| Site name       | Plain text | `label` ve hap: `alaka.ai`       |
 
-Collection List filtresi: _Site görseli is set_; limit 40. Sıralama
+Collection List filtresi: _Site screenshot is set_; limit 40. Sıralama
 silindirdeki sırayı belirler (kat kat, soldan sağa). `label` yoksa kod
 linkin adresinden domain'i kendisi çıkarır.
 
 ## Nerede
 
 Hizmetler template'i (`/hizmetler/…`). Section'ın görünürlüğü Hizmetler
-koleksiyonundaki **Site vitrinini göster** (Switch) alanına bağlı: açık
+koleksiyonundaki **Show site showcase** (Switch) alanına bağlı: açık
 olan hizmet sayfasında görünür, kapalı olanda HTML'e hiç girmez. Açık
 olanlar: Webflow ajansı, Web tasarım ajansı.
 

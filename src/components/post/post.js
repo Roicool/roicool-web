@@ -4,7 +4,7 @@
  *   - Wide tables scroll sideways on narrow screens (post.css); a table
  *     that overflows becomes a keyboard stop (tabindex="0") so it can be
  *     scrolled without a mouse.
- *   - The sources list (`sources` part, Blog › Kaynaklar, a numbered list)
+ *   - The sources list (`sources` part, Blog › Sources, a numbered list)
  *     gets anchors: its n-th item is #kaynak-n, which the body's footnote
  *     links point to. Webflow's rich text cannot give an item an id.
  *   - The in-post call to action (`cta` part, written once in the template

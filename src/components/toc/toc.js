@@ -4,7 +4,7 @@
  * folded into a bar that floats at the bottom of the screen.
  *
  * The list itself is not built here (rule 1): scripts/cms-derived-fields.mjs
- * writes it into the CMS (Blog › İçindekiler) as links to "#<anchor>", and
+ * writes it into the CMS (Blog › Table of contents) as links to "#<anchor>", and
  * Designer binds that rich text into the `list` part. Webflow's rich text
  * cannot give a heading an id, so this code gives each H2 of the `body` part
  * the anchor the script computed from the same text (runtime/anchors.js, the

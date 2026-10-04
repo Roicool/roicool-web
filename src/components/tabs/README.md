@@ -78,11 +78,11 @@ Section  [data-rc="tabs"] [data-rc-hash] [data-rc-eager]        section__service
               Collection List                                   service-tabs__list flex flex-col
                 Collection Item                                 service-tabs__item border-bt border-muted
                   Link Block  [data-rc-part="card"] → hizmet    service-tabs__card flex flex-row items-center py-4
-                    Image  [data-rc-part="image"]  Kart görseli, alt=""
+                    Image  [data-rc-part="image"]  Card image, alt=""
                                                                 service-tabs__card-image 1x1-md fit-cover rounded-lg
                     Div                                         service-tabs__card-body w-full flex flex-col
                       H4  Name                                  service-tabs__card-title text-lg
-                      Paragraph  Kısa açıklama                  service-tabs__card-text text-sm text-muted-opacity
+                      Paragraph  Short description               service-tabs__card-text text-sm text-muted-opacity
                     DOM `span`  [data-rc-part="arrow"]  aria-hidden="true"
                                                                 service-tabs__card-arrow
                       DOM `span`  "→"
@@ -102,7 +102,7 @@ boş stil olarak açılır (`create_style`, `parent_style_names` = önceki
 class'lar, değer yok), sonra elemana bütün liste verilir. Buton sıfırlama da
 yardımcı class'larla, sektör sekmelerindeki gibi: `service-tabs__tab
 bg-transparent border-0 font-inherit px-0 py-0 text-left font-color-inherit
-w-full cursor-pointer`. Kart görselinin `alt`'ı boş: önizlemede süs, kartın
+w-full cursor-pointer`. Card image'ın `alt`'ı boş: önizlemede süs, kartın
 adı başlıktan gelir.
 
 **Önizleme.** Kod her kartın görselini satırından alıp panelin önizlemesine
@@ -187,7 +187,7 @@ solid`, renk vermez; renk `border-muted`'dan). Son satırın çizgisi
   kırpar, glifi oynatır, seçili satırın okunu `--rc-tabs-arrow-shift` kadar
   ileri iter. İçteki glif span'ine stil verme; yeni ok eklerken yapı aynı:
   kutu span'i, içinde tek span "→".
-- **Kart görseli**: Hizmetler › Kart görseli; önizlemede kareye kırpılır
+- **Card image**: Hizmetler › Card image; önizlemede kareye kırpılır
   (kod `object-fit: cover` ile doldurur). JS yokken satırda `1x1-md` boyunda
   küçük kare olarak kalır.
 

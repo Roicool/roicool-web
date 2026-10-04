@@ -6,7 +6,7 @@ açan bir menü.
 
 **Liste kodda üretilmez** (kural 1). Saatlik CMS işi
 (`scripts/cms-derived-fields.mjs`) gövdenin H2'lerinden listeyi çıkarır ve
-Blog › **İçindekiler** alanına `<ul><li><a href="#çapa">…</a></li></ul>`
+Blog › **Table of contents** alanına `<ul><li><a href="#çapa">…</a></li></ul>`
 olarak yazar; Designer bu zengin metni `list` parçasına bağlar. Webflow'un
 zengin metni başlığa `id` veremediği için çapaları bu kod verir: her H2'ye,
 script'in aynı metinden hesapladığı çapayı (`runtime/anchors.js`, iki taraf
@@ -26,9 +26,9 @@ Div / Article          [data-rc="toc reading-progress post"] [data-rc-eager]   �
   Div  (yerleşim: masaüstünde kenar sütun + gövde)
     Nav                [data-rc-part="navigation"] aria-label="İçindekiler"
       Div              [data-rc-part="panel"]                   ← tek çocuk: liste
-        Rich Text      [data-rc-part="list"]                    ← Blog › İçindekiler
+        Rich Text      [data-rc-part="list"]                    ← Blog › Table of contents
       DOM `button`     [data-rc-part="toggle"]                  ← "İçindekiler" (+ ikon); yalnız dar ekranda
-    Rich Text          [data-rc-part="body"]                    ← Blog › İçerik
+    Rich Text          [data-rc-part="body"]                    ← Blog › Body
 ```
 
 - **Sıra:** `panel` `toggle`'dan önce: dar ekranda liste düğmenin üstünde

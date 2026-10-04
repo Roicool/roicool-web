@@ -3,7 +3,7 @@
  * both sides that need it:
  *
  *   scripts/cms-derived-fields.mjs writes a post's table of contents into
- *   the CMS (Blog › İçindekiler) as links to "#<anchor>", worked out from
+ *   the CMS (Blog › Table of contents) as links to "#<anchor>", worked out from
  *   the H2s of the stored body;
  *   components/toc gives the same H2s on the page the same ids, since
  *   Webflow's rich text cannot carry an id.

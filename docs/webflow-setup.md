@@ -187,8 +187,8 @@ sahibi yapar:
    variables › Actions › New repository secret'a `WEBFLOW_API_TOKEN` adıyla
    koy. Token'ı repoya, `package.json`'a ya da head'e yazma.
 2. **Alanlar:** Blog ve Karşılaştırmalar koleksiyonlarında üç alan:
-   **İçerik** (Rich text; gövde), **Okuma süresi** (Number) ve **Kelime
-   sayısı** (Number). Son ikisi "Türetilen" grubunda, açıklamasına "script
+   **Body** (Rich text; gövde), **Reading time** (Number) ve **Word
+   count** (Number). Son ikisi "Derived" grubunda, açıklamasına "script
    yazar, elle dokunma". Alan slug'ları `icerik`, `okuma-suresi`,
    `kelime-sayisi` olmalı; farklıysa `webflow/cms-derived-fields.json`'da
    düzeltilir. Başka koleksiyona açmak = aynı dosyaya bir satır.
@@ -196,10 +196,10 @@ sahibi yapar:
    workflow, "dry run" işaretli. Günlükte her kaydın kelime ve dakikası
    listelenir, CMS'e yazılmaz. Doğruysa bir daha, işaretsiz. Sonra saatte
    bir kendisi çalışır; aceleyse elle.
-4. **Designer:** kartta ve yazı sayfasında Text Block'u Okuma süresi
-   alanına bağla ("{{Okuma süresi}} dk okuma"); alan boşken gizlemek için
-   Conditional Visibility › Okuma süresi is set.
-5. **İçindekiler (yalnız Blog):** "Türetilen" grubunda **İçindekiler** (Rich
+4. **Designer:** kartta ve yazı sayfasında Text Block'u Reading time
+   alanına bağla ("{{Reading time}} dk okuma"); alan boşken gizlemek için
+   Conditional Visibility › Reading time is set.
+5. **İçindekiler (yalnız Blog):** "Derived" grubunda **Table of contents** (Rich
    text, slug `icindekiler`) alanı; script gövdenin H2'lerinden `#çapa`
    linkli bir liste yazar (`tableOfContents` ayarı). Yazı sayfasında bu
    alan `toc` bileşeninin `list` parçasına bağlanır; çapaları bileşen verir

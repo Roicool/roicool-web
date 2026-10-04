@@ -10,10 +10,10 @@ ortasına taşınması. Genellikle `toc` ile aynı kökte, aynı `body` parças�
 ```
 Article            [data-rc="toc reading-progress post"]   (+ isteğe bağlı data-rc-cta-before)
   …
-  Rich Text        [data-rc-part="body"]      ← Blog › İçerik
+  Rich Text        [data-rc-part="body"]      ← Blog › Body
   Div              [data-rc-part="cta"]       ← yazı içi CTA kutusu; gövdenin hemen altında
   …
-  Rich Text        [data-rc-part="sources"]   ← Blog › Kaynaklar (numaralı liste)
+  Rich Text        [data-rc-part="sources"]   ← Blog › Sources (numaralı liste)
 ```
 
 - **Tablo:** gövdedeki tablolar sütundan genişse kendi kutusunda yana kayar

@@ -171,7 +171,7 @@ JS gelene kadar alan boş durur.
 Mekanizma: `scripts/cms-derived-fields.mjs`, `webflow/cms-derived-fields.json`
 içindeki koleksiyonları Webflow Data API'den okur, gövdenin HTML'ini soyup
 kelime sayar, dakikayı yukarı yuvarlar (200 kelime/dk, en az 1), yalnız
-değeri değişen kayıtların **Kelime sayısı** ve **Okuma süresi** alanlarını
+değeri değişen kayıtların **Word count** ve **Reading time** alanlarını
 yazar: taslak kayda her zaman, yayındaki kayda canlı uç noktasından da, site
 publish'i gerekmeden. Boşaltılmış gövde eski sayıları siler.
 `.github/workflows/cms-derived-fields.yml` bunu saatte bir ve Actions

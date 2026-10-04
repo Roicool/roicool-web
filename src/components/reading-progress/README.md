@@ -17,7 +17,7 @@ Genellikle `toc` ile aynı kökte, aynı `body` parçasıyla:
 Div / Article   [data-rc="toc reading-progress"]
   Div           [data-rc-part="bar"]     ← dolgu; kökün içinde herhangi bir yerde
   …
-  Rich Text     [data-rc-part="body"]    ← Blog › İçerik
+  Rich Text     [data-rc-part="body"]    ← Blog › Body
 ```
 
 - **bar:** tam genişlik dolgu: `position: fixed; top: 0; left: 0; width:
