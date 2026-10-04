@@ -1,0 +1,140 @@
+/*!
+ * card-slider.css — the row scrolls natively and snaps card by card, with or
+ * without JS. The code stamps where the row stands on the root (`start`,
+ * `middle`, `end`, `static`) and the edges fade from that: only the side
+ * with more cards behind it fades.
+ *
+ * Card look, heading and buttons come from Designer. The card widths below
+ * are defaults at zero specificity: a width on the Item's class wins.
+ */
+
+/* LOOK — defaults Designer can override: cards per view (a fraction shows
+   the next card peeking in), the gap between them, and the fade width. */
+:where([data-rc~="card-slider"]) {
+  --rc-card-slider-per-view: 1.15;
+  --rc-card-slider-gap: 1rem;
+  --rc-card-slider-fade: min(10%, 7rem);
+}
+
+@media (min-width: 768px) {
+  :where([data-rc~="card-slider"]) {
+    --rc-card-slider-per-view: 2.2;
+    --rc-card-slider-gap: 1.25rem;
+  }
+}
+
+@media (min-width: 992px) {
+  :where([data-rc~="card-slider"]) {
+    --rc-card-slider-per-view: 3.25;
+    --rc-card-slider-gap: 1.5rem;
+  }
+}
+
+:where([data-rc~="card-slider"] [data-rc-part="track"]) {
+  gap: var(--rc-card-slider-gap);
+}
+
+:where([data-rc~="card-slider"] [data-rc-part="track"] > *) {
+  width: calc(
+    (100% - var(--rc-card-slider-gap) * (var(--rc-card-slider-per-view) - 1)) /
+      var(--rc-card-slider-per-view)
+  );
+}
+
+/* MECHANIC — a single scrolling row that snaps each card to its start. The
+   scrollbar is hidden: the buttons, a swipe and the fades say it scrolls. */
+[data-rc~="card-slider"] [data-rc-part="track"] {
+  display: flex;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+
+[data-rc~="card-slider"] [data-rc-part="track"]::-webkit-scrollbar {
+  display: none;
+}
+
+[data-rc~="card-slider"] [data-rc-part="track"] > * {
+  flex: none;
+  scroll-snap-align: start;
+}
+
+/* MECHANIC — the edge fades. Two registered properties so the gradient
+   stops can animate: an edge fades in as the row leaves it and out as the
+   row reaches it. */
+@property --rc-card-slider-fade-start {
+  syntax: "<length-percentage>";
+  inherits: false;
+  initial-value: 0%;
+}
+
+@property --rc-card-slider-fade-end {
+  syntax: "<length-percentage>";
+  inherits: false;
+  initial-value: 0%;
+}
+
+[data-rc~="card-slider"][data-rc-state] [data-rc-part="track"] {
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent,
+    #000 var(--rc-card-slider-fade-start),
+    #000 calc(100% - var(--rc-card-slider-fade-end)),
+    transparent
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    #000 var(--rc-card-slider-fade-start),
+    #000 calc(100% - var(--rc-card-slider-fade-end)),
+    transparent
+  );
+  transition:
+    --rc-card-slider-fade-start 0.35s ease,
+    --rc-card-slider-fade-end 0.35s ease;
+}
+
+[data-rc~="card-slider"]:is([data-rc-state="middle"], [data-rc-state="end"])
+  [data-rc-part="track"] {
+  --rc-card-slider-fade-start: var(--rc-card-slider-fade);
+}
+
+[data-rc~="card-slider"]:is([data-rc-state="middle"], [data-rc-state="start"])
+  [data-rc-part="track"] {
+  --rc-card-slider-fade-end: var(--rc-card-slider-fade);
+}
+
+/* MECHANIC — a mouse drag: snapping waits until release, nothing gets
+   selected and the hand closes. */
+[data-rc~="card-slider"] [data-rc-part="track"][data-rc-state="dragging"] {
+  scroll-snap-type: none;
+  cursor: grabbing;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  :where([data-rc~="card-slider"][data-rc-state] [data-rc-part="track"]) {
+    cursor: grab;
+  }
+}
+
+/* MECHANIC — the buttons only work with the code: until it runs, and when
+   every card fits, they keep their place but are not there. */
+[data-rc~="card-slider"]:is(:not([data-rc-state]), [data-rc-state="static"])
+  :is([data-rc-part="previous"], [data-rc-part="next"]) {
+  visibility: hidden;
+}
+
+/* LOOK — a button at its end of the row rests dimmed and takes no click. */
+:where(
+  [data-rc~="card-slider"]
+    :is([data-rc-part="previous"], [data-rc-part="next"])[aria-disabled="true"]
+) {
+  opacity: 0.35;
+  cursor: default;
+  pointer-events: none;
+}
