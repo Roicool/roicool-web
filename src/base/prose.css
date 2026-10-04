@@ -12,9 +12,8 @@
  * variables (Webflow › Variables) and each one is a --rc-prose-* hook.
  *
  * Specificity: enough to beat Webflow's element defaults (ul padding,
- * blockquote padding, figure margin) and its rich-text figure rules; the
- * figure selectors repeat [data-rt-type] to stay above those whatever the
- * load order.
+ * blockquote padding, figure margin); the figure rules go above Webflow's
+ * rich-text figure classes without naming them (see Images below).
  *
  * Not in Designer: pseudo-classes and pseudo-elements on the children of a
  * CMS rich text, and Webflow's internal figure styles.
@@ -64,25 +63,25 @@
   text-wrap: balance;
 }
 
-/* A heading or a rule starts below a floated image, never beside it. */
-.rc-prose :is(h1, h2, h3, hr) {
-  clear: both;
-}
-
 .rc-prose :is(p, li, blockquote, figcaption) {
   text-wrap: pretty;
 }
 
 /* Images: the column's full width, rounded, with room above and below.
-   Webflow's own rules cap a figure at 60% and lay it out as a table. */
-.rc-prose figure[data-rt-type][data-rt-type] {
+   On the published page Webflow writes a figure with its own classes (a
+   60% cap, a table layout, floats) and often an inline max-width, and no
+   data-rt-* attributes. Rather than read those classes, :not(#_) (matches
+   every figure) lifts these rules above any class rule, and !important
+   beats the inline cap. Every figure is a full-width block: no floats. */
+.rc-prose figure:not(#_) {
   display: block;
-  width: 100%;
-  max-width: 100%;
+  float: none;
+  width: 100% !important;
+  max-width: 100% !important;
   margin: var(--rc-prose-media-space, var(--spacing--8, 1.75rem)) 0;
 }
 
-.rc-prose figure[data-rt-type][data-rt-type] > div {
+.rc-prose figure:not(#_) > div {
   display: block;
   width: 100%;
   max-width: 100%;
@@ -99,8 +98,8 @@
 }
 
 /* Webflow lays the caption out as a table caption, as narrow as a word. */
-.rc-prose figcaption,
-.rc-prose figure[data-rt-type][data-rt-type] > figcaption {
+.rc-prose figure:not(#_) > figcaption,
+.rc-prose figcaption {
   display: block;
   margin-top: var(--spacing--3, 0.75rem);
   color: var(--color-text--muted, currentColor);
@@ -109,8 +108,9 @@
   text-align: var(--rc-prose-caption-align, center);
 }
 
-/* Videos keep Webflow's ratio box, at full width and rounded. */
-.rc-prose figure[data-rt-type="video"][data-rt-type] {
+/* Videos keep Webflow's ratio box (an inline padding-bottom), at full
+   width and rounded. */
+.rc-prose figure:has(iframe):not(#_) {
   overflow: hidden;
   border-radius: var(--rc-prose-radius, var(--radius--lg, 0.5rem));
 }
@@ -118,31 +118,6 @@
 .rc-prose iframe {
   max-width: 100%;
   border: 0;
-}
-
-/* Floated images float only where there is room beside them. */
-.rc-prose
-  figure:is(
-    [data-rt-align="floatleft"],
-    [data-rt-align="floatright"]
-  )[data-rt-type] {
-  float: none;
-}
-
-@media (min-width: 768px) {
-  .rc-prose figure[data-rt-align="floatleft"][data-rt-type][data-rt-type] {
-    float: left;
-    width: min(50%, 22rem);
-    margin: var(--spacing--1, 0.25rem) var(--spacing--8, 1.75rem)
-      var(--spacing--5, 1rem) 0;
-  }
-
-  .rc-prose figure[data-rt-align="floatright"][data-rt-type][data-rt-type] {
-    float: right;
-    width: min(50%, 22rem);
-    margin: var(--spacing--1, 0.25rem) 0 var(--spacing--5, 1rem)
-      var(--spacing--8, 1.75rem);
-  }
 }
 
 /* Lists: a sensible indent instead of Webflow's 40px, room around the list,
