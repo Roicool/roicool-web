@@ -5,6 +5,7 @@ import {
   countWords,
   minutesFor,
   planUpdates,
+  signatureOf,
 } from "./cms-derived-fields.mjs";
 
 const FIELDS = {
@@ -144,4 +145,48 @@ test("planUpdates: içindekiler yalnız linkleri değişince yazılır", () => {
       (update) => !("icindekiler" in update.fieldData),
     ),
   );
+});
+
+test("planUpdates: güncelleme tarihi yalnız metin gerçekten değişince", () => {
+  const fields = {
+    ...FIELDS,
+    updatedAt: "guncelleme-tarihi",
+    signature: "icerik-imzasi",
+  };
+  const now = new Date("2026-10-04T12:00:00Z");
+  const body = "<p>bir iki üç</p>";
+  const settled = { "kelime-sayisi": 3, "okuma-suresi": 1 };
+  const signature = signatureOf(body);
+  const items = [
+    { id: "first", fieldData: { icerik: body, ...settled } },
+    {
+      id: "same-text-new-markup",
+      fieldData: {
+        icerik: '<p><strong>bir</strong> iki <a href="/x">üç</a></p>',
+        ...settled,
+        "icerik-imzasi": signature,
+      },
+    },
+    {
+      id: "edited",
+      fieldData: {
+        icerik: "<p>bir iki dört</p>",
+        ...settled,
+        "icerik-imzasi": signature,
+      },
+    },
+  ];
+  const updates = planUpdates(items, fields, 200, now);
+  assert.deepEqual(
+    updates.map((update) => update.id),
+    ["first", "edited"],
+  );
+  assert.equal(updates[0].fieldData["icerik-imzasi"], signature);
+  assert.ok(!("guncelleme-tarihi" in updates[0].fieldData));
+  assert.equal(updates[0].revised, false);
+  assert.equal(
+    updates[1].fieldData["guncelleme-tarihi"],
+    "2026-10-04T12:00:00.000Z",
+  );
+  assert.equal(updates[1].revised, true);
 });

@@ -19,7 +19,11 @@
  *      the body's HTML, counts the words and works out the minutes; where
  *      the entry names a tableOfContents field, lists the body's H2s as
  *      links to their anchors (src/runtime/anchors.js — the toc component
- *      gives the H2s on the page the same ids);
+ *      gives the H2s on the page the same ids); where it names an updatedAt
+ *      and a signature field, stamps today's date when the body's text has
+ *      really changed (the signature is a digest of the text alone, so a
+ *      style, link or picture change does not count, and the first run only
+ *      records it);
  *   3. writes only the items whose stored values differ: the staged item
  *      always, and the live item too when the item is published, so no site
  *      publish is needed.
@@ -30,6 +34,7 @@
  * (docs/webflow-setup.md); it never goes into the repository.
  */
 
+import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import {
   textOf,
@@ -61,15 +66,25 @@ export function minutesFor(words, wordsPerMinute) {
   return Math.max(1, Math.ceil(words / wordsPerMinute));
 }
 
+/** A digest of the body's readable text: what "really changed" compares. */
+export function signatureOf(html) {
+  const text = textOf(html);
+  if (!text) return null;
+  return createHash("sha256").update(text).digest("hex").slice(0, 16);
+}
+
 /**
  * What to write, item by item, given the collection's field slugs. An item
  * is listed only when a stored value differs from the computed one; an
  * empty body clears every derived field rather than leaving stale values
  * behind. `fields.tableOfContents` is optional; a stored table of contents
  * is compared by its links (anchor and text), not its markup, since the
- * CMS rewrites rich text as it stores it.
+ * CMS rewrites rich text as it stores it. `fields.updatedAt` with
+ * `fields.signature` are optional too: a new signature with an old one
+ * stored stamps `now` as the update date; with none stored (the first run,
+ * a new item) only the signature is recorded.
  */
-export function planUpdates(items, fields, wordsPerMinute) {
+export function planUpdates(items, fields, wordsPerMinute, now = new Date()) {
   const updates = [];
   for (const item of items) {
     if (item.isArchived) continue;
@@ -94,6 +109,19 @@ export function planUpdates(items, fields, wordsPerMinute) {
         changed = true;
       }
     }
+    let revised = false;
+    if (fields.updatedAt && fields.signature) {
+      const signature = signatureOf(body);
+      const stored = data[fields.signature] ?? null;
+      if (signature !== stored) {
+        wanted[fields.signature] = signature;
+        changed = true;
+        if (stored !== null && signature !== null) {
+          wanted[fields.updatedAt] = now.toISOString();
+          revised = true;
+        }
+      }
+    }
     if (!changed) continue;
     updates.push({
       id: item.id,
@@ -101,6 +129,7 @@ export function planUpdates(items, fields, wordsPerMinute) {
       words,
       minutes: wanted[fields.readingTime] ?? 0,
       headings,
+      revised,
       fieldData: wanted,
     });
   }
@@ -205,6 +234,14 @@ async function main() {
       );
       delete fields.tableOfContents;
     }
+    const dating = [fields.updatedAt, fields.signature].filter(Boolean);
+    if (dating.length > 0 && dating.some((slug) => !present.has(slug))) {
+      warn(
+        `${entry.slug}: ${dating.filter((slug) => !present.has(slug)).join(", ")} alanı yok, güncelleme tarihi atlandı.`,
+      );
+      delete fields.updatedAt;
+      delete fields.signature;
+    }
 
     const items = await listAll(token, `/collections/${collection.id}/items`);
     const live = new Set(
@@ -217,8 +254,9 @@ async function main() {
       const contents = fields.tableOfContents
         ? `, ${update.headings} başlık`
         : "";
+      const revised = update.revised ? ", metin değişti" : "";
       console.log(
-        `  ${update.name}: ${update.words} kelime, ${update.minutes} dk${contents}${live.has(update.id) ? "" : " (taslak)"}`,
+        `  ${update.name}: ${update.words} kelime, ${update.minutes} dk${contents}${revised}${live.has(update.id) ? "" : " (taslak)"}`,
       );
     }
     if (!dryRun) {
