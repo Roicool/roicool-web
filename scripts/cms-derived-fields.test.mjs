@@ -89,3 +89,59 @@ test("planUpdates: yalnız değeri değişen kayıtlar, arşiv atlanır", () => 
   });
   assert.equal(updates[1].minutes, 0);
 });
+
+test("planUpdates: içindekiler yalnız linkleri değişince yazılır", () => {
+  const fields = { ...FIELDS, tableOfContents: "icindekiler" };
+  const body = "<h2>Giriş</h2><p>bir iki üç</p><h2>Sonuç</h2>";
+  const settled = {
+    "kelime-sayisi": 5,
+    "okuma-suresi": 1,
+  };
+  const items = [
+    {
+      id: "same",
+      fieldData: {
+        icerik: body,
+        ...settled,
+        icindekiler:
+          '<ul role="list"><li><a href="#giris">Giriş</a></li><li><a href="#sonuc">Sonuç</a></li></ul>',
+      },
+    },
+    { id: "missing", fieldData: { icerik: body, ...settled } },
+    {
+      id: "renamed",
+      fieldData: {
+        icerik: body.replace("Sonuç", "Özet"),
+        ...settled,
+        icindekiler:
+          '<ul><li><a href="#giris">Giriş</a></li><li><a href="#sonuc">Sonuç</a></li></ul>',
+      },
+    },
+    {
+      id: "no-headings",
+      fieldData: {
+        icerik: "<p>bir iki üç dört beş</p>",
+        ...settled,
+        icindekiler: '<ul><li><a href="#giris">Giriş</a></li></ul>',
+      },
+    },
+  ];
+  const updates = planUpdates(items, fields, 200);
+  assert.deepEqual(
+    updates.map((update) => update.id),
+    ["missing", "renamed", "no-headings"],
+  );
+  assert.equal(
+    updates[0].fieldData.icindekiler,
+    '<ul><li><a href="#giris">Giriş</a></li><li><a href="#sonuc">Sonuç</a></li></ul>',
+  );
+  assert.equal(updates[0].headings, 2);
+  assert.match(updates[1].fieldData.icindekiler, /#ozet">Özet/);
+  assert.equal(updates[2].fieldData.icindekiler, null);
+  // Without the option the table of contents is never touched.
+  assert.ok(
+    planUpdates(items, FIELDS, 200).every(
+      (update) => !("icindekiler" in update.fieldData),
+    ),
+  );
+});

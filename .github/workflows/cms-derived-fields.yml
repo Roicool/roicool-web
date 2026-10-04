@@ -1,6 +1,6 @@
-# Reading time and word count live in the CMS as fields, so the listing card,
-# the article page, crawlers and LLMs all read the same number — rule 1 in
-# CLAUDE.md: JS never produces content. This job keeps those fields in step
+# Reading time, word count and a post's table of contents live in the CMS as
+# fields, so the listing card, the article page, crawlers and LLMs all read
+# the same thing — rule 1 in CLAUDE.md: JS never produces content. This job keeps those fields in step
 # with the body: every hour, and on demand from the Actions tab (tick "dry
 # run" to see what would change without touching the CMS).
 #

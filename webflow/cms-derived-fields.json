@@ -6,7 +6,8 @@
       "slug": "blog",
       "body": "icerik",
       "readingTime": "okuma-suresi",
-      "wordCount": "kelime-sayisi"
+      "wordCount": "kelime-sayisi",
+      "tableOfContents": "icindekiler"
     },
     {
       "slug": "karsilastirmalar",

@@ -1,0 +1,35 @@
+/*!
+ * reading-progress.css — behavioural styles only. The bar's height, colour
+ * and place (fixed to the top of the screen, say) come from Designer; its
+ * start state is in reading-progress.critical.css.
+ */
+
+/* MECHANIC — where the browser can, the bar runs on a view timeline of the
+   body: 0 when the body's top meets the top of the screen, 1 when its end
+   meets the bottom (the "contain" range). The root shares the timeline's
+   name with the bar, wherever Designer puts it inside the root. */
+@supports (animation-timeline: view()) {
+  [data-rc~="reading-progress"] {
+    timeline-scope: --rc-reading;
+  }
+
+  [data-rc~="reading-progress"] [data-rc-part="body"] {
+    view-timeline: --rc-reading block;
+  }
+
+  [data-rc~="reading-progress"] [data-rc-part="bar"] {
+    animation: rc-reading-progress linear both;
+    animation-timeline: --rc-reading;
+    animation-range: contain 0% contain 100%;
+  }
+
+  @keyframes rc-reading-progress {
+    from {
+      transform: scaleX(0);
+    }
+
+    to {
+      transform: scaleX(1);
+    }
+  }
+}

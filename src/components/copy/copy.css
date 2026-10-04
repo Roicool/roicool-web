@@ -1,0 +1,15 @@
+/*!
+ * copy.css — behavioural styles only. The button's look comes from Designer.
+ */
+
+/* MECHANIC — a copy button does nothing without JS; it is not shown. */
+html:not(.rc-js) [data-rc~="copy"] {
+  display: none;
+}
+
+/* MECHANIC — the label rests, the done words show for a moment after a
+   copy (state "copied"). */
+.rc-js [data-rc~="copy"]:not([data-rc-state="copied"]) [data-rc-part="done"],
+.rc-js [data-rc~="copy"][data-rc-state="copied"] [data-rc-part="label"] {
+  display: none;
+}

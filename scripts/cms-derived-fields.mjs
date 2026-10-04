@@ -1,7 +1,7 @@
 /**
  * cms-derived-fields.mjs — keeps the CMS fields that are computed from other
- * fields in step with their source: a piece's word count and reading time,
- * from its body.
+ * fields in step with their source: a piece's word count, reading time and
+ * table of contents, from its body.
  *
  * Why here and not in the browser: rule 1 in CLAUDE.md, JS never produces
  * content. A reading time worked out on the page would be invisible to
@@ -16,7 +16,10 @@
  *   1. checks the configured fields exist — a collection whose fields are
  *      not there yet is skipped with a warning, so the fields can come first;
  *   2. lists every item, drafts included and archived ones skipped, strips
- *      the body's HTML, counts the words and works out the minutes;
+ *      the body's HTML, counts the words and works out the minutes; where
+ *      the entry names a tableOfContents field, lists the body's H2s as
+ *      links to their anchors (src/runtime/anchors.js — the toc component
+ *      gives the H2s on the page the same ids);
  *   3. writes only the items whose stored values differ: the staged item
  *      always, and the live item too when the item is published, so no site
  *      publish is needed.
@@ -28,6 +31,12 @@
  */
 
 import { readFile } from "node:fs/promises";
+import {
+  textOf,
+  tableOfContents,
+  tableOfContentsHtml,
+  entriesOf,
+} from "../src/runtime/anchors.js";
 
 const API = "https://api.webflow.com/v2";
 /** Items per page the API hands out, and per bulk write it accepts. */
@@ -37,31 +46,7 @@ const RETRIES = 3;
 
 // ---- Pure parts, tested in cms-derived-fields.test.mjs ---------------------
 
-const ENTITIES = {
-  amp: "&",
-  lt: "<",
-  gt: ">",
-  quot: '"',
-  apos: "'",
-  nbsp: " ",
-};
-
-/** The readable text of a rich text field's HTML. */
-export function textOf(html) {
-  return String(html ?? "")
-    .replace(/<(script|style)\b[\s\S]*?<\/\1>/gi, " ")
-    .replace(/<[^>]+>/g, " ")
-    .replace(/&(#x[0-9a-f]+|#\d+|[a-z]+);/gi, (_, code) => {
-      if (code[0] !== "#") return ENTITIES[code.toLowerCase()] ?? " ";
-      const number =
-        code[1].toLowerCase() === "x"
-          ? Number.parseInt(code.slice(2), 16)
-          : Number(code.slice(1));
-      return Number.isFinite(number) ? String.fromCodePoint(number) : " ";
-    })
-    .replace(/\s+/g, " ")
-    .trim();
-}
+export { textOf };
 
 /** Words: whitespace-separated runs that carry at least one letter or digit. */
 export function countWords(html) {
@@ -79,28 +64,43 @@ export function minutesFor(words, wordsPerMinute) {
 /**
  * What to write, item by item, given the collection's field slugs. An item
  * is listed only when a stored value differs from the computed one; an
- * empty body clears both numbers rather than leaving stale ones behind.
+ * empty body clears every derived field rather than leaving stale values
+ * behind. `fields.tableOfContents` is optional; a stored table of contents
+ * is compared by its links (anchor and text), not its markup, since the
+ * CMS rewrites rich text as it stores it.
  */
 export function planUpdates(items, fields, wordsPerMinute) {
   const updates = [];
   for (const item of items) {
     if (item.isArchived) continue;
     const data = item.fieldData ?? {};
-    const words = countWords(data[fields.body]);
+    const body = data[fields.body];
+    const words = countWords(body);
     const wanted = {
       [fields.wordCount]: words > 0 ? words : null,
       [fields.readingTime]:
         words > 0 ? minutesFor(words, wordsPerMinute) : null,
     };
-    const changed = Object.entries(wanted).some(
+    let changed = Object.entries(wanted).some(
       ([slug, value]) => (data[slug] ?? null) !== value,
     );
+    let headings = 0;
+    if (fields.tableOfContents) {
+      const entries = tableOfContents(body);
+      headings = entries.length;
+      const stored = entriesOf(data[fields.tableOfContents]);
+      if (JSON.stringify(stored) !== JSON.stringify(entries)) {
+        wanted[fields.tableOfContents] = tableOfContentsHtml(entries);
+        changed = true;
+      }
+    }
     if (!changed) continue;
     updates.push({
       id: item.id,
       name: data.name ?? item.id,
       words,
       minutes: wanted[fields.readingTime] ?? 0,
+      headings,
       fieldData: wanted,
     });
   }
@@ -198,6 +198,13 @@ async function main() {
       );
       continue;
     }
+    const fields = { ...entry };
+    if (fields.tableOfContents && !present.has(fields.tableOfContents)) {
+      warn(
+        `${entry.slug}: ${fields.tableOfContents} alanı yok, içindekiler atlandı; okuma süresi yine yazılıyor.`,
+      );
+      delete fields.tableOfContents;
+    }
 
     const items = await listAll(token, `/collections/${collection.id}/items`);
     const live = new Set(
@@ -205,10 +212,13 @@ async function main() {
         (item) => item.id,
       ),
     );
-    const updates = planUpdates(items, entry, config.wordsPerMinute);
+    const updates = planUpdates(items, fields, config.wordsPerMinute);
     for (const update of updates) {
+      const contents = fields.tableOfContents
+        ? `, ${update.headings} başlık`
+        : "";
       console.log(
-        `  ${update.name}: ${update.words} kelime, ${update.minutes} dk${live.has(update.id) ? "" : " (taslak)"}`,
+        `  ${update.name}: ${update.words} kelime, ${update.minutes} dk${contents}${live.has(update.id) ? "" : " (taslak)"}`,
       );
     }
     if (!dryRun) {

@@ -174,7 +174,7 @@ DSN girilene kadar kapalı. Kurulum bir kez, sahibi yapar:
    Sentry'deki stack trace `src/runtime/registry.js` satırını göstermeli.
    Token'ı repoya, `package.json`'a ya da `head.html`'e yazma.
 
-## Türetilen CMS alanları (okuma süresi)
+## Türetilen CMS alanları (okuma süresi, içindekiler)
 
 Okuma süresi ve kelime sayısı CMS'te alan olarak durur; repo'daki script
 saatte bir hesaplayıp yazar ([`architecture.md › CMS'te türetilen
@@ -199,9 +199,14 @@ sahibi yapar:
 4. **Designer:** kartta ve yazı sayfasında Text Block'u Okuma süresi
    alanına bağla ("{{Okuma süresi}} dk okuma"); alan boşken gizlemek için
    Conditional Visibility › Okuma süresi is set.
+5. **İçindekiler (yalnız Blog):** "Türetilen" grubunda **İçindekiler** (Rich
+   text, slug `icindekiler`) alanı; script gövdenin H2'lerinden `#çapa`
+   linkli bir liste yazar (`tableOfContents` ayarı). Yazı sayfasında bu
+   alan `toc` bileşeninin `list` parçasına bağlanır; çapaları bileşen verir
+   (`src/components/toc/README.md`). Başka koleksiyona açmak = aynı ayar.
 
-Yazı yayınlandıktan sonra gövde değişirse sayı en geç bir saat içinde
-düzelir; yayınlanmamış taslakta da hesaplanır, yayına girince hazırdır.
+Yazı yayınlandıktan sonra gövde değişirse sayı ve içindekiler en geç bir
+saat içinde düzelir; yayınlanmamış taslakta da hesaplanır, yayına girince hazırdır.
 
 ## Doğrulama
 

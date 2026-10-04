@@ -1,0 +1,11 @@
+/*!
+ * reading-progress.critical.css — the bar starts empty. Inlined into the head
+ * so Designer's full-width fill never flashes before rc.css arrives.
+ */
+
+/* MECHANIC — the bar is the fill: scaled from its left edge by the share
+   read (reading-progress.css or reading-progress.js). */
+[data-rc~="reading-progress"] [data-rc-part="bar"] {
+  transform-origin: 0 50%;
+  transform: scaleX(var(--rc-reading-progress, 0));
+}

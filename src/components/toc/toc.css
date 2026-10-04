@@ -1,0 +1,28 @@
+/*!
+ * toc.css — behavioural styles only. The floating bar and its fold are in
+ * toc.critical.css; the list's type, the side column, the bar's look come
+ * from Designer.
+ */
+
+/* MECHANIC — a heading reached through its anchor stops below the sticky
+   header, whether the browser or Lenis does the scrolling. Set
+   --rc-toc-offset to the header's height plus some air. */
+[data-rc~="toc"] [data-rc-part="body"] h2 {
+  scroll-margin-top: var(--rc-toc-offset, 6rem);
+}
+
+/* LOOK — once the code runs, the links rest at reduced opacity and the
+   section being read is full. Zero specificity: Designer's link style may
+   set its own opacity. */
+:where(.rc-js [data-rc~="toc"] [data-rc-part="list"] a) {
+  transition: opacity 0.3s;
+}
+
+:where(
+  .rc-js
+    [data-rc~="toc"][data-rc-state]
+    [data-rc-part="list"]
+    a:not([data-rc-state="active"], :hover, :focus-visible)
+) {
+  opacity: var(--rc-toc-rest, 0.55);
+}

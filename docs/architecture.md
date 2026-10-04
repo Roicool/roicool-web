@@ -179,6 +179,15 @@ sekmesinden elle (dry run seçeneğiyle) çalıştırır; token `WEBFLOW_API_TOK
 repo secret'ı. Alanı henüz açılmamış koleksiyon uyarıyla atlanır, workflow
 kırmızıya düşmez.
 
+İkinci örnek içindekiler: ayarda `tableOfContents` alanı olan koleksiyonda
+script gövdenin H2'lerinden `#çapa` linkli bir liste yazar; liste HTML'de
+durur. Webflow'un zengin metni başlığa `id` veremediği için çapaları sayfada
+`toc` bileşeni verir. İki taraf başlık metnini aynı fonksiyonlarla çapaya
+çevirir (`src/runtime/anchors.js`; script de bu dosyayı import eder), bu
+yüzden link ile başlık birebir tutar. Saklanan liste işaretlemeyle değil
+linkleriyle karşılaştırılır (CMS zengin metni saklarken yeniden yazar);
+başlık değişmedikçe yazılmaz.
+
 Aynı kalıp ileride başka türetilen değerlere açılır (ses süresi, sayfa
 sayısı); yeni bir hesap yeni bir alan ve bu script'te bir satırdır,
 tarayıcıda bir satır değil.

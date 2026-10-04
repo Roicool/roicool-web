@@ -1,0 +1,118 @@
+/*!
+ * toc.critical.css — the floating table of contents on narrow screens, as it
+ * must look before any script runs. Inlined into the head by the build, so
+ * the bar is at the bottom of the screen and folded from the first paint and
+ * the page does not jump when toc.js arrives.
+ *
+ * Narrow means up to 991px (Webflow's tablet and below); toc.js reads the
+ * same query (FLOAT_QUERY). Wider screens keep Designer's layout untouched
+ * (a sticky side column, say), and so does a page without JS.
+ *
+ * Should toc.js never run, a folded list would be out of reach: while rc.js
+ * is not running (no html.rc-runtime: it never arrived, or a chunk failed and
+ * the registry dropped the class) and the root carries no state, the list
+ * unfolds by itself after four seconds.
+ */
+
+/* MECHANIC — the toggle does something only with JS, and only on narrow
+   screens. Designer gives it its look and display. */
+html:not(.rc-js) [data-rc~="toc"] [data-rc-part="toggle"] {
+  display: none;
+}
+
+@media (min-width: 992px) {
+  [data-rc~="toc"] [data-rc-part="toggle"] {
+    display: none;
+  }
+}
+
+@media (max-width: 991px) {
+  /* MECHANIC — the navigation floats at the bottom of the screen; its look
+     (background, radius, shadow, padding) stays Designer's. */
+  .rc-js [data-rc~="toc"] [data-rc-part="navigation"] {
+    position: fixed;
+    top: auto;
+    right: var(--rc-toc-inset, 1rem);
+    bottom: calc(var(--rc-toc-inset, 1rem) + env(safe-area-inset-bottom, 0px));
+    left: var(--rc-toc-inset, 1rem);
+    z-index: var(--rc-toc-layer, 90);
+    width: auto;
+    max-width: none;
+    margin: 0;
+    transition:
+      translate 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+      opacity 0.35s,
+      visibility 0s;
+  }
+
+  /* MECHANIC — while the body is off screen the bar steps down and away. */
+  .rc-js [data-rc~="toc"][data-rc-state~="away"] [data-rc-part="navigation"] {
+    translate: 0 calc(100% + var(--rc-toc-inset, 1rem) + 1rem);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition:
+      translate 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+      opacity 0.35s,
+      visibility 0s 0.35s;
+  }
+
+  /* MECHANIC — the panel folds to nothing under the toggle and unfolds
+     upwards (Designer puts it above the toggle). Folded, not removed: the
+     list stays in the HTML. One child (the list) folds onto the row. */
+  .rc-js [data-rc~="toc"] [data-rc-part="panel"] {
+    display: grid;
+    grid-template-rows: 0fr;
+    visibility: hidden;
+    transition:
+      grid-template-rows 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+      visibility 0s 0.35s;
+  }
+
+  .rc-js [data-rc~="toc"] [data-rc-part="panel"] > * {
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .rc-js [data-rc~="toc"][data-rc-state~="open"] [data-rc-part="panel"] {
+    grid-template-rows: 1fr;
+    visibility: visible;
+    transition:
+      grid-template-rows 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+      visibility 0s;
+  }
+
+  .rc-js [data-rc~="toc"][data-rc-state~="open"] [data-rc-part="panel"] > * {
+    max-height: var(--rc-toc-panel-height, 60svh);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  /* FALLBACK — no runtime and no state: unfold after four seconds. */
+  html.rc-js:not(.rc-runtime)
+    [data-rc~="toc"]:not([data-rc-state])
+    [data-rc-part="panel"] {
+    animation: rc-toc-fallback 0s 4s forwards;
+  }
+
+  html.rc-js:not(.rc-runtime)
+    [data-rc~="toc"]:not([data-rc-state])
+    [data-rc-part="panel"]
+    > * {
+    animation: rc-toc-fallback-list 0s 4s forwards;
+  }
+
+  @keyframes rc-toc-fallback {
+    to {
+      grid-template-rows: 1fr;
+      visibility: visible;
+    }
+  }
+
+  @keyframes rc-toc-fallback-list {
+    to {
+      max-height: var(--rc-toc-panel-height, 60svh);
+      overflow-y: auto;
+    }
+  }
+}
