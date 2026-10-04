@@ -1,7 +1,12 @@
 /*!
- * toc.css — behavioural styles only. The floating bar and its fold are in
- * toc.critical.css; the list's type, the side column, the bar's look come
- * from Designer.
+ * toc.css — the table of contents' behaviour and, by the owner's decision,
+ * its look: the list as a line with a marker on the section being read, the
+ * side column's sticky offset, and on narrow screens the floating bar's
+ * surface and toggle. The bar's position and fold are in toc.critical.css.
+ *
+ * The look is set with enough specificity to beat Webflow's tag defaults
+ * (ul padding, li type) and the utility classes on these elements; tune it
+ * through the --rc-toc-* variables (README.md), not in Designer.
  */
 
 /* MECHANIC — a heading reached through its anchor stops below the sticky
@@ -11,34 +16,129 @@
   scroll-margin-top: var(--rc-toc-offset, 6rem);
 }
 
+/* LOOK — wide screens: the side column's list stays in view, as far below
+   the top as a heading stops. */
+@media (min-width: 992px) {
+  [data-rc~="toc"] [data-rc-part="navigation"] {
+    top: var(--rc-toc-offset, 6rem);
+  }
+}
+
+/* LOOK — the list: no bullets, a thin line on the left, each link a block
+   with a transparent left border the width of the marker. */
+[data-rc~="toc"] [data-rc-part="list"] :is(ul, ol) {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-left: 1px solid
+    var(--rc-toc-line, color-mix(in srgb, currentColor 14%, transparent));
+}
+
+[data-rc~="toc"] [data-rc-part="list"] li {
+  margin: 0;
+  padding: 0;
+  font-size: inherit;
+  line-height: inherit;
+}
+
+[data-rc~="toc"] [data-rc-part="list"] a {
+  display: block;
+  margin-left: -1px;
+  padding: var(--rc-toc-item-padding, 0.4375rem 0 0.4375rem 1rem);
+  border-left: 2px solid transparent;
+  color: inherit;
+  line-height: var(--rc-toc-line-height, 1.4);
+  text-decoration: none;
+}
+
 /* LOOK — once the code runs, the links rest at reduced opacity and the
-   section being read is full. Zero specificity: Designer's link style may
-   set its own opacity. */
-:where(.rc-js [data-rc~="toc"] [data-rc-part="list"] a) {
+   section being read is full. */
+.rc-js [data-rc~="toc"] [data-rc-part="list"] a {
   transition:
     opacity 0.3s,
     border-color 0.3s;
 }
 
-:where(
-  .rc-js
-    [data-rc~="toc"][data-rc-state]
-    [data-rc-part="list"]
-    a:not([data-rc-state="active"], :hover, :focus-visible)
-) {
+.rc-js
+  [data-rc~="toc"][data-rc-state]
+  [data-rc-part="list"]
+  a:not([data-rc-state="active"], :hover, :focus-visible) {
   opacity: var(--rc-toc-rest, 0.55);
 }
 
-/* LOOK — the section being read also colours its link's left border: the
-   marker on the list's line. Designer draws the line and gives every link a
-   transparent left border of the same width; the colour of the one being
-   read can only come from here, since Designer cannot select
-   data-rc-state. Full specificity, so it wins over that transparent border.
-   The colour is the site's brand variable (Webflow › Variables ›
-   brand-primary/500), or --rc-toc-indicator where it is set. */
+/* LOOK — the section being read colours its link's left border: the marker
+   on the line. The site's brand colour (Webflow › Variables ›
+   brand-primary/500) unless --rc-toc-indicator is set. */
 .rc-js [data-rc~="toc"] [data-rc-part="list"] a[data-rc-state="active"] {
   border-left-color: var(
     --rc-toc-indicator,
     var(--brand-primary--500, currentColor)
   );
+}
+
+/* LOOK — narrow screens: the floating bar's surface, the list's padding
+   (vertical only while open, so the folded panel stays at nothing) and the
+   toggle as a full-width row with a chevron. */
+@media (max-width: 991px) {
+  .rc-js [data-rc~="toc"] [data-rc-part="navigation"] {
+    gap: 0;
+    background: var(--rc-toc-surface, #fff);
+    border-radius: var(--rc-toc-radius, 1rem);
+    box-shadow: var(
+      --rc-toc-shadow,
+      0 0 0 1px rgb(20 18 40 / 0.08),
+      0 8px 30px rgb(20 18 40 / 0.14)
+    );
+  }
+
+  .rc-js [data-rc~="toc"] [data-rc-part="panel"] > * {
+    padding: 0 1rem;
+    border-bottom: 1px solid transparent;
+    transition:
+      padding 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+      border-color 0.35s;
+  }
+
+  .rc-js [data-rc~="toc"][data-rc-state~="open"] [data-rc-part="panel"] > * {
+    padding: 1rem 1rem 0.5rem;
+    border-bottom-color: var(
+      --rc-toc-line,
+      color-mix(in srgb, currentColor 14%, transparent)
+    );
+  }
+
+  .rc-js [data-rc~="toc"] [data-rc-part="toggle"] {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    width: 100%;
+    padding: 0.875rem 1rem;
+    font-weight: 600;
+  }
+
+  .rc-js [data-rc~="toc"] [data-rc-part="toggle"]:focus-visible {
+    outline-offset: -2px;
+  }
+
+  .rc-js [data-rc~="toc"] [data-rc-part="toggle"]::after {
+    content: "";
+    flex: none;
+    width: 0.5em;
+    height: 0.5em;
+    margin-top: 0.25em;
+    border-top: 2px solid;
+    border-right: 2px solid;
+    rotate: -45deg;
+    transition:
+      rotate 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+      margin 0.35s;
+  }
+
+  .rc-js
+    [data-rc~="toc"][data-rc-state~="open"]
+    [data-rc-part="toggle"]::after {
+    margin-top: -0.25em;
+    rotate: 135deg;
+  }
 }

@@ -33,39 +33,47 @@ Div / Article          [data-rc="toc reading-progress post"] [data-rc-eager]   �
 
 - **Sıra:** `panel` `toggle`'dan önce: dar ekranda liste düğmenin üstünde
   açılır.
-- **navigation:** masaüstünde kenar sütunda `position: sticky; top` Designer'ın.
+
+**Görünüm kodda (sahibinin kararı).** Liste, kenar sütunun sticky payı ve
+dar ekrandaki yüzen menünün yüzeyi `toc.css`'te; Designer'ın tag
+varsayılanlarını (`ul` padding'i, `li` yazı boyu) ve bu elemanlardaki utility
+class'ları ezecek kadar özgül. Ayar Designer'dan değil, aşağıdaki
+değişkenlerle yapılır. Designer'da bu parçalara stil verme; verilen değer ya
+ezilir ya da görünümü bozar.
+
+- **navigation:** masaüstünde (992 px ve üstü) `top` kodda
+  (`--rc-toc-offset`); `position: sticky` Designer'da (`sticky` class'ı).
   Dar ekranda (991 px ve altı) kod `position: fixed` ile ekranın altına alır
-  (kenarlardan `--rc-toc-inset`, 1rem); görünümü (arka plan, radius, gölge,
-  padding) Designer'ın. Bu kırılımda `position`, `top/bottom`, `width`,
-  `margin` verme.
+  (kenarlardan `--rc-toc-inset`); beyaz yüzey, radius, gölge kodda.
 - **panel:** stil verme; kod dar ekranda katlar (`display: grid`). Açık
   listenin en fazla yüksekliği `--rc-toc-panel-height` (60svh), uzunsa
   kendi içinde kayar.
-- **toggle:** görünümü Designer'ın; masaüstünde ve JS yokken kod gizler.
-  Metni "İçindekiler" gibi sabit; `aria-expanded`, `aria-controls` kodda.
-- **list linkleri:** `opacity` verme; okunmayan linkler `--rc-toc-rest`
-  (0.55) opaklıkta, okunan tam. Renkleri normal metin rengi kalsın
-  (soluklaştırmayı kod yapar).
-- **Çizgi (sitedeki görünüm):** listenin class'ında (`blog__toc-list`)
-  "When inside" ile — `ul`: madde işareti yok, padding/margin 0, solda 1 px
-  açık gri çizgi; `li`: margin 0; `a`: `display: block`, sol padding,
-  `margin-left: -1px`, **solda 2 px şeffaf border**, alt çizgi yok. Okunan
-  linkin bu border'ını kod sitenin ana rengine boyar (Webflow › Variables ›
-  `brand-primary/500`); `data-rc-state="active"` Designer'da seçilemez.
-  Designer'da renk için bir şey yapılmaz.
+- **toggle:** dar ekranda tam genişlik satır + ok işareti kodda; masaüstünde
+  ve JS yokken kod gizler. Metni "İçindekiler" gibi sabit; `aria-expanded`,
+  `aria-controls` kodda.
+- **list:** madde işareti yok, solda ince çizgi, her link blok ve solda 2 px
+  şeffaf kenar; okunan linkin kenarı `--rc-toc-indicator` rengine boyanır,
+  okunmayanlar `--rc-toc-rest` opaklıkta. Yazı boyu listenin class'ından
+  (`text-sm`) gelir.
 - Sarmalayıcıya ve üstlerine `overflow: hidden` verme (sticky ve fixed
   bozulur).
 
 ## Ayarlar
 
-| Değişken                | Varsayılan             | Ne                                                |
-| ----------------------- | ---------------------- | ------------------------------------------------- |
-| `--rc-toc-offset`       | `6rem`                 | Başlığın kaydırınca ekranın üstünde bıraktığı pay |
-| `--rc-toc-inset`        | `1rem`                 | Yüzen menünün ekran kenarlarından uzaklığı        |
-| `--rc-toc-layer`        | `90`                   | Yüzen menünün `z-index`'i                         |
-| `--rc-toc-panel-height` | `60svh`                | Açık listenin en fazla yüksekliği                 |
-| `--rc-toc-rest`         | `0.55`                 | Okunmayan linklerin opaklığı                      |
-| `--rc-toc-indicator`    | `--brand-primary--500` | Okunan linkin sol border'ının rengi               |
+| Değişken                | Varsayılan                 | Ne                                                |
+| ----------------------- | -------------------------- | ------------------------------------------------- |
+| `--rc-toc-offset`       | `6rem`                     | Başlığın kaydırınca ekranın üstünde bıraktığı pay |
+| `--rc-toc-inset`        | `1rem`                     | Yüzen menünün ekran kenarlarından uzaklığı        |
+| `--rc-toc-layer`        | `90`                       | Yüzen menünün `z-index`'i                         |
+| `--rc-toc-panel-height` | `60svh`                    | Açık listenin en fazla yüksekliği                 |
+| `--rc-toc-rest`         | `0.55`                     | Okunmayan linklerin opaklığı                      |
+| `--rc-toc-indicator`    | `--brand-primary--500`     | Okunan linkin sol border'ının rengi               |
+| `--rc-toc-line`         | metin rengi %14            | Listenin soldaki çizgisi, açık menüdeki ayraç     |
+| `--rc-toc-item-padding` | `.4375rem 0 .4375rem 1rem` | Bir linkin iç boşluğu                             |
+| `--rc-toc-line-height`  | `1.4`                      | Linklerin satır yüksekliği                        |
+| `--rc-toc-surface`      | `#fff`                     | Yüzen menünün arka planı                          |
+| `--rc-toc-radius`       | `1rem`                     | Yüzen menünün köşeleri                            |
+| `--rc-toc-shadow`       | ince çerçeve + gölge       | Yüzen menünün gölgesi                             |
 
 Değişkenler sarmalayıcıya ya da `site.css`'e yazılır.
 
