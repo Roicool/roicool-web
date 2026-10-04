@@ -155,7 +155,11 @@ test("planUpdates: güncelleme tarihi yalnız metin gerçekten değişince", () 
   };
   const now = new Date("2026-10-04T12:00:00Z");
   const body = "<p>bir iki üç</p>";
-  const settled = { "kelime-sayisi": 3, "okuma-suresi": 1 };
+  const settled = {
+    "kelime-sayisi": 3,
+    "okuma-suresi": 1,
+    "guncelleme-tarihi": "2026-09-01T00:00:00.000Z",
+  };
   const signature = signatureOf(body);
   const items = [
     { id: "first", fieldData: { icerik: body, ...settled } },
@@ -189,4 +193,41 @@ test("planUpdates: güncelleme tarihi yalnız metin gerçekten değişince", () 
     "2026-10-04T12:00:00.000Z",
   );
   assert.equal(updates[1].revised, true);
+});
+
+test("planUpdates: güncelleme tarihi boşsa oluşturma tarihini alır", () => {
+  const fields = {
+    ...FIELDS,
+    updatedAt: "guncelleme-tarihi",
+    signature: "icerik-imzasi",
+  };
+  const now = new Date("2026-10-04T12:00:00Z");
+  const body = "<p>bir iki üç</p>";
+  const settled = {
+    icerik: body,
+    "kelime-sayisi": 3,
+    "okuma-suresi": 1,
+    "icerik-imzasi": signatureOf(body),
+  };
+  const items = [
+    {
+      id: "created",
+      createdOn: "2026-09-27T15:48:39.812Z",
+      fieldData: settled,
+    },
+    { id: "no-date", fieldData: settled },
+    {
+      id: "dated",
+      fieldData: { ...settled, "guncelleme-tarihi": "2026-09-30T00:00:00Z" },
+    },
+  ];
+  const updates = planUpdates(items, fields, 200, now);
+  assert.deepEqual(
+    updates.map((update) => [update.id, update.fieldData["guncelleme-tarihi"]]),
+    [
+      ["created", "2026-09-27T15:48:39.812Z"],
+      ["no-date", "2026-10-04T12:00:00.000Z"],
+    ],
+  );
+  assert.ok(updates.every((update) => update.revised === false));
 });

@@ -23,7 +23,9 @@
  *      and a signature field, stamps today's date when the body's text has
  *      really changed (the signature is a digest of the text alone, so a
  *      style, link or picture change does not count, and the first run only
- *      records it);
+ *      records it); an item with no update date yet takes its creation
+ *      date, so the field (and dateModified in the page's structured data)
+ *      is never empty;
  *   3. writes only the items whose stored values differ: the staged item
  *      always, and the live item too when the item is published, so no site
  *      publish is needed.
@@ -82,7 +84,8 @@ export function signatureOf(html) {
  * CMS rewrites rich text as it stores it. `fields.updatedAt` with
  * `fields.signature` are optional too: a new signature with an old one
  * stored stamps `now` as the update date; with none stored (the first run,
- * a new item) only the signature is recorded.
+ * a new item) only the signature is recorded. An item with no update date
+ * at all takes its creation date (`item.createdOn`, else `now`).
  */
 export function planUpdates(items, fields, wordsPerMinute, now = new Date()) {
   const updates = [];
@@ -120,6 +123,10 @@ export function planUpdates(items, fields, wordsPerMinute, now = new Date()) {
           wanted[fields.updatedAt] = now.toISOString();
           revised = true;
         }
+      }
+      if (!wanted[fields.updatedAt] && !data[fields.updatedAt]) {
+        wanted[fields.updatedAt] = item.createdOn ?? now.toISOString();
+        changed = true;
       }
     }
     if (!changed) continue;
