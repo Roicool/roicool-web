@@ -1,0 +1,269 @@
+/*!
+ * prose.css — the .rc-prose helper class: long-form rich text (a blog post's
+ * body, its TL;DR, takeaways, FAQ and sources) set the way Designer cannot
+ * reach. Put rc-prose on the Rich Text element, next to its own class.
+ *
+ * Designer keeps what it already styles on the rich text (heading sizes,
+ * paragraph margins, link colour, the quote's border and type); nothing here
+ * sets those. This file takes what Designer has no handle on inside a CMS
+ * rich text: Webflow's own figure rules (images at 60% width, a table-caption
+ * layout), :first-child / :last-child, ::marker, :not(), text-wrap,
+ * tables, code, rules and footnote markers. Values come from the site's
+ * variables (Webflow › Variables) and each one is a --rc-prose-* hook.
+ *
+ * Specificity: enough to beat Webflow's element defaults (ul padding,
+ * blockquote padding, figure margin) and its rich-text figure rules; the
+ * figure selectors repeat [data-rt-type] to stay above those whatever the
+ * load order.
+ *
+ * Not in Designer: pseudo-classes and pseudo-elements on the children of a
+ * CMS rich text, and Webflow's internal figure styles.
+ */
+
+.rc-prose {
+  overflow-wrap: break-word;
+}
+
+/* No gap above the first block or below the last one: a box around the
+   rich text (TL;DR, takeaways) keeps even padding, and a body that opens
+   with a heading starts at the top. */
+.rc-prose > :first-child {
+  margin-top: 0;
+}
+
+.rc-prose > :last-child {
+  margin-bottom: 0;
+}
+
+.rc-prose :is(blockquote, li, figure, td, th) > :first-child {
+  margin-top: 0;
+}
+
+.rc-prose :is(blockquote, li, figure, td, th) > :last-child {
+  margin-bottom: 0;
+}
+
+/* Headings: air above that separates sections, less below so the heading
+   belongs to its text. Sizes stay Designer's. */
+.rc-prose :is(h1, h2) {
+  margin-top: var(--rc-prose-h2-space, var(--spacing--12, 2.5rem));
+  margin-bottom: var(--rc-prose-h2-after, var(--spacing--4, 1rem));
+}
+
+.rc-prose h3 {
+  margin-top: var(--rc-prose-h3-space, var(--spacing--8, 1.75rem));
+  margin-bottom: var(--rc-prose-h3-after, var(--spacing--3, 0.75rem));
+}
+
+.rc-prose :is(h4, h5, h6) {
+  margin-top: var(--rc-prose-h4-space, var(--spacing--6, 1.25rem));
+  margin-bottom: var(--rc-prose-h4-after, var(--spacing--2, 0.5rem));
+}
+
+.rc-prose :is(h1, h2, h3, h4, h5, h6) {
+  text-wrap: balance;
+}
+
+/* A heading or a rule starts below a floated image, never beside it. */
+.rc-prose :is(h1, h2, h3, hr) {
+  clear: both;
+}
+
+.rc-prose :is(p, li, blockquote, figcaption) {
+  text-wrap: pretty;
+}
+
+/* Images: the column's full width, rounded, with room above and below.
+   Webflow's own rules cap a figure at 60% and lay it out as a table. */
+.rc-prose figure[data-rt-type][data-rt-type] {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  margin: var(--rc-prose-media-space, var(--spacing--8, 1.75rem)) 0;
+}
+
+.rc-prose figure[data-rt-type][data-rt-type] > div {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+}
+
+.rc-prose img {
+  border-radius: var(--rc-prose-radius, var(--radius--lg, 0.5rem));
+}
+
+.rc-prose figure img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* Webflow lays the caption out as a table caption, as narrow as a word. */
+.rc-prose figcaption,
+.rc-prose figure[data-rt-type][data-rt-type] > figcaption {
+  display: block;
+  margin-top: var(--spacing--3, 0.75rem);
+  color: var(--color-text--muted, currentColor);
+  font-size: var(--text--sm, 0.875rem);
+  line-height: 1.5;
+  text-align: var(--rc-prose-caption-align, center);
+}
+
+/* Videos keep Webflow's ratio box, at full width and rounded. */
+.rc-prose figure[data-rt-type="video"][data-rt-type] {
+  overflow: hidden;
+  border-radius: var(--rc-prose-radius, var(--radius--lg, 0.5rem));
+}
+
+.rc-prose iframe {
+  max-width: 100%;
+  border: 0;
+}
+
+/* Floated images float only where there is room beside them. */
+.rc-prose
+  figure:is(
+    [data-rt-align="floatleft"],
+    [data-rt-align="floatright"]
+  )[data-rt-type] {
+  float: none;
+}
+
+@media (min-width: 768px) {
+  .rc-prose figure[data-rt-align="floatleft"][data-rt-type][data-rt-type] {
+    float: left;
+    width: min(50%, 22rem);
+    margin: var(--spacing--1, 0.25rem) var(--spacing--8, 1.75rem)
+      var(--spacing--5, 1rem) 0;
+  }
+
+  .rc-prose figure[data-rt-align="floatright"][data-rt-type][data-rt-type] {
+    float: right;
+    width: min(50%, 22rem);
+    margin: var(--spacing--1, 0.25rem) 0 var(--spacing--5, 1rem)
+      var(--spacing--8, 1.75rem);
+  }
+}
+
+/* Lists: a sensible indent instead of Webflow's 40px, room around the list,
+   space between bullets, quieter markers. Numbered lists keep Designer's
+   gap. */
+.rc-prose :is(ul, ol) {
+  margin-top: var(--spacing--4, 1rem);
+  margin-bottom: var(--spacing--4, 1rem);
+  padding-left: var(--rc-prose-list-indent, 1.5em);
+}
+
+.rc-prose ul > li + li {
+  margin-top: var(--rc-prose-item-space, var(--spacing--2, 0.5rem));
+}
+
+.rc-prose li > :is(ul, ol) {
+  margin-top: var(--spacing--2, 0.5rem);
+  margin-bottom: 0;
+}
+
+.rc-prose li::marker {
+  color: var(--rc-prose-marker, var(--color-text--muted, currentColor));
+}
+
+.rc-prose ol > li::marker {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+/* Quotes: Designer's border and type, with room around and a padding that
+   lines up with the text. */
+.rc-prose blockquote {
+  margin: var(--spacing--8, 1.75rem) 0;
+  padding: var(--spacing--1, 0.25rem) 0 var(--spacing--1, 0.25rem)
+    var(--spacing--5, 1rem);
+}
+
+/* Footnote markers do not stretch the line they sit in. */
+.rc-prose sup {
+  line-height: 0;
+}
+
+.rc-prose sup a {
+  padding-inline: 0.125em;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+/* Tables: a rounded, bordered box as wide as its content, scrolling
+   sideways when that is wider than the column; quiet rows, a tinted
+   header. */
+.rc-prose table {
+  display: block;
+  width: fit-content;
+  max-width: 100%;
+  margin: var(--spacing--8, 1.75rem) 0;
+  overflow-x: auto;
+  border: 1px solid var(--border--muted, rgb(0 0 0 / 0.12));
+  border-radius: var(--rc-prose-radius, var(--radius--lg, 0.5rem));
+  border-collapse: collapse;
+  font-size: var(--text--sm, 0.875rem);
+  line-height: 1.5;
+  font-variant-numeric: tabular-nums;
+}
+
+.rc-prose :is(th, td) {
+  padding: var(--spacing--3, 0.75rem) var(--spacing--4, 1rem);
+  text-align: start;
+  vertical-align: top;
+}
+
+.rc-prose tr + tr > :is(th, td) {
+  border-top: 1px solid var(--border--muted, rgb(0 0 0 / 0.12));
+}
+
+.rc-prose thead th,
+.rc-prose tr:first-child > th {
+  background: var(--surface--muted, rgb(0 0 0 / 0.04));
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* Code: a tinted chip inline, a scrolling block on its own. --font--mono is
+   the site's sans for now, so the stack falls back to the system's. */
+.rc-prose :not(pre) > code {
+  padding: 0.125em 0.375em;
+  border-radius: var(--radius--md, 0.375rem);
+  background: var(--surface--muted, rgb(0 0 0 / 0.05));
+  font-family: var(
+    --rc-prose-code-font,
+    ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    Consolas,
+    monospace
+  );
+  font-size: 0.875em;
+}
+
+.rc-prose pre {
+  margin: var(--spacing--8, 1.75rem) 0;
+  padding: var(--spacing--5, 1rem);
+  overflow-x: auto;
+  border-radius: var(--rc-prose-radius, var(--radius--lg, 0.5rem));
+  background: var(--surface--muted, rgb(0 0 0 / 0.05));
+  font-family: var(
+    --rc-prose-code-font,
+    ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    Consolas,
+    monospace
+  );
+  font-size: var(--text--sm, 0.875rem);
+  line-height: 1.6;
+}
+
+/* A rule: one hairline with room around it. */
+.rc-prose hr {
+  height: 0;
+  margin: var(--spacing--12, 2.5rem) 0;
+  border: 0;
+  border-top: 1px solid var(--border--muted, rgb(0 0 0 / 0.12));
+}

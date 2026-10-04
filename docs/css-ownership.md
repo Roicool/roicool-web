@@ -14,18 +14,19 @@ gördüğün şey gerçeği yansıtmamaya başlar, bu da en pahalı hata türü.
 
 **Hayır ise repo'ya yazılır.** Pratikte şunlar:
 
-| Repo'ya ait                              | Neden Designer yapamaz                                                                |
-| ---------------------------------------- | ------------------------------------------------------------------------------------- |
-| `[data-rc-state]` geçişleri              | Durum JS tarafından basılıyor                                                         |
-| Açılma/kapanma mekaniği (`0fr → 1fr`)    | Designer bu selector'ü üretemez                                                       |
-| `@keyframes`                             | Designer'da tanımlanamaz                                                              |
-| `:has()`, `:focus-visible`, `:where()`   | Designer selector yazdırmaz                                                           |
-| `@media (prefers-reduced-motion)`        | Designer'da yok                                                                       |
-| `@media (forced-colors)`, `@media print` | Designer'da yok                                                                       |
-| `.rc-sr-only`, `.rc-skip-link`           | Erişilebilirlik altyapısı, tasarım değil                                              |
-| `.rc-align-middle`                       | `vertical-align` Designer'da yok                                                      |
-| `.rc-grain`                              | data: URI doku + blend Designer'da yok                                                |
-| `.rc-glass`, `.rc-glass-on-light`        | Maskeli `::before` kenar, `@supports`, `prefers-reduced-transparency` Designer'da yok |
+| Repo'ya ait                              | Neden Designer yapamaz                                                                           |
+| ---------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| `[data-rc-state]` geçişleri              | Durum JS tarafından basılıyor                                                                    |
+| Açılma/kapanma mekaniği (`0fr → 1fr`)    | Designer bu selector'ü üretemez                                                                  |
+| `@keyframes`                             | Designer'da tanımlanamaz                                                                         |
+| `:has()`, `:focus-visible`, `:where()`   | Designer selector yazdırmaz                                                                      |
+| `@media (prefers-reduced-motion)`        | Designer'da yok                                                                                  |
+| `@media (forced-colors)`, `@media print` | Designer'da yok                                                                                  |
+| `.rc-sr-only`, `.rc-skip-link`           | Erişilebilirlik altyapısı, tasarım değil                                                         |
+| `.rc-align-middle`                       | `vertical-align` Designer'da yok                                                                 |
+| `.rc-grain`                              | data: URI doku + blend Designer'da yok                                                           |
+| `.rc-glass`, `.rc-glass-on-light`        | Maskeli `::before` kenar, `@supports`, `prefers-reduced-transparency` Designer'da yok            |
+| `.rc-prose`                              | CMS rich text'in çocuklarında `:first-child`, `::marker`, tablo, kod, Webflow'un figür kuralları |
 
 ## Çakışmayı mimariyle önlüyoruz
 

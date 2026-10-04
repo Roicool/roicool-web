@@ -67,6 +67,11 @@ bulur ve ona `data-rc-part="track"` basar. Kodun tanımladığı tek class ailes
   yerinde)
 - `.rc-align-middle` — `vertical-align: middle` (Designer'da yok; `site.css`)
 - `.rc-grain` — data: URI doku + blend (Designer'da yok; `site.css`)
+- `.rc-prose` — uzun yazı rich text'i (blog gövdesi, TL;DR, önemli noktalar,
+  SSS, kaynaklar): tam genişlik ve yuvarlatılmış görseller, başlık ve blok
+  boşlukları, liste girintisi ve işaretleri, tablo, kod, çizgi, dipnot.
+  Designer'ın verdiği başlık boyu, paragraf boşluğu, link rengi ezilmez
+  (`base/prose.css`)
 - `.rc-glass` — buzlu cam yüzey: blur, gradyan dolgu, maskeli `::before`
   ile 1px kenar; `.rc-glass-on-light` açık zemin varyantı (Designer'da yok;
   `critical.css`, ilk boyamada düz görünmesin diye)

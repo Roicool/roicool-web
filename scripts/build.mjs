@@ -169,6 +169,7 @@ async function buildStylesheet(components) {
       path.join(src, "base", "motion.css"),
       path.join(src, "base", "scroll.css"),
       path.join(src, "base", "site.css"),
+      path.join(src, "base", "prose.css"),
       ...components.map((name) =>
         path.join(src, "components", name, `${name}.css`),
       ),

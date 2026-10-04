@@ -1,6 +1,7 @@
 /*!
- * post.css — behavioural styles only for a blog post's rich text. Tables'
- * and quotes' look come from Designer (the rich text's tag styles).
+ * post.css — behavioural styles for a blog post's rich text. The look of
+ * its tables, quotes, images and lists is the .rc-prose helper's
+ * (base/prose.css).
  */
 
 /* MECHANIC — a table wider than the column scrolls sideways inside its own
@@ -16,4 +17,13 @@
    header, like the headings (--rc-toc-offset). */
 [data-rc~="post"] [data-rc-part="sources"] li {
   scroll-margin-top: var(--rc-toc-offset, 6rem);
+}
+
+/* LOOK — the source a footnote led to is tinted while it is the target, so
+   the eye finds it in a long list. Not in Designer: :target. */
+[data-rc~="post"] [data-rc-part="sources"] li:target {
+  border-radius: var(--radius--md, 0.375rem);
+  background: color-mix(in oklch, var(--rc-brand) 10%, transparent);
+  box-shadow: 0 0 0 0.375rem
+    color-mix(in oklch, var(--rc-brand) 10%, transparent);
 }
