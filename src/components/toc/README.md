@@ -21,7 +21,7 @@ durur). Kod ayrıca: adreste `#çapa` varsa sayfa açılınca o başlığa iner
 ## Designer'daki yapı
 
 ```
-Div / Article          [data-rc="toc reading-progress"] [data-rc-eager]   ← yazının sarmalayıcısı
+Div / Article          [data-rc="toc reading-progress post"] [data-rc-eager]   ← yazının sarmalayıcısı
   Div                  [data-rc-part="bar"]                     ← okuma çubuğu (reading-progress)
   Div  (yerleşim: masaüstünde kenar sütun + gövde)
     Nav                [data-rc-part="navigation"] aria-label="İçindekiler"

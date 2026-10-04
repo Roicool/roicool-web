@@ -1,0 +1,8 @@
+/*!
+ * share.css — behavioural styles only. The links' look comes from Designer.
+ */
+
+/* MECHANIC — without JS the links lead nowhere; the whole row is not shown. */
+html:not(.rc-js) [data-rc~="share"] {
+  display: none;
+}

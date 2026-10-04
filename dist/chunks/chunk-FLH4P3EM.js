@@ -1,0 +1,2 @@
+var e="[rc]",o=null;function t(r){o=r}var n=(()=>{try{return new URLSearchParams(window.location.search).has("rc-debug")||window.localStorage.getItem("rcDebug")==="1"}catch{return!1}})();function c(...r){n&&console.log(e,...r)}function a(...r){console.warn(e,...r),o?.("warning",r)}function l(...r){console.error(e,...r),o?.("error",r)}export{t as a,c as b,a as c,l as d};
+//# sourceMappingURL=chunk-FLH4P3EM.js.map

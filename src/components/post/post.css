@@ -1,0 +1,19 @@
+/*!
+ * post.css — behavioural styles only for a blog post's rich text. Tables'
+ * and quotes' look come from Designer (the rich text's tag styles).
+ */
+
+/* MECHANIC — a table wider than the column scrolls sideways inside its own
+   box instead of widening the page. */
+[data-rc~="post"] [data-rc-part="body"] table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+}
+
+/* MECHANIC — a source reached from a footnote stops below the sticky
+   header, like the headings (--rc-toc-offset). */
+[data-rc~="post"] [data-rc-part="sources"] li {
+  scroll-margin-top: var(--rc-toc-offset, 6rem);
+}
