@@ -34,7 +34,11 @@
    transparent left border of the same width; the colour of the one being
    read can only come from here, since Designer cannot select
    data-rc-state. Full specificity, so it wins over that transparent border.
-   Set --rc-toc-indicator to the brand colour. */
+   The colour is the site's brand variable (Webflow › Variables ›
+   brand-primary/500), or --rc-toc-indicator where it is set. */
 .rc-js [data-rc~="toc"] [data-rc-part="list"] a[data-rc-state="active"] {
-  border-left-color: var(--rc-toc-indicator, currentColor);
+  border-left-color: var(
+    --rc-toc-indicator,
+    var(--brand-primary--500, currentColor)
+  );
 }

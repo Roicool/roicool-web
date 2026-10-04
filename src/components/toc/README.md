@@ -50,22 +50,22 @@ Div / Article          [data-rc="toc reading-progress post"] [data-rc-eager]   �
   "When inside" ile — `ul`: madde işareti yok, padding/margin 0, solda 1 px
   açık gri çizgi; `li`: margin 0; `a`: `display: block`, sol padding,
   `margin-left: -1px`, **solda 2 px şeffaf border**, alt çizgi yok. Okunan
-  linkin bu border'ını kod `--rc-toc-indicator` rengine boyar
-  (`data-rc-state="active"` Designer'da seçilemez); değişkeni `blog__toc`
-  class'ının Custom properties'ine ana renk olarak yaz.
+  linkin bu border'ını kod sitenin ana rengine boyar (Webflow › Variables ›
+  `brand-primary/500`); `data-rc-state="active"` Designer'da seçilemez.
+  Designer'da renk için bir şey yapılmaz.
 - Sarmalayıcıya ve üstlerine `overflow: hidden` verme (sticky ve fixed
   bozulur).
 
 ## Ayarlar
 
-| Değişken                | Varsayılan  | Ne                                                |
-| ----------------------- | ----------- | ------------------------------------------------- |
-| `--rc-toc-offset`       | `6rem`      | Başlığın kaydırınca ekranın üstünde bıraktığı pay |
-| `--rc-toc-inset`        | `1rem`      | Yüzen menünün ekran kenarlarından uzaklığı        |
-| `--rc-toc-layer`        | `90`        | Yüzen menünün `z-index`'i                         |
-| `--rc-toc-panel-height` | `60svh`     | Açık listenin en fazla yüksekliği                 |
-| `--rc-toc-rest`         | `0.55`      | Okunmayan linklerin opaklığı                      |
-| `--rc-toc-indicator`    | metin rengi | Okunan linkin sol border'ının rengi               |
+| Değişken                | Varsayılan             | Ne                                                |
+| ----------------------- | ---------------------- | ------------------------------------------------- |
+| `--rc-toc-offset`       | `6rem`                 | Başlığın kaydırınca ekranın üstünde bıraktığı pay |
+| `--rc-toc-inset`        | `1rem`                 | Yüzen menünün ekran kenarlarından uzaklığı        |
+| `--rc-toc-layer`        | `90`                   | Yüzen menünün `z-index`'i                         |
+| `--rc-toc-panel-height` | `60svh`                | Açık listenin en fazla yüksekliği                 |
+| `--rc-toc-rest`         | `0.55`                 | Okunmayan linklerin opaklığı                      |
+| `--rc-toc-indicator`    | `--brand-primary--500` | Okunan linkin sol border'ının rengi               |
 
 Değişkenler sarmalayıcıya ya da `site.css`'e yazılır.
 

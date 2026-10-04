@@ -173,7 +173,7 @@
  * toc.css — behavioural styles only. The floating bar and its fold are in
  * toc.critical.css; the list's type, the side column, the bar's look come
  * from Designer.
- */[data-rc~=toc] [data-rc-part=body] h2{scroll-margin-top:var(--rc-toc-offset, 6rem)}:where(.rc-js [data-rc~=toc] [data-rc-part=list] a){transition:opacity .3s,border-color .3s}:where(.rc-js [data-rc~=toc][data-rc-state] [data-rc-part=list] a:not([data-rc-state=active],:hover,:focus-visible)){opacity:var(--rc-toc-rest, .55)}.rc-js [data-rc~=toc] [data-rc-part=list] a[data-rc-state=active]{border-left-color:var(--rc-toc-indicator, currentColor)}/*!
+ */[data-rc~=toc] [data-rc-part=body] h2{scroll-margin-top:var(--rc-toc-offset, 6rem)}:where(.rc-js [data-rc~=toc] [data-rc-part=list] a){transition:opacity .3s,border-color .3s}:where(.rc-js [data-rc~=toc][data-rc-state] [data-rc-part=list] a:not([data-rc-state=active],:hover,:focus-visible)){opacity:var(--rc-toc-rest, .55)}.rc-js [data-rc~=toc] [data-rc-part=list] a[data-rc-state=active]{border-left-color:var( --rc-toc-indicator, var(--brand-primary--500, currentColor) )}/*!
  * website-ring.css — behavioural styles only. The section's size and black
  * background, the scene's top and bottom gradients, the title's type, the
  * pill's white capsule and the fallback's picture all come from Designer.
