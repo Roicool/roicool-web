@@ -53,6 +53,11 @@
   scrollbar-width: none;
 }
 
+/* MECHANIC — the card of the page being read steps out of the row. */
+[data-rc~="card-slider"] [data-rc-part="track"] > [hidden] {
+  display: none;
+}
+
 [data-rc~="card-slider"] [data-rc-part="track"]::-webkit-scrollbar {
   display: none;
 }

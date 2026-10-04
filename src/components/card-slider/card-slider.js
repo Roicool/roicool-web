@@ -38,6 +38,12 @@ function fadeLength(value) {
   return /^\d+(\.\d+)?$/.test(value) ? `${value}%` : value;
 }
 
+/** A URL reduced to its page: origin and path, no trailing slash. */
+function samePage(url) {
+  const { origin, pathname } = new URL(url, location.href);
+  return origin + pathname.replace(/\/+$/, "");
+}
+
 /**
  * The Collection List. Webflow allows nothing between Wrapper › List ›
  * Item, so the List itself scrolls; without the part written, the Webflow
@@ -63,6 +69,14 @@ export default function cardSlider(root) {
   const previous = part(root, "previous");
   const next = part(root, "next");
 
+  // Under a post the list holds that post too: the card that links back to
+  // this very page steps out of the row.
+  const here = samePage(location.href);
+  for (const card of track.children) {
+    const link = card.matches("a[href]") ? card : card.querySelector("a[href]");
+    if (link && !link.hash && samePage(link.href) === here) card.hidden = true;
+  }
+
   const fade = option(root, "fade");
   if (fade !== null) {
     root.style.setProperty("--rc-card-slider-fade", fadeLength(fade));
@@ -71,6 +85,7 @@ export default function cardSlider(root) {
   // the vertical ones for the page.
   track.setAttribute("data-lenis-prevent-horizontal", "");
 
+  const cards = () => Array.from(track.children).filter((card) => !card.hidden);
   const behavior = () => (prefersReducedMotion() ? "auto" : "smooth");
   const maxScroll = () => track.scrollWidth - track.clientWidth;
 
@@ -78,7 +93,7 @@ export default function cardSlider(root) {
   function stops() {
     const origin = track.getBoundingClientRect().left - track.scrollLeft;
     const max = maxScroll();
-    const positions = Array.from(track.children, (card) =>
+    const positions = cards().map((card) =>
       Math.min(card.getBoundingClientRect().left - origin, max),
     );
     return [...new Set(positions.map(Math.round))].sort((a, b) => a - b);
@@ -86,7 +101,7 @@ export default function cardSlider(root) {
 
   /** How many whole cards fit side by side — one page. */
   function pageSize() {
-    const first = track.children[0];
+    const [first] = cards();
     if (!first) return 1;
     const gap = Number.parseFloat(getComputedStyle(track).columnGap) || 0;
     const card = first.getBoundingClientRect().width + gap;

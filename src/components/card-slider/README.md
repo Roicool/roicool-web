@@ -10,6 +10,7 @@ getirir — kod gelmeden de. Kod üstüne şunları ekler:
   uçta `aria-disabled="true"` olur, soluklaşır ve tıklanmaz.
 - **Fare ile tutup sürükleme:** bırakınca hızıyla savrulur, en yakın karta
   oturur. Sürüklemeden sonraki tıklama yutulur; sürüklemeyen basış tıklamadır.
+- **Okunan yazının kartı** (linki bu sayfaya giden kart) satırdan çıkar: yazının altındaki "diğer kaynaklar" o yazıyı tekrar göstermez.
 - **Kenar solması** (marquee'deki gibi): yalnız arkasında kart olan kenar
   solar. Başta sağ, ortada iki kenar, sonda sol. Solan kenar her zaman "bu
   yönde daha var" demektir; geçişi 0,35 sn.
