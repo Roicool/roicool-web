@@ -159,10 +159,20 @@
   --rc-card-slider-fade-end: var(--rc-card-slider-fade);
 }
 
-/* MECHANIC — a mouse drag: snapping waits until release, nothing gets
-   selected and the hand closes. */
-[data-rc~="card-slider"] [data-rc-part="track"][data-rc-state="dragging"] {
+/* MECHANIC — while a mouse drags or a trackpad swipes the row, and while
+   it glides to a card afterwards, snapping waits: it comes back once the
+   row has arrived. A drag
+   selects nothing and closes the hand. */
+[data-rc~="card-slider"]
+  [data-rc-part="track"]:is(
+    [data-rc-state="dragging"],
+    [data-rc-state="wheeling"],
+    [data-rc-state="settling"]
+  ) {
   scroll-snap-type: none;
+}
+
+[data-rc~="card-slider"] [data-rc-part="track"][data-rc-state="dragging"] {
   cursor: grabbing;
   user-select: none;
   -webkit-user-select: none;
@@ -189,4 +199,40 @@
   opacity: 0.35;
   cursor: default;
   pointer-events: none;
+}
+
+/* MECHANIC — the optional progress line: a thumb as wide as the share of the
+   row in view, carried along as the row scrolls. The code sets
+   --rc-card-slider-progress (0–1) and --rc-card-slider-visible (0–1). */
+[data-rc~="card-slider"] [data-rc-part="progress"] {
+  position: relative;
+  overflow: hidden;
+}
+
+[data-rc~="card-slider"] [data-rc-part="progress"]::before {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  left: 0;
+  width: calc(var(--rc-card-slider-visible, 1) * 100%);
+  translate: calc(
+      var(--rc-card-slider-progress, 0) *
+        (1 / var(--rc-card-slider-visible, 1) - 1) * 100%
+    )
+    0;
+  background: currentColor;
+  border-radius: inherit;
+}
+
+[data-rc~="card-slider"]:is(:not([data-rc-state]), [data-rc-state="static"])
+  [data-rc-part="progress"] {
+  visibility: hidden;
+}
+
+/* LOOK — the line itself: thin, a faint track under the thumb. Designer's
+   height, colour and radius win. */
+:where([data-rc~="card-slider"] [data-rc-part="progress"]) {
+  height: 2px;
+  border-radius: 2px;
+  background: color-mix(in srgb, currentColor 15%, transparent);
 }
