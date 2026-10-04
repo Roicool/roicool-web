@@ -11,8 +11,9 @@
  *     (aria-disabled) at either end;
  *   - a mouse can grab the row and throw it; it settles on a card;
  *   - the root says where the row stands — `start`, `middle`, `end`, or
- *     `static` when every card fits — and the CSS fades the edges from it,
- *     so a faded edge always means "there is more this way".
+ *     `static` when every card fits, `empty` when no card is left — and the
+ *     CSS fades the edges from it, so a faded edge always means "there is
+ *     more this way". An empty row takes its section with it.
  *
  * No library, no clones, no transforms: the cards stay where the browser
  * put them, and so do their links.
@@ -133,16 +134,19 @@ export default function cardSlider(root) {
     const max = maxScroll();
     const x = track.scrollLeft;
     const state =
-      max <= EDGE
-        ? "static"
-        : x <= EDGE
-          ? "start"
-          : x >= max - EDGE
-            ? "end"
-            : "middle";
+      cards().length === 0
+        ? "empty"
+        : max <= EDGE
+          ? "static"
+          : x <= EDGE
+            ? "start"
+            : x >= max - EDGE
+              ? "end"
+              : "middle";
     if (root.getAttribute("data-rc-state") !== state) setState(root, state);
-    const atStart = state === "static" || state === "start";
-    const atEnd = state === "static" || state === "end";
+    const still = state === "static" || state === "empty";
+    const atStart = still || state === "start";
+    const atEnd = still || state === "end";
     previous?.setAttribute("aria-disabled", String(atStart));
     next?.setAttribute("aria-disabled", String(atEnd));
   }

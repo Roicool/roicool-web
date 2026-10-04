@@ -53,6 +53,12 @@
   scrollbar-width: none;
 }
 
+/* MECHANIC — no other card to show (the only post is the one being read):
+   the whole section steps aside rather than standing empty. */
+.rc-js [data-rc~="card-slider"][data-rc-state="empty"] {
+  display: none;
+}
+
 /* MECHANIC — the card of the page being read steps out of the row. */
 [data-rc~="card-slider"] [data-rc-part="track"] > [hidden] {
   display: none;

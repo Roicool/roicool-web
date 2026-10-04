@@ -60,7 +60,8 @@ CSS değişkenleri (kökte, sıfır specificity'de varsayılanlar):
 ## Durumlar
 
 - Kök: `start` (başta), `middle`, `end` (sonda), `static` (bütün kartlar
-  sığıyor; solma yok, düğmeler görünmez ama yerini tutar).
+  sığıyor; solma yok, düğmeler görünmez ama yerini tutar), `empty` (okunan
+  yazının kartı çıkınca hiç kart kalmadı; kök — bütün section — gizlenir).
 - `track`: fareyle sürüklenirken `dragging` (snap bekler, imleç kapanır).
 
 ## JS yoksa, hareket azaltılmışsa
