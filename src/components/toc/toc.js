@@ -20,9 +20,20 @@
  * its end). The fixed bar and the fold are in the critical CSS, so the page
  * does not jump when this chunk arrives.
  *
+ * While it is open the rest of the page is blurred behind it (toc.css, the
+ * root's "open" state; nothing here).
+ *
+ * Wide screens (WIDE_QUERY): a list taller than --rc-toc-collapsed-height is
+ * cut to that height and scrolls inside itself, keeping the section being
+ * read in view; the `more` button (an arrow, hidden until the list is long)
+ * unfolds it to its full height and folds it back. The list's own state
+ * says which ends are hidden ("start", "end"), so CSS fades only those.
+ *
  * States on the root, space separated: "ready" once running, "open" while
- * the floating list is unfolded, "away" while the body is off screen. The
- * current section's link: data-rc-state="active" and aria-current="true".
+ * the floating list is unfolded, "away" while the body is off screen,
+ * "long" while the list is cut, "expanded" while it is unfolded on a wide
+ * screen. The current section's link: data-rc-state="active" and
+ * aria-current="true".
  *
  * Without JavaScript the list is in the page as Designer laid it out, open,
  * and its links lead to the post (no anchor to scroll to); the toggle is not
@@ -35,9 +46,13 @@ import { part, setState } from "../../runtime/dom.js";
 import { warn } from "../../runtime/log.js";
 import { smoothScroll } from "../../runtime/scroll.js";
 import { anchorsFor, textOf } from "../../runtime/anchors.js";
+import { prefersReducedMotion } from "../../runtime/motion.js";
 
 /** Where the floating bar takes over; keep in step with toc.critical.css. */
 const FLOAT_QUERY = "(max-width: 991px)";
+
+/** Where the list sits in the side column and may be cut; the complement. */
+const WIDE_QUERY = "(min-width: 992px)";
 
 /** Pixels below the scroll margin a heading may sit and still count as read. */
 const READ_SLACK = 8;
@@ -74,19 +89,30 @@ export default function toc(root) {
   }
 
   arriveAtHash(headings);
-  spy(headings, linkFor);
 
-  const state = { open: false, away: false };
+  const state = {
+    open: false,
+    away: false,
+    long: false,
+    expanded: false,
+  };
   const write = () => {
     const tokens = ["ready"];
-    if (state.open) tokens.push("open");
-    if (state.away) tokens.push("away");
+    for (const name of ["open", "away", "long", "expanded"]) {
+      if (state[name]) tokens.push(name);
+    }
     setState(root, tokens.join(" "));
   };
   const float = floating(root, list, (open) => {
     state.open = open;
     write();
   });
+  const cut = collapsible(root, list, (long, expanded) => {
+    state.long = long;
+    state.expanded = expanded;
+    write();
+  });
+  spy(headings, linkFor, (link) => cut?.reveal(link));
 
   // The bar steps aside while the body is off screen.
   new IntersectionObserver(([entry]) => {
@@ -115,8 +141,11 @@ function arriveAtHash(headings) {
   else target.scrollIntoView();
 }
 
-/** Mark the link of the section being read: the last H2 above the line. */
-function spy(headings, linkFor) {
+/**
+ * Mark the link of the section being read: the last H2 above the line.
+ * `onActive(link)` hears every change.
+ */
+function spy(headings, linkFor, onActive) {
   if (headings.length === 0 || linkFor.size === 0) return;
   let current = null;
   let queued = false;
@@ -147,6 +176,7 @@ function spy(headings, linkFor) {
       link.setAttribute("aria-current", "true");
     }
     current = link;
+    if (link) onActive(link);
   };
   const queue = () => {
     if (queued) return;
@@ -199,4 +229,86 @@ function floating(root, list, onChange) {
   });
   narrow.addEventListener("change", () => set(false));
   return { close: () => set(false) };
+}
+
+/**
+ * The cut on wide screens; `onChange(long, expanded)` hears every change.
+ * Returns { reveal(link) } or null when the list or the `more` button is
+ * missing. The cut itself is CSS (a max-height once the root has a state);
+ * this measures whether it bites, shows the button when it does and keeps
+ * the link being read inside the visible part.
+ */
+function collapsible(root, list, onChange) {
+  const more = part(root, "more");
+  if (!list || !more) return null;
+  const wide = window.matchMedia(WIDE_QUERY);
+
+  sequence += 1;
+  if (!list.id) list.id = `rc-toc-list-${sequence}`;
+  if (more instanceof HTMLButtonElement) more.type = "button";
+  more.setAttribute("aria-controls", list.id);
+  more.setAttribute("aria-expanded", "false");
+  // The cut list scrolls with the wheel, not the page under it.
+  list.setAttribute("data-lenis-prevent", "");
+
+  let long = false;
+  let expanded = false;
+  const ends = () => {
+    if (!long) {
+      setState(list, null);
+      return;
+    }
+    const tokens = [];
+    if (list.scrollTop <= 1) tokens.push("start");
+    if (list.scrollTop + list.clientHeight >= list.scrollHeight - 1) {
+      tokens.push("end");
+    }
+    setState(list, tokens.join(" ") || null);
+  };
+  // Scroll the cut list, never the page, so `link` is in its visible part.
+  const reveal = (link) => {
+    if (!long) return;
+    const top =
+      link.getBoundingClientRect().top -
+      list.getBoundingClientRect().top +
+      list.scrollTop;
+    const visible =
+      top >= list.scrollTop &&
+      top + link.offsetHeight <= list.scrollTop + list.clientHeight;
+    if (visible) return;
+    list.scrollTo({
+      top: top - (list.clientHeight - link.offsetHeight) / 2,
+      behavior: prefersReducedMotion() ? "auto" : "smooth",
+    });
+  };
+  const set = (nextLong, nextExpanded) => {
+    if (nextLong === long && nextExpanded === expanded) return;
+    long = nextLong;
+    expanded = nextLong && nextExpanded;
+    more.hidden = !long;
+    more.setAttribute("aria-expanded", String(expanded));
+    onChange(long, expanded);
+    ends();
+    const active = list.querySelector('a[data-rc-state="active"]');
+    if (active) reveal(active);
+  };
+  // Whether the cut bites: measured while folded, since unfolded the list
+  // may fit. The state change applies the cut in the same frame.
+  const measure = () => {
+    if (!wide.matches) {
+      set(false, false);
+      return;
+    }
+    if (expanded) return;
+    set(list.scrollHeight > list.clientHeight + 1, false);
+  };
+
+  more.hidden = true;
+  more.addEventListener("click", () => set(long, !expanded));
+  list.addEventListener("scroll", ends, { passive: true });
+  wide.addEventListener("change", measure);
+  new ResizeObserver(measure).observe(list);
+  requestAnimationFrame(measure);
+
+  return { reveal };
 }

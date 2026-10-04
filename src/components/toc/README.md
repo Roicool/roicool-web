@@ -27,6 +27,7 @@ Div / Article          [data-rc="toc reading-progress post"] [data-rc-eager]   �
     Nav                [data-rc-part="navigation"] aria-label="İçindekiler"
       Div              [data-rc-part="panel"]                   ← tek çocuk: liste
         Rich Text      [data-rc-part="list"]                    ← Blog › Table of contents
+      DOM `button`     [data-rc-part="more"] hidden aria-label="Tüm başlıkları göster"  ← ok; yalnız geniş ekranda, liste uzunsa
       DOM `button`     [data-rc-part="toggle"]                  ← "İçindekiler" (+ ikon); yalnız dar ekranda
     Rich Text          [data-rc-part="body"]                    ← Blog › Body
 ```
@@ -51,6 +52,15 @@ ezilir ya da görünümü bozar.
 - **toggle:** dar ekranda tam genişlik satır + ok işareti kodda; masaüstünde
   ve JS yokken kod gizler. Metni "İçindekiler" gibi sabit; `aria-expanded`,
   `aria-controls` kodda.
+- **more:** boş DOM `button`, `hidden` attribute'u ve `aria-label` ile.
+  Liste geniş ekranda `--rc-toc-collapsed-height`'tan (22rem) uzunsa kod
+  görünür yapar: altında bir ok. Basınca liste ekran boyuna açılır, ok
+  yukarı döner; tekrar basınca katlanır. Kesik listede okunan başlık
+  listenin görünen kısmında tutulur (liste kendi içinde kayar, sayfa
+  kaymaz); gizli uç tarafı solar.
+- **Açık menünün arkası:** dar ekranda liste açıkken sayfanın geri kalanı
+  bulanıklaşır ve hafif kararır (`--rc-toc-blur`, `--rc-toc-scrim`);
+  arkaya dokunmak menüyü kapatır.
 - **list:** madde işareti yok, solda ince çizgi, her link blok ve solda 2 px
   şeffaf kenar; okunan linkin kenarı `--rc-toc-indicator` rengine boyanır,
   okunmayanlar `--rc-toc-rest` opaklıkta. Yazı boyu listenin class'ından
@@ -60,20 +70,24 @@ ezilir ya da görünümü bozar.
 
 ## Ayarlar
 
-| Değişken                | Varsayılan                 | Ne                                                |
-| ----------------------- | -------------------------- | ------------------------------------------------- |
-| `--rc-toc-offset`       | `6rem`                     | Başlığın kaydırınca ekranın üstünde bıraktığı pay |
-| `--rc-toc-inset`        | `1rem`                     | Yüzen menünün ekran kenarlarından uzaklığı        |
-| `--rc-toc-layer`        | `90`                       | Yüzen menünün `z-index`'i                         |
-| `--rc-toc-panel-height` | `60svh`                    | Açık listenin en fazla yüksekliği                 |
-| `--rc-toc-rest`         | `0.55`                     | Okunmayan linklerin opaklığı                      |
-| `--rc-toc-indicator`    | `--brand-primary--500`     | Okunan linkin sol border'ının rengi               |
-| `--rc-toc-line`         | metin rengi %14            | Listenin soldaki çizgisi, açık menüdeki ayraç     |
-| `--rc-toc-item-padding` | `.4375rem 0 .4375rem 1rem` | Bir linkin iç boşluğu                             |
-| `--rc-toc-line-height`  | `1.4`                      | Linklerin satır yüksekliği                        |
-| `--rc-toc-surface`      | `#fff`                     | Yüzen menünün arka planı                          |
-| `--rc-toc-radius`       | `1rem`                     | Yüzen menünün köşeleri                            |
-| `--rc-toc-shadow`       | ince çerçeve + gölge       | Yüzen menünün gölgesi                             |
+| Değişken                    | Varsayılan                 | Ne                                                |
+| --------------------------- | -------------------------- | ------------------------------------------------- |
+| `--rc-toc-offset`           | `6rem`                     | Başlığın kaydırınca ekranın üstünde bıraktığı pay |
+| `--rc-toc-inset`            | `1rem`                     | Yüzen menünün ekran kenarlarından uzaklığı        |
+| `--rc-toc-layer`            | `90`                       | Yüzen menünün `z-index`'i                         |
+| `--rc-toc-panel-height`     | `60svh`                    | Açık listenin en fazla yüksekliği                 |
+| `--rc-toc-rest`             | `0.55`                     | Okunmayan linklerin opaklığı                      |
+| `--rc-toc-indicator`        | `--brand-primary--500`     | Okunan linkin sol border'ının rengi               |
+| `--rc-toc-line`             | metin rengi %14            | Listenin soldaki çizgisi, açık menüdeki ayraç     |
+| `--rc-toc-item-padding`     | `.4375rem 0 .4375rem 1rem` | Bir linkin iç boşluğu                             |
+| `--rc-toc-line-height`      | `1.4`                      | Linklerin satır yüksekliği                        |
+| `--rc-toc-surface`          | `#fff`                     | Yüzen menünün arka planı                          |
+| `--rc-toc-radius`           | `1rem`                     | Yüzen menünün köşeleri                            |
+| `--rc-toc-collapsed-height` | `22rem`                    | Geniş ekranda kesik listenin yüksekliği           |
+| `--rc-toc-fade`             | `2.5rem`                   | Kesik listenin uçlarındaki solma                  |
+| `--rc-toc-blur`             | `6px`                      | Açık mobil menünün arkasındaki bulanıklık         |
+| `--rc-toc-scrim`            | `rgb(20 18 40 / .12)`      | Arkadaki karartma                                 |
+| `--rc-toc-shadow`           | ince çerçeve + gölge       | Yüzen menünün gölgesi                             |
 
 Değişkenler sarmalayıcıya ya da `site.css`'e yazılır.
 
@@ -89,7 +103,9 @@ Değişkenler sarmalayıcıya ya da `site.css`'e yazılır.
 - **Dar ekran (991 px ve altı):** menü altta, katlı. Düğme açar; bir link,
   düğme, Escape (odak düğmeye döner) ya da menü dışına basmak kapatır.
   Gövde ekranda değilken (yazının üstü, sonu) menü aşağı çekilip gizlenir.
-  Kökte durumlar: `ready`, `open`, `away`.
+  Kökte durumlar: `ready`, `open`, `away`; geniş ekranda `long` (liste
+  kesik), `expanded` (açık). Listenin kendi durumu: `start`, `end` (o uç
+  görünüyor).
 - Yüzen menü ve katlama kritik CSS'te (`toc.critical.css`): ilk boyamada
   yerinde, kod gelince kayma olmaz.
 

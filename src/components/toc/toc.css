@@ -22,6 +22,92 @@
   [data-rc~="toc"] [data-rc-part="navigation"] {
     top: var(--rc-toc-offset, 6rem);
   }
+
+  /* MECHANIC — once the code runs, the list is cut to
+     --rc-toc-collapsed-height and scrolls inside itself; toc.js measures
+     whether the cut bites ("long") and keeps the section being read in
+     view. Unfolded ("expanded") it takes the screen's height. */
+  .rc-js [data-rc~="toc"][data-rc-state] [data-rc-part="list"] {
+    max-height: var(--rc-toc-collapsed-height, 22rem);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    transition: max-height 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .rc-js [data-rc~="toc"][data-rc-state~="expanded"] [data-rc-part="list"] {
+    max-height: max(
+      var(--rc-toc-collapsed-height, 22rem),
+      calc(100svh - var(--rc-toc-offset, 6rem) - 8rem)
+    );
+  }
+
+  /* LOOK — a cut list fades out at whichever end hides more links. */
+  .rc-js [data-rc~="toc"][data-rc-state~="long"] [data-rc-part="list"] {
+    --rc-toc-fade-top: var(--rc-toc-fade, 2.5rem);
+    --rc-toc-fade-bottom: var(--rc-toc-fade, 2.5rem);
+    mask-image: linear-gradient(
+      to bottom,
+      transparent,
+      #000 var(--rc-toc-fade-top),
+      #000 calc(100% - var(--rc-toc-fade-bottom)),
+      transparent
+    );
+  }
+
+  .rc-js
+    [data-rc~="toc"][data-rc-state~="long"]
+    [data-rc-part="list"][data-rc-state~="start"] {
+    --rc-toc-fade-top: 0px;
+  }
+
+  .rc-js
+    [data-rc~="toc"][data-rc-state~="long"]
+    [data-rc-part="list"][data-rc-state~="end"] {
+    --rc-toc-fade-bottom: 0px;
+  }
+
+  /* LOOK — the `more` button: an arrow under the list, in line with the
+     links' text, pointing down; up while the list is unfolded. toc.js keeps
+     it hidden until the list is cut. */
+  [data-rc~="toc"] [data-rc-part="more"]:not([hidden]) {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 0.5rem 0 0.5rem 1rem;
+    opacity: var(--rc-toc-rest, 0.55);
+    transition: opacity 0.3s;
+  }
+
+  [data-rc~="toc"] [data-rc-part="more"]:is(:hover, :focus-visible) {
+    opacity: 1;
+  }
+
+  [data-rc~="toc"] [data-rc-part="more"]::after {
+    content: "";
+    width: 0.5rem;
+    height: 0.5rem;
+    margin-top: -0.25rem;
+    border-right: 2px solid;
+    border-bottom: 2px solid;
+    rotate: 45deg;
+    transition:
+      rotate 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+      margin 0.35s;
+  }
+
+  .rc-js
+    [data-rc~="toc"][data-rc-state~="expanded"]
+    [data-rc-part="more"]::after {
+    margin-top: 0.25rem;
+    rotate: 225deg;
+  }
+}
+
+/* MECHANIC — the button exists only while the list is cut; a class that
+   sets display must not show it otherwise. */
+[data-rc~="toc"] [data-rc-part="more"][hidden] {
+  display: none;
 }
 
 /* LOOK — the list: no bullets, a thin line on the left, each link a block
@@ -76,6 +162,37 @@
   );
 }
 
+/* LOOK — narrow screens: while the list is open the page behind it is
+   blurred and dimmed; a tap on it closes the list (toc.js listens outside
+   the navigation). One layer under the bar, on the body so it covers
+   everything the bar does not. */
+@media (max-width: 991px) {
+  html.rc-js:has([data-rc~="toc"]) body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: calc(var(--rc-toc-layer, 90) - 1);
+    background: var(--rc-toc-scrim, rgb(20 18 40 / 0.12));
+    -webkit-backdrop-filter: blur(var(--rc-toc-blur, 6px));
+    backdrop-filter: blur(var(--rc-toc-blur, 6px));
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition:
+      opacity 0.35s,
+      visibility 0s 0.35s;
+  }
+
+  html.rc-js:has([data-rc~="toc"][data-rc-state~="open"]) body::after {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transition:
+      opacity 0.35s,
+      visibility 0s;
+  }
+}
+
 /* LOOK — narrow screens: the floating bar's surface, the list's padding
    (vertical only while open, so the folded panel stays at nothing) and the
    toggle as a full-width row with a chevron. */
@@ -93,18 +210,13 @@
 
   .rc-js [data-rc~="toc"] [data-rc-part="panel"] > * {
     padding: 0 1rem;
-    border-bottom: 1px solid transparent;
-    transition:
-      padding 0.35s cubic-bezier(0.22, 1, 0.36, 1),
-      border-color 0.35s;
+    transition: padding 0.35s cubic-bezier(0.22, 1, 0.36, 1);
   }
 
   .rc-js [data-rc~="toc"][data-rc-state~="open"] [data-rc-part="panel"] > * {
     padding: 1rem 1rem 0.5rem;
-    border-bottom-color: var(
-      --rc-toc-line,
-      color-mix(in srgb, currentColor 14%, transparent)
-    );
+    border-bottom: 1px solid
+      var(--rc-toc-line, color-mix(in srgb, currentColor 14%, transparent));
   }
 
   .rc-js [data-rc~="toc"] [data-rc-part="toggle"] {
