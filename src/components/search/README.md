@@ -83,7 +83,9 @@ bırakmak serbest.
 
 Kök: `idle` (sorgu boş), `loading`, `results`, `empty`; kapalıyken durum
 yok. Hangi parça ne zaman görünür: CSS. Kök ayrıca `data-rc-platform`
-(`mac` / `other`) taşır: kısayol ipucu ona göre.
+(`mac` / `other`) taşır: kısayol ipucu ona göre. Kod bakana kadar ⌘K
+görünür (rozet boş kalmaz); Designer'da `shortcut-other`'a `hide` class'ı
+verilebilir, Mac dışında kod onu yine gösterir ve ⌘K'yi gizler.
 
 ## JS yoksa
 

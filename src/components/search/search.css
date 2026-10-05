@@ -25,12 +25,18 @@ html:has([data-rc~="search"] [data-rc-part="dialog"][open]) {
   overflow: hidden;
 }
 
-/* MECHANIC — the keyboard hint for this platform: ⌘K on a Mac, Ctrl K
-   elsewhere; neither until the code has looked. */
-[data-rc~="search"]:not([data-rc-platform="mac"]) [data-rc-part="shortcut-mac"],
+/* MECHANIC — the keyboard hint for this platform. ⌘K stands until the code
+   has looked (so the badge is never empty, and Designer can show ⌘K alone,
+   with Ctrl K on its `hide` class); off a Mac, Ctrl K takes its place even
+   though Designer hides it. */
 [data-rc~="search"]:not([data-rc-platform="other"])
-  [data-rc-part="shortcut-other"] {
+  [data-rc-part="shortcut-other"],
+[data-rc~="search"][data-rc-platform="other"] [data-rc-part="shortcut-mac"] {
   display: none;
+}
+
+[data-rc~="search"][data-rc-platform="other"] [data-rc-part="shortcut-other"] {
+  display: block;
 }
 
 /* LOOK — the dialog is a full-screen, see-through layer; the box inside it

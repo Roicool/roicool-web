@@ -72,10 +72,6 @@ bulur ve ona `data-rc-part="track"` basar. Kodun tanımladığı tek class ailes
   boşlukları, liste girintisi ve işaretleri, tablo, kod, çizgi, dipnot.
   Designer'ın verdiği başlık boyu, paragraf boşluğu, link rengi ezilmez
   (`base/prose.css`)
-- `.rc-outline-button` — sade çerçeveli düğme (blog araması, "Kategorileri
-  keşfet"): ince kenar, küçük yazı, tek satır, 44px; `.rc-outline-button--icon`
-  yalnız ikonlu kare varyantı. Site sahibinin isteğiyle kodda: iki düğme
-  utility zinciri yerine tek class taşır (`critical.css`, ekranın üstünde)
 - `.rc-glass` — buzlu cam yüzey: blur, gradyan dolgu, maskeli `::before`
   ile 1px kenar; `.rc-glass-on-light` açık zemin varyantı (Designer'da yok;
   `critical.css`, ilk boyamada düz görünmesin diye)
