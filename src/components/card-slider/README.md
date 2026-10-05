@@ -104,8 +104,8 @@ Section  [data-rc="card-slider"] data-rc-per-view="1" data-rc-bleed data-rc-spot
   ya da odaklanmak slaydı getirir, tıklamak yazıya gider: bütün öne çıkan
   başlıklar her an görünür birer linktir. İki listenin sayısı tutmazsa kod
   konsola uyarır. Çizgi kalınlığı `--rc-card-slider-line` (1px).
-- **`data-rc-spotlight`:** aktif slayt dışındakiler soluk (0.35) ve gri,
-  görselleri biraz büyük; aktif olan yerine oturur. Değerler sıfır
+- **`data-rc-spotlight`:** aktif slayt dışındakiler %20 saydam (Ramp),
+  renkler değişmez. Değerler sıfır
   specificity'de, Item class'ı kazanır.
 - Aktif slayt ve segmenti `data-rc-state="active"` taşır.
 - İlk slaydın görselini Designer'da **Load: Eager** yap (sayfanın en büyük
@@ -119,7 +119,7 @@ Section  [data-rc="card-slider"] data-rc-per-view="1" data-rc-bleed data-rc-spot
 | `data-rc-bleed`     | —                       | Tam genişlik: satır viewport'un iki kenarına taşar, ilk kart container'ın kenarından başlar ve her kart oraya oturur; container yalnız başlangıç çizgisi. Kart genişlikleri yine container'a göre. Solma bu modda container dışındaki boşlukta kalır (`clamp(1.5rem, boşluk, 7rem)`), içerideki kartlar tam görünür |
 | `data-rc-per-view`  | `1`                     | Her genişlikte tek kart (hero); başka sayılar için `--rc-card-slider-per-view`                                                                                                                                                                                                                                      |
 | `data-rc-autoplay`  | saniye, `12`            | Otomatik geçiş (hero kullanımı)                                                                                                                                                                                                                                                                                     |
-| `data-rc-spotlight` | —                       | Aktif kart dışındakileri soldurur, griye çevirir                                                                                                                                                                                                                                                                    |
+| `data-rc-spotlight` | —                       | Aktif kart dışındakileri soldurur (%20)                                                                                                                                                                                                                                                                             |
 | `data-rc-eager`     | —                       | Görünüre girmeyi beklemeden yükle                                                                                                                                                                                                                                                                                   |
 
 CSS değişkenleri (kökte, sıfır specificity'de varsayılanlar):

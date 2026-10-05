@@ -242,35 +242,19 @@
   background: color-mix(in srgb, currentColor 15%, transparent);
 }
 
-/* LOOK — data-rc-spotlight: every card but the active one rests dimmed and
-   grey, its picture a touch larger; the active card settles in. Designer's
-   values on the Item's class win. Nothing dims before the code runs. */
+/* LOOK — data-rc-spotlight: every card but the active one rests faded
+   (Ramp: opacity 20%, 300ms), colours untouched. Designer's values on the
+   Item's class win. Nothing fades before the code runs. */
 :where([data-rc~="card-slider"][data-rc-spotlight][data-rc-state])
   [data-rc-part="track"]
   > * {
-  transition:
-    opacity 0.5s ease,
-    filter 0.5s ease;
+  transition: opacity 0.3s ease;
 }
 
 :where([data-rc~="card-slider"][data-rc-spotlight][data-rc-state])
   [data-rc-part="track"]
   > :not([data-rc-state="active"]) {
-  opacity: 0.35;
-  filter: grayscale(1);
-}
-
-:where([data-rc~="card-slider"][data-rc-spotlight][data-rc-state])
-  [data-rc-part="track"]
-  img {
-  transition: scale 0.9s cubic-bezier(0.19, 1, 0.22, 1);
-}
-
-:where([data-rc~="card-slider"][data-rc-spotlight][data-rc-state])
-  [data-rc-part="track"]
-  > :not([data-rc-state="active"])
-  img {
-  scale: 1.04;
+  opacity: 0.2;
 }
 
 @media (prefers-reduced-motion: reduce) {

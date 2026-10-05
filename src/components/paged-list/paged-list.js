@@ -71,18 +71,37 @@ export function pageList(total, current) {
   return list;
 }
 
-/** Page links in front of Webflow's "2 / 5" count, built from it. */
+const COUNT = /^\s*(\d+)\s*\/\s*(\d+)\s*$/;
+
+/**
+ * Webflow's page count: `data-rc-part="count"` when Designer could give it,
+ * otherwise the "2 / 5" beside the page links (Designer takes no attribute
+ * on that element). Found by what it says, not by Webflow's class.
+ */
+function pageCount(root, links) {
+  const marked = part(root, "count");
+  if (marked) return marked;
+  const bar = links[0]?.link.parentElement;
+  const found = bar
+    ? [...bar.children].find((el) => COUNT.test(el.textContent))
+    : null;
+  if (found) found.dataset.rcPart = "count";
+  return found ?? null;
+}
+
+/** Page links between Previous and Next, built from Webflow's "2 / 5". */
 function numberPages(root) {
-  const count = part(root, "count");
-  const match = count?.textContent.match(/(\d+)\s*\/\s*(\d+)/);
-  if (!match) return;
+  const links = [...root.querySelectorAll("a[href]")]
+    .map((link) => pageLink(link))
+    .filter(Boolean);
+  const count = pageCount(root, links);
+  const match = count?.textContent.match(COUNT);
+  if (!match || links.length === 0) return;
   const current = Number(match[1]);
   const total = Number(match[2]);
   // The query parameter Webflow named this list's pages with.
-  const key = [...root.querySelectorAll("a[href]")]
-    .map((link) => pageLink(link)?.key)
-    .find(Boolean);
-  if (!key || total < 2) return;
+  const { key } = links[0];
+  if (total < 2) return;
   const label = option(root, "page-label") ?? PAGE_LABEL;
   const list = document.createElement("ol");
   list.dataset.rcPart = "pages";
@@ -108,7 +127,13 @@ function numberPages(root) {
     }
     list.append(item);
   }
-  count.before(list);
+  // Between Previous and Next, wherever Webflow put the count.
+  const next = links.find(
+    ({ url, link }) =>
+      Number(url.searchParams.get(key)) > current &&
+      link.parentElement === count.parentElement,
+  );
+  (next?.link ?? count).before(list);
 }
 
 function load(url) {

@@ -19,7 +19,7 @@
 
 /* MECHANIC — the numbered pages say which page this is; Webflow's "2 / 5"
    count gives way to them (it stays when the code has not numbered). */
-[data-rc~="paged-list"] [data-rc-part="pages"] ~ [data-rc-part="count"] {
+[data-rc~="paged-list"]:has([data-rc-part="pages"]) [data-rc-part="count"] {
   display: none;
 }
 
