@@ -23,6 +23,33 @@
   display: none;
 }
 
+/* MECHANIC — the numbers hold the middle of the bar on every page. Webflow
+   leaves Previous out on the first page and Next on the last, so in a flex
+   row the numbers jumped sideways from page to page; three columns keep an
+   empty slot where the missing arrow would be. */
+[data-rc~="paged-list"]
+  [data-rc-part="pagination"]:has([data-rc-part="pages"]) {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+}
+
+[data-rc~="paged-list"]
+  [data-rc-part="pagination"]
+  > [data-rc-part="previous"] {
+  grid-column: 1;
+  justify-self: end;
+}
+
+[data-rc~="paged-list"] [data-rc-part="pagination"] > [data-rc-part="pages"] {
+  grid-column: 2;
+}
+
+[data-rc~="paged-list"] [data-rc-part="pagination"] > [data-rc-part="next"] {
+  grid-column: 3;
+  justify-self: start;
+}
+
 /* LOOK — numbered pages (Ramp: round 32px buttons, the current one filled).
    Normal specificity, unlike other LOOK rules: the code builds this list, so
    Designer has no element to put a class on, and at zero specificity the

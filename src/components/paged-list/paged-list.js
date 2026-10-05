@@ -127,13 +127,22 @@ function numberPages(root) {
     }
     list.append(item);
   }
-  // Between Previous and Next, wherever Webflow put the count.
-  const next = links.find(
-    ({ url, link }) =>
-      Number(url.searchParams.get(key)) > current &&
-      link.parentElement === count.parentElement,
-  );
-  (next?.link ?? count).before(list);
+  // Between Previous and Next, wherever Webflow put the count. The bar and
+  // its arrows are marked so the CSS can hold the numbers in the middle:
+  // Webflow leaves Previous out on the first page and Next on the last.
+  const bar = count.parentElement;
+  const arrow = (direction) =>
+    links.find(
+      ({ url, link }) =>
+        link.parentElement === bar &&
+        Math.sign(Number(url.searchParams.get(key)) - current) === direction,
+    )?.link;
+  const previous = arrow(-1);
+  const next = arrow(1);
+  bar.dataset.rcPart = "pagination";
+  if (previous) previous.dataset.rcPart = "previous";
+  if (next) next.dataset.rcPart = "next";
+  (next ?? count).before(list);
 }
 
 function load(url) {

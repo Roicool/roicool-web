@@ -47,6 +47,12 @@ Collection List Wrapper   [data-rc="paged-list"]
   (varsayılan `--neutral--900` / `--neutral--0`). Ekran okuyucu etiketi
   `data-rc-page-label` (varsayılan `Sayfa {n}`); mevcut sayfa
   `aria-current="page"`.
+- Numaralar her sayfada çubuğun ortasında durur: Webflow ilk sayfada
+  Önceki'yi, sonda Sonraki'yi hiç basmaz, flex satırda numaralar sayfadan
+  sayfaya yana kayıyordu. Kod çubuğu (`data-rc-part="pagination"`) ve
+  okları (`previous`, `next`) işaretler; CSS çubuğu üç kolona böler
+  (ok | numaralar | ok), eksik okun yeri boş kalır. Designer'daki `gap`
+  kolonlar arasında geçerli.
 - Sayfada birden fazla `paged-list` olabilir; her biri fetch edilen sayfada
   kendi sırasındaki karşılığını alır.
 
