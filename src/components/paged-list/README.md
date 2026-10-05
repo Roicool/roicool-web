@@ -17,7 +17,8 @@ Collection List Wrapper   [data-rc="paged-list"]
   Collection List
     Collection Item …
   Pagination (Webflow: Collection List Settings › Paginate items)
-    Previous / Next / Page count
+    Previous / Next
+    Page count [data-rc-part="count"]   ← "2 / 5"; Settings › Show page count
 ```
 
 - Kök Wrapper'dır (ya da liste ile sayfalamayı birlikte saran herhangi bir
@@ -26,6 +27,20 @@ Collection List Wrapper   [data-rc="paged-list"]
 - Linkler adresinden tanınır (bu sayfada `_page` ile biten bir parametre),
   Webflow class'larından değil. Sayfalamayı Designer'da istediğin gibi
   stillendir.
+- **Numaralı sayfalar** (Ramp'teki KbPagination): Collection List
+  ayarlarında **Show page count** açılır ve sayaç elemanına
+  `data-rc-part="count"` verilir. Kod sayaçtaki "2 / 5"ten mevcut ve toplam
+  sayfayı okur, sayacın önüne `1 2 3 … 5` linklerini koyar (`ol`
+  `data-rc-part="pages"`), sayaç gizlenir. Numaralar Webflow'un zaten
+  sunduğu `?xxxx_page=N` adreslerine giden linklerdir; kod yoksa Önceki /
+  Sonraki ve sayaç kalır. Gösterilen numaralar: 5 sayfaya kadar hepsi;
+  fazlasında ilk, son, mevcut ve komşuları, aralar "…" (1. ve son sayfada
+  `1 2 … son−1 son`, 2. sayfada `1 2 3 … son`, sondan bir öncekinde
+  `1 … son−2 son−1 son`). Görünüm varsayılanı kodda (32px yuvarlak, mevcut
+  sayfa dolu); renkler `--rc-paged-list-active-background`,
+  `--rc-paged-list-active-color`. Ekran okuyucu etiketi
+  `data-rc-page-label` (varsayılan `Sayfa {n}`); mevcut sayfa
+  `aria-current="page"`.
 - Sayfada birden fazla `paged-list` olabilir; her biri fetch edilen sayfada
   kendi sırasındaki karşılığını alır.
 

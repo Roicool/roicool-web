@@ -16,3 +16,48 @@
 [data-rc~="paged-list"][data-rc-state="loading"] {
   pointer-events: none;
 }
+
+/* MECHANIC — the numbered pages say which page this is; Webflow's "2 / 5"
+   count gives way to them (it stays when the code has not numbered). */
+[data-rc~="paged-list"] [data-rc-part="pages"] ~ [data-rc-part="count"] {
+  display: none;
+}
+
+/* LOOK — numbered pages (Ramp: round 32px buttons, the current one filled).
+   Zero specificity; site custom code can set the variables. */
+:where([data-rc~="paged-list"] [data-rc-part="pages"]) {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+:where([data-rc~="paged-list"] [data-rc-part="pages"] > li) {
+  min-width: 2rem;
+  text-align: center;
+}
+
+:where([data-rc~="paged-list"] [data-rc-part="pages"] a) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2rem;
+  height: 2rem;
+  padding: 0 0.5rem;
+  border-radius: 999px;
+  color: inherit;
+  font-size: 0.875rem;
+  text-decoration: none;
+  transition: background-color 0.2s ease;
+}
+
+:where([data-rc~="paged-list"] [data-rc-part="pages"] a:hover) {
+  background: color-mix(in srgb, currentColor 8%, transparent);
+}
+
+:where([data-rc~="paged-list"] [data-rc-part="pages"] a[aria-current="page"]) {
+  background: var(--rc-paged-list-active-background, #111);
+  color: var(--rc-paged-list-active-color, #fff);
+}

@@ -14,16 +14,24 @@
  * parameter ending in `_page` on this same page — not by Webflow's classes.
  * A link is fetched ahead when the pointer or the focus reaches it.
  *
+ * Numbered pages (Ramp's KbPagination): when Webflow's page count is shown
+ * and marked `data-rc-part="count"` ("2 / 5", server-rendered), the code
+ * puts page links in front of it — `1 2 3 … 5` — and the count gives way.
+ * They are links to the same `?xxxx_page=N` addresses Webflow already
+ * serves; without the code, Previous / Next and the count remain.
+ *
  * Structure: README.md in this folder.
  */
 
-import { FOCUSABLE, setState } from "../../runtime/dom.js";
+import { FOCUSABLE, option, part, setState } from "../../runtime/dom.js";
 import { prefersReducedMotion } from "../../runtime/motion.js";
 import { scan } from "../../runtime/registry.js";
 import { warn } from "../../runtime/log.js";
 
 /** Fetched pages, by URL: a hover fetches ahead, the click reuses it. */
 const pages = new Map();
+
+const PAGE_LABEL = "Sayfa {n}";
 
 /** A link to another page of a Webflow Collection List on this page. */
 function pageLink(target) {
@@ -33,10 +41,74 @@ function pageLink(target) {
   if (url.origin !== location.origin || url.pathname !== location.pathname) {
     return null;
   }
-  const paged = [...url.searchParams.keys()].some((key) =>
-    key.endsWith("_page"),
+  const key = [...url.searchParams.keys()].find((name) =>
+    name.endsWith("_page"),
   );
-  return paged ? { link, url } : null;
+  return key ? { link, url, key } : null;
+}
+
+/**
+ * The page numbers to show (Ramp's KbPagination, as is): every page up to
+ * five; beyond that the first, the last, the current one and its
+ * neighbours, `null` for each gap.
+ */
+export function pageList(total, current) {
+  if (total <= 5) return Array.from({ length: total }, (_, i) => i + 1);
+  if (current === 1 || current === total) {
+    return [1, 2, null, total - 1, total];
+  }
+  if (current === 2) return [1, 2, 3, null, total];
+  if (current === total - 1) return [1, null, total - 2, total - 1, total];
+  let from = Math.max(2, current - 1);
+  let to = Math.min(total - 1, current + 1);
+  if (current <= 3) to = 4;
+  if (current >= total - 2) from = total - 3;
+  const list = [1];
+  if (from > 2) list.push(null);
+  for (let n = from; n <= to; n += 1) list.push(n);
+  if (to < total - 1) list.push(null);
+  list.push(total);
+  return list;
+}
+
+/** Page links in front of Webflow's "2 / 5" count, built from it. */
+function numberPages(root) {
+  const count = part(root, "count");
+  const match = count?.textContent.match(/(\d+)\s*\/\s*(\d+)/);
+  if (!match) return;
+  const current = Number(match[1]);
+  const total = Number(match[2]);
+  // The query parameter Webflow named this list's pages with.
+  const key = [...root.querySelectorAll("a[href]")]
+    .map((link) => pageLink(link)?.key)
+    .find(Boolean);
+  if (!key || total < 2) return;
+  const label = option(root, "page-label") ?? PAGE_LABEL;
+  const list = document.createElement("ol");
+  list.dataset.rcPart = "pages";
+  for (const n of pageList(total, current)) {
+    const item = document.createElement("li");
+    if (n === null) {
+      item.textContent = "…";
+      item.setAttribute("aria-hidden", "true");
+      item.dataset.rcState = "gap";
+    } else {
+      const url = new URL(location.href);
+      url.searchParams.set(key, String(n));
+      url.hash = "";
+      const link = document.createElement("a");
+      link.href = url.pathname + url.search;
+      link.textContent = String(n);
+      link.setAttribute("aria-label", label.replace("{n}", String(n)));
+      if (n === current) {
+        link.setAttribute("aria-current", "page");
+        item.dataset.rcState = "active";
+      }
+      item.append(link);
+    }
+    list.append(item);
+  }
+  count.before(list);
 }
 
 function load(url) {
@@ -79,6 +151,7 @@ export default function pagedList(root) {
       );
       if (push) history.pushState({ rcPagedList: true }, "", url.href);
       shown = url.search;
+      numberPages(root);
       scan(root);
       // A list that now starts above the viewport comes back into view.
       if (root.getBoundingClientRect().top < 0) {
@@ -98,6 +171,8 @@ export default function pagedList(root) {
       root.removeAttribute("aria-busy");
     }
   }
+
+  numberPages(root);
 
   root.addEventListener("click", (event) => {
     if (event.defaultPrevented || event.button !== 0) return;
