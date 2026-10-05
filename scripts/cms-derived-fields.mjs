@@ -30,6 +30,12 @@
  *      always, and the live item too when the item is published, so no site
  *      publish is needed.
  *
+ * Then, for each entry under `counts`, it counts the published items of one
+ * collection that point at each item of another — the posts in a blog
+ * category — and writes the number into the target item the same way.
+ * Only published, unarchived items count: the number is what a visitor can
+ * read, so a draft does not raise it.
+ *
  *   WEBFLOW_API_TOKEN=… node scripts/cms-derived-fields.mjs [--dry-run] [--collection <slug>]
  *
  * The token is a site API token with the CMS read and write scopes
@@ -138,6 +144,35 @@ export function planUpdates(items, fields, wordsPerMinute, now = new Date()) {
       headings,
       revised,
       fieldData: wanted,
+    });
+  }
+  return updates;
+}
+
+/**
+ * How many `sources` point at each of `targets` through the `reference`
+ * field (a single or a multi reference), and which targets store a
+ * different number in `field`. Archived and draft sources do not count;
+ * archived targets are left alone. A target nothing points at stores 0.
+ */
+export function planCounts(targets, sources, field, reference) {
+  const counts = new Map();
+  for (const item of sources) {
+    if (item.isArchived || item.isDraft) continue;
+    const value = item.fieldData?.[reference];
+    const ids = Array.isArray(value) ? value : value ? [value] : [];
+    for (const id of new Set(ids)) counts.set(id, (counts.get(id) ?? 0) + 1);
+  }
+  const updates = [];
+  for (const item of targets) {
+    if (item.isArchived) continue;
+    const count = counts.get(item.id) ?? 0;
+    if ((item.fieldData?.[field] ?? null) === count) continue;
+    updates.push({
+      id: item.id,
+      name: item.fieldData?.name ?? item.id,
+      count,
+      fieldData: { [field]: count },
     });
   }
   return updates;
@@ -286,6 +321,67 @@ async function main() {
     const liveCount = updates.filter((update) => live.has(update.id)).length;
     console.log(
       `${entry.slug}: ${items.length} kayıt, ${updates.length} ${dryRun ? "güncellenecek" : "güncellendi"} (${liveCount} canlı)`,
+    );
+  }
+
+  for (const entry of config.counts ?? []) {
+    if (only && entry.slug !== only) continue;
+    const target = collections.find((c) => c.slug === entry.slug);
+    const source = collections.find((c) => c.slug === entry.source);
+    if (!target || !source) {
+      warn(
+        `${entry.slug} ← ${entry.source}: koleksiyonlardan biri sitede yok, sayım atlandı.`,
+      );
+      continue;
+    }
+    const [targetDetail, sourceDetail] = await Promise.all([
+      api(token, `/collections/${target.id}`),
+      api(token, `/collections/${source.id}`),
+    ]);
+    const hasField = targetDetail.fields.some((f) => f.slug === entry.field);
+    const hasReference = sourceDetail.fields.some(
+      (f) => f.slug === entry.reference,
+    );
+    if (!hasField || !hasReference) {
+      warn(
+        `${entry.slug}: ${hasField ? `${entry.source}.${entry.reference}` : entry.field} alanı yok, sayım atlandı.`,
+      );
+      continue;
+    }
+    const targets = await listAll(token, `/collections/${target.id}/items`);
+    const liveTargets = new Set(
+      (await listAll(token, `/collections/${target.id}/items/live`)).map(
+        (item) => item.id,
+      ),
+    );
+    // What a visitor can read: the live items of the source.
+    const sources = await listAll(
+      token,
+      `/collections/${source.id}/items/live`,
+    );
+    const updates = planCounts(targets, sources, entry.field, entry.reference);
+    for (const update of updates) {
+      console.log(`  ${update.name}: ${update.count}`);
+    }
+    if (!dryRun) {
+      for (const chunk of chunks(updates, PAGE)) {
+        const payload = (list) =>
+          list.map(({ id, fieldData }) => ({ id, fieldData }));
+        await api(token, `/collections/${target.id}/items`, {
+          method: "PATCH",
+          body: { items: payload(chunk) },
+        });
+        const published = chunk.filter((update) => liveTargets.has(update.id));
+        if (published.length > 0) {
+          await api(token, `/collections/${target.id}/items/live`, {
+            method: "PATCH",
+            body: { items: payload(published) },
+          });
+        }
+      }
+    }
+    console.log(
+      `${entry.slug}: ${targets.length} kayıt, ${updates.length} sayı ${dryRun ? "güncellenecek" : "güncellendi"}`,
     );
   }
 }

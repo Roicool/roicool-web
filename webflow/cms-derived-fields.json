@@ -17,5 +17,13 @@
       "readingTime": "okuma-suresi",
       "wordCount": "kelime-sayisi"
     }
+  ],
+  "counts": [
+    {
+      "slug": "kategori",
+      "field": "yazi-sayisi",
+      "source": "blog",
+      "reference": "kategori"
+    }
   ]
 }

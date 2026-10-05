@@ -208,6 +208,13 @@ sahibi yapar:
 Yazı yayınlandıktan sonra gövde değişirse sayı ve içindekiler en geç bir
 saat içinde düzelir; yayınlanmamış taslakta da hesaplanır, yayına girince hazırdır.
 
+**Sayılar:** aynı script, bir koleksiyonun öğelerine kaç yayında öğenin
+bağlandığını sayıp yazar: `cms-derived-fields.json › counts`. Bugün tek
+sayım var: Blog kategorileri › **Yazı sayısı** (`yazi-sayisi`, Number,
+"Derived" grubu) — o kategoriye bağlı, yayında ve arşivsiz yazı sayısı.
+Taslak sayılmaz. Blog sayfasındaki kategori çipinde görünür (`SEO · 12`).
+Alan açılmamışsa sayım uyarıyla atlanır.
+
 ## Doğrulama
 
 Yayınlanmış sayfada konsola:

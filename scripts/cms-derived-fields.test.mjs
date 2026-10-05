@@ -5,6 +5,7 @@ import {
   countWords,
   minutesFor,
   planUpdates,
+  planCounts,
   signatureOf,
 } from "./cms-derived-fields.mjs";
 
@@ -230,4 +231,29 @@ test("planUpdates: güncelleme tarihi boşsa oluşturma tarihini alır", () => {
     ],
   );
   assert.ok(updates.every((update) => update.revised === false));
+});
+
+test("planCounts: yalnız yayında ve arşivsiz kaynaklar sayılır, değişen hedef yazılır", () => {
+  const targets = [
+    { id: "seo", fieldData: { name: "SEO", "yazi-sayisi": 1 } },
+    { id: "geo", fieldData: { name: "GEO", "yazi-sayisi": 0 } },
+    { id: "crm", fieldData: { name: "CRM" } },
+    { id: "old", isArchived: true, fieldData: { name: "Eski" } },
+  ];
+  const sources = [
+    { id: "a", fieldData: { kategori: "seo" } },
+    { id: "b", fieldData: { kategori: "seo" } },
+    { id: "c", isDraft: true, fieldData: { kategori: "geo" } },
+    { id: "d", isArchived: true, fieldData: { kategori: "geo" } },
+    { id: "e", fieldData: { kategori: ["crm", "crm", "seo"] } },
+  ];
+  assert.deepEqual(
+    planCounts(targets, sources, "yazi-sayisi", "kategori").map(
+      ({ id, count }) => [id, count],
+    ),
+    [
+      ["seo", 3],
+      ["crm", 1],
+    ],
+  );
 });
