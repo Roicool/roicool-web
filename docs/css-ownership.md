@@ -26,6 +26,7 @@ gördüğün şey gerçeği yansıtmamaya başlar, bu da en pahalı hata türü.
 | `.rc-align-middle`                       | `vertical-align` Designer'da yok                                                                 |
 | `.rc-grain`                              | data: URI doku + blend Designer'da yok                                                           |
 | `.rc-glass`, `.rc-glass-on-light`        | Maskeli `::before` kenar, `@supports`, `prefers-reduced-transparency` Designer'da yok            |
+| `.rc-outline-button`                     | Designer yapabilir; site sahibi kodda tek class olarak istedi (tek satır gerekçe dosyada)           |
 | `.rc-prose`                              | CMS rich text'in çocuklarında `:first-child`, `::marker`, tablo, kod, Webflow'un figür kuralları |
 
 ## Çakışmayı mimariyle önlüyoruz

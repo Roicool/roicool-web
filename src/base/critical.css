@@ -152,6 +152,61 @@ body {
 }
 
 /*
+ * Helper class: a quiet outlined button (Ramp's blog search and "explore
+ * categories" buttons): hairline border, small type, one line, 44px tall.
+ * `rc-outline-button--icon` makes it a square for an icon alone (its label
+ * in a .rc-sr-only child). In code at the site owner's request, so the two
+ * buttons carry one class instead of a chain of utilities; here and not in
+ * rc.css because they sit above the fold. Lands after Webflow's CSS, so it
+ * beats Webflow's own `.w-inline-block` on a Link Block.
+ */
+.rc-outline-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  box-sizing: border-box;
+  min-height: var(--rc-outline-button-size, 2.75rem);
+  padding: 0 1rem;
+  border: 1px solid var(--border--muted, rgb(0 0 0 / 0.12));
+  border-radius: var(--radius--lg, 0.5rem);
+  background-color: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: var(--text--sm, 0.875rem);
+  line-height: 1.25;
+  white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.rc-outline-button:hover {
+  border-color: color-mix(in srgb, currentColor 35%, transparent);
+  background-color: color-mix(in srgb, currentColor 4%, transparent);
+}
+
+.rc-outline-button--icon {
+  width: var(--rc-outline-button-size, 2.75rem);
+  padding: 0;
+}
+
+.rc-outline-button svg {
+  display: block;
+  flex: none;
+  width: 1.125rem;
+  height: 1.125rem;
+}
+
+.rc-outline-button [data-rc-part="caret"],
+.rc-outline-button [data-rc-part="caret"] svg {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+/*
  * Helper class: a frosted-glass surface (badges, pills, the KPI badge over a
  * picture). Blurs what lies behind it, tints it with a faint white-to-clear
  * gradient and draws a 1px edge that is bright at the top and fades out —
