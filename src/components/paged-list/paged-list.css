@@ -1,0 +1,18 @@
+/*!
+ * paged-list.css — the list dims while the next page is on its way. Layout,
+ * cards and the pagination's look come from Designer.
+ */
+
+/* LOOK — loading: the old page fades back until the new one arrives. */
+:where([data-rc~="paged-list"]) {
+  transition: opacity 0.2s ease;
+}
+
+:where([data-rc~="paged-list"][data-rc-state="loading"]) {
+  opacity: 0.5;
+}
+
+/* MECHANIC — nothing is clicked twice while the page is on its way. */
+[data-rc~="paged-list"][data-rc-state="loading"] {
+  pointer-events: none;
+}

@@ -120,6 +120,9 @@
  * through the Web Animations API, and a CSS animation-play-state would be
  * ignored once that API has touched the animation.
  */[data-rc~=marquee][data-rc-state]{display:flex;overflow:hidden;touch-action:pan-y}:where([data-rc~=marquee][data-rc-state]){-webkit-mask-image:linear-gradient(to right,transparent,#000 var(--rc-marquee-fade, 10%),#000 calc(100% - var(--rc-marquee-fade, 10%)),transparent);mask-image:linear-gradient(to right,transparent,#000 var(--rc-marquee-fade, 10%),#000 calc(100% - var(--rc-marquee-fade, 10%)),transparent)}:where([data-rc~=marquee][data-rc-state]:not([data-rc-drag=false])){cursor:grab}[data-rc~=marquee][data-rc-state=dragging]{cursor:grabbing;user-select:none;-webkit-user-select:none}[data-rc~=marquee][data-rc-state]>[data-rc-part=track],[data-rc~=marquee][data-rc-state]>[aria-hidden=true]{flex:none;animation:rc-marquee var(--rc-marquee-duration, 20s) linear infinite}[data-rc~=marquee][data-rc-direction=right][data-rc-state]>*{animation-direction:reverse}@keyframes rc-marquee{to{transform:translate(calc(-1 * var(--rc-marquee-distance, 100%)))}}/*!
+ * paged-list.css — the list dims while the next page is on its way. Layout,
+ * cards and the pagination's look come from Designer.
+ */:where([data-rc~=paged-list]){transition:opacity .2s ease}:where([data-rc~=paged-list][data-rc-state=loading]){opacity:.5}[data-rc~=paged-list][data-rc-state=loading]{pointer-events:none}/*!
  * post.css — behavioural styles for a blog post's rich text. The look of
  * its tables, quotes, images and lists is the .rc-prose helper's
  * (base/prose.css).
