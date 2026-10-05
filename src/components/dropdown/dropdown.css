@@ -32,7 +32,21 @@
   box-shadow: 0 8px 24px rgb(0 0 0 / 0.08);
 }
 
-:where([data-rc~="dropdown"] [data-rc-part="menu"] a) {
+/* LOOK — the button keeps its label on one line (a squeezed header wrapped
+   "Kategorileri keşfet" in two), and fills the root's height, so a row
+   that stretches its items lines it up with the buttons beside it. */
+:where(.rc-js [data-rc~="dropdown"]) {
+  display: flex;
+}
+
+:where([data-rc~="dropdown"] [data-rc-part="trigger"]) {
+  white-space: nowrap;
+}
+
+/* LOOK — the links. One element in the selector, so it ties with the site's
+   bare `a` tag style and wins on order (rc.css's <link> sits after
+   Webflow's); any Designer class on the link still wins outright. */
+:where([data-rc~="dropdown"] [data-rc-part="menu"]) a {
   display: flex;
   justify-content: space-between;
   gap: 1rem;
@@ -43,14 +57,15 @@
   white-space: nowrap;
 }
 
-:where([data-rc~="dropdown"] [data-rc-part="menu"] a:hover),
-:where([data-rc~="dropdown"] [data-rc-part="menu"] a:focus-visible) {
+:where([data-rc~="dropdown"] [data-rc-part="menu"]) a:hover,
+:where([data-rc~="dropdown"] [data-rc-part="menu"]) a:focus-visible {
   background: color-mix(in srgb, currentColor 6%, transparent);
   color: inherit;
+  text-decoration: none;
   outline: none;
 }
 
-:where([data-rc~="dropdown"] [data-rc-part="menu"] a[aria-current="page"]) {
+:where([data-rc~="dropdown"] [data-rc-part="menu"]) a[aria-current="page"] {
   color: inherit;
   pointer-events: none;
 }

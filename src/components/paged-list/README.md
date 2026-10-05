@@ -37,9 +37,14 @@ Collection List Wrapper   [data-rc="paged-list"]
   Sonraki ve sayaç kalır. Gösterilen numaralar: 5 sayfaya kadar hepsi;
   fazlasında ilk, son, mevcut ve komşuları, aralar "…" (1. ve son sayfada
   `1 2 … son−1 son`, 2. sayfada `1 2 3 … son`, sondan bir öncekinde
-  `1 … son−2 son−1 son`). Görünüm varsayılanı kodda (32px yuvarlak, mevcut
-  sayfa dolu); renkler `--rc-paged-list-active-background`,
-  `--rc-paged-list-active-color`. Ekran okuyucu etiketi
+  `1 … son−2 son−1 son`). Görünüm kodda (32px yuvarlak, mevcut sayfa dolu).
+  Bu liste kodun ürettiği bir eleman olduğu, Designer'da class alamadığı
+  için kuralları normal specificity'de: sıfırda kalınca Webflow'un `ol`
+  girintisi ve sitenin `a` stili (alt çizgi, şeffaf zemin) onu eziyordu.
+  Ayar değişkenlerle (site custom code): `--rc-paged-list-size` (2rem),
+  `--rc-paged-list-gap`, `--rc-paged-list-font-size`,
+  `--rc-paged-list-active-background`, `--rc-paged-list-active-color`
+  (varsayılan `--neutral--900` / `--neutral--0`). Ekran okuyucu etiketi
   `data-rc-page-label` (varsayılan `Sayfa {n}`); mevcut sayfa
   `aria-current="page"`.
 - Sayfada birden fazla `paged-list` olabilir; her biri fetch edilen sayfada

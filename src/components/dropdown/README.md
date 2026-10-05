@@ -19,7 +19,12 @@ Div [data-rc="dropdown"]
   (`--rc-dropdown-offset`, `--rc-dropdown-layer` ile değişir).
 - Listenin ve linklerin görünümü Designer'da; varsayılanı kodda sıfır
   specificity'de (beyaz kutu, ince çerçeve, 8px radius, hafif gölge; linkler
-  soluk, üstüne gelince koyu ve gri zemin).
+  soluk, üstüne gelince koyu ve gri zemin). Link kuralları bir eleman
+  seçicisi taşır: sitenin çıplak `a` stiline yenilmez, Designer class'ı
+  yine kazanır.
+- Düğmenin yazısı tek satırda kalır (`white-space: nowrap`) ve düğme kökün
+  yüksekliğini doldurur (JS'le kök `display: flex`): yanındaki arama
+  düğmesiyle aynı satırda `align-items: stretch` ise ikisi eşit boyda.
 - Bulunulan sayfanın linki `aria-current="page"` alır ve tıklanmaz.
 
 ## Klavye ve erişilebilirlik
