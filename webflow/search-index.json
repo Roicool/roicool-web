@@ -1,0 +1,44 @@
+{
+  "site": "6aa96b0d060d8a6b0a1af2ec",
+  "output": "dist/search-index.json",
+  "excerpt": 180,
+  "categories": { "collection": "kategori", "url": "/kategori/{slug}" },
+  "sources": [
+    {
+      "type": "post",
+      "collection": "blog",
+      "url": "/blog/{slug}",
+      "fields": {
+        "text": ["aciklama", "Summary", "Özet"],
+        "image": ["gorsel", "Main image", "Ana görsel"],
+        "category": ["kategori", "Category", "Kategori"],
+        "minutes": ["okuma-suresi", "Reading time", "Okuma süresi"],
+        "date": ["guncelleme-tarihi", "Last updated", "Güncelleme tarihi"]
+      }
+    },
+    {
+      "type": "service",
+      "collection": "hizmetler",
+      "url": "/hizmetler/{slug}",
+      "fields": {
+        "text": [
+          "kisa-aciklama",
+          "Short description",
+          "Kısa açıklama",
+          "ozet",
+          "Summary",
+          "Özet"
+        ],
+        "image": ["kart-gorseli", "Card image", "Kart görseli"]
+      }
+    },
+    {
+      "type": "term",
+      "collection": "sozluk",
+      "url": "/sozluk/{slug}",
+      "fields": {
+        "text": ["kisa-tanim", "Short definition", "Kısa tanım"]
+      }
+    }
+  ]
+}

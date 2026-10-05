@@ -1,0 +1,66 @@
+# The site search's index (dist/search-index.json): the published blog
+# posts, services and glossary terms the search dialog looks through. Built
+# from the CMS every hour and on demand, committed only when it changed —
+# the CDN serves it from the repository like the code (dist/).
+#
+# Uses the same repository secret as the derived fields job:
+# WEBFLOW_API_TOKEN (CMS read is enough here). Which collections and fields:
+# webflow/search-index.json.
+
+name: Arama dizini
+
+on:
+  schedule:
+    - cron: "27 * * * *"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Yalnız say ve listele, dosyayı yazma"
+        type: boolean
+        default: false
+
+concurrency:
+  group: search-index
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      WEBFLOW_API_TOKEN: ${{ secrets.WEBFLOW_API_TOKEN }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+
+      - name: Secret var mı
+        run: |
+          if [ -z "$WEBFLOW_API_TOKEN" ]; then
+            echo "::error::WEBFLOW_API_TOKEN repo secret'ı yok (docs/webflow-setup.md)."
+            exit 1
+          fi
+
+      - name: Dizini üret
+        run: node scripts/search-index.mjs ${{ inputs.dry_run == true && '--dry-run' || '' }}
+
+      - name: Değiştiyse commit
+        if: ${{ inputs.dry_run != true }}
+        run: |
+          git add dist/search-index.json
+          if git diff --cached --quiet; then
+            echo "Dizin değişmedi."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+          git commit -m "search: arama dizinini güncelle"
+          for attempt in 1 2 3 4; do
+            git pull --rebase origin "${GITHUB_REF_NAME}" && git push origin "HEAD:${GITHUB_REF_NAME}" && exit 0
+            sleep $((attempt * 5))
+          done
+          exit 1

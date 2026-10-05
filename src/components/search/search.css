@@ -1,0 +1,95 @@
+/*!
+ * search.css — what the dialog shows in each state, the page's scroll lock
+ * while it is open, and a few defaults Designer can override. The dialog's
+ * box, the groups and the result cards are styled in Designer.
+ *
+ * States on the root (code): idle (no query: recent searches, popular
+ * topics), loading, results, empty. Closed: no state.
+ */
+
+/* MECHANIC — one view at a time. */
+[data-rc~="search"]:not([data-rc-state="idle"]) [data-rc-part="idle"],
+[data-rc~="search"]:not([data-rc-state="loading"]) [data-rc-part="loader"],
+[data-rc~="search"]:not([data-rc-state="results"]) [data-rc-part="results"],
+[data-rc~="search"]:not([data-rc-state="empty"]) [data-rc-part="empty"] {
+  display: none;
+}
+
+[data-rc~="search"] [hidden] {
+  display: none;
+}
+
+/* MECHANIC — the page behind stays put while the dialog is open (Lenis
+   stops itself on overflow: hidden, base/scroll.css). */
+html:has([data-rc~="search"] [data-rc-part="dialog"][open]) {
+  overflow: hidden;
+}
+
+/* MECHANIC — the keyboard hint for this platform: ⌘K on a Mac, Ctrl K
+   elsewhere; neither until the code has looked. */
+[data-rc~="search"]:not([data-rc-platform="mac"]) [data-rc-part="shortcut-mac"],
+[data-rc~="search"]:not([data-rc-platform="other"])
+  [data-rc-part="shortcut-other"] {
+  display: none;
+}
+
+/* LOOK — the dialog is a full-screen, see-through layer; the box inside it
+   is Designer's (Ramp: 800px wide, max 95vw, 10% from the top). The
+   backdrop blurs the page (Ramp: backdrop-blur-xl). */
+:where([data-rc~="search"] [data-rc-part="dialog"]) {
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+[data-rc~="search"] [data-rc-part="dialog"]::backdrop {
+  background: rgb(0 0 0 / 0.08);
+  -webkit-backdrop-filter: blur(24px);
+  backdrop-filter: blur(24px);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  [data-rc~="search"] [data-rc-part="dialog"][open] {
+    animation: rc-search-in 0.2s ease;
+  }
+
+  [data-rc~="search"] [data-rc-part="dialog"][open]::backdrop {
+    animation: rc-search-fade 0.2s ease;
+  }
+
+  /* LOOK — the spinner turns. */
+  :where([data-rc~="search"] [data-rc-part="loader"]) {
+    animation: rc-search-spin 0.7s linear infinite;
+  }
+}
+
+@keyframes rc-search-in {
+  from {
+    opacity: 0;
+    translate: 0 -0.5rem;
+  }
+}
+
+@keyframes rc-search-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes rc-search-spin {
+  to {
+    rotate: 1turn;
+  }
+}
+
+/* LOOK — the matching part of a title is bold (Ramp: <strong>). */
+:where([data-rc~="search"] [data-rc-part="result-title"] strong) {
+  font-weight: 600;
+}

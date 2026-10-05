@@ -44,6 +44,7 @@
 
 import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
+import { api, listAll } from "./webflow-api.mjs";
 import {
   textOf,
   tableOfContents,
@@ -51,11 +52,8 @@ import {
   entriesOf,
 } from "../src/runtime/anchors.js";
 
-const API = "https://api.webflow.com/v2";
-/** Items per page the API hands out, and per bulk write it accepts. */
+/** Items per bulk write the API accepts. */
 const PAGE = 100;
-/** Retries after a 429, waiting as long as the API asks. */
-const RETRIES = 3;
 
 // ---- Pure parts, tested in cms-derived-fields.test.mjs ---------------------
 
@@ -178,46 +176,7 @@ export function planCounts(targets, sources, field, reference) {
   return updates;
 }
 
-// ---- Webflow Data API -------------------------------------------------------
-
-async function api(token, path, { method = "GET", body } = {}) {
-  for (let attempt = 0; ; attempt += 1) {
-    const response = await fetch(`${API}${path}`, {
-      method,
-      headers: {
-        authorization: `Bearer ${token}`,
-        accept: "application/json",
-        ...(body ? { "content-type": "application/json" } : {}),
-      },
-      body: body ? JSON.stringify(body) : undefined,
-    });
-    if (response.status === 429 && attempt < RETRIES) {
-      const seconds = Number(response.headers.get("retry-after")) || 10;
-      await new Promise((resolve) => setTimeout(resolve, seconds * 1000));
-      continue;
-    }
-    if (!response.ok) {
-      const text = await response.text();
-      throw new Error(
-        `${method} ${path} → ${response.status}: ${text.slice(0, 300)}`,
-      );
-    }
-    return response.status === 204 ? null : response.json();
-  }
-}
-
-/** Every item behind a paginated list endpoint. */
-async function listAll(token, path) {
-  const items = [];
-  for (let offset = 0; ; offset += PAGE) {
-    const page = await api(token, `${path}?limit=${PAGE}&offset=${offset}`);
-    const batch = page.items ?? [];
-    items.push(...batch);
-    const total = page.pagination?.total ?? items.length;
-    if (batch.length === 0 || items.length >= total) break;
-  }
-  return items;
-}
+// ---- Webflow Data API: scripts/webflow-api.mjs ---------------------------
 
 function chunks(list, size) {
   const out = [];
