@@ -66,7 +66,8 @@ Div [data-rc="search"]                                   ← kök: tetikleyici +
 (Link Block ya da link içeren Div). Kod onu sonuç başına kopyalar ve
 içindeki parçaları doldurur: `result-title` (eşleşen kısım `<strong>`),
 `result-text`, `result-image` (img ya da img içeren Div), `result-category`,
-`result-minutes` (yalnız sayı; "dk"yı yanına sen yaz). Değeri olmayan parça
+`result-minutes` (sayı; `data-rc-format="{n} dk okuma"` verirsen birimiyle
+birlikte yazılır ve süre yoksa birlikte gizlenir). Değeri olmayan parça
 gizlenir. Şablondan sonraki örnek kartlar silinir: Designer'da iki üç örnek
 bırakmak serbest.
 

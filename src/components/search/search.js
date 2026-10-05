@@ -310,8 +310,10 @@ export default function search(root) {
     fillPart(card, "result-category", entry.category, (el, v) => {
       el.textContent = v;
     });
+    // `data-rc-format="{n} dk okuma"` keeps the unit with the number, so
+    // both hide together when a post has no reading time.
     fillPart(card, "result-minutes", entry.minutes, (el, v) => {
-      el.textContent = String(v);
+      el.textContent = (el.dataset.rcFormat ?? "{n}").replace("{n}", v);
     });
     fillPart(card, "result-image", entry.image, (el, v) => {
       const img = el.matches("img") ? el : el.querySelector("img");
