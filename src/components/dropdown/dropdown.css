@@ -1,0 +1,65 @@
+/*!
+ * dropdown.css — the list stays shut until the button opens it, and opens
+ * under the button. The button's and the list's look are Designer's; the
+ * defaults below are at zero specificity.
+ */
+
+/* MECHANIC — shut until opened; without JS (no .rc-js) it stands open. */
+.rc-js [data-rc~="dropdown"]:not([data-rc-state="open"]) [data-rc-part="menu"] {
+  display: none;
+}
+
+/* MECHANIC — the list opens under the button, over the page. */
+[data-rc~="dropdown"] {
+  position: relative;
+}
+
+.rc-js [data-rc~="dropdown"] [data-rc-part="menu"] {
+  position: absolute;
+  top: calc(100% + var(--rc-dropdown-offset, 8px));
+  right: 0;
+  z-index: var(--rc-dropdown-layer, 50);
+  min-width: var(--rc-dropdown-trigger-width, 100%);
+}
+
+/* LOOK — Ramp's list: white, hairline border, 8px radius, a soft shadow;
+   the current page's link is plain text, the others hushed until hovered. */
+:where(.rc-js [data-rc~="dropdown"] [data-rc-part="menu"]) {
+  padding: 0.25rem;
+  border: 1px solid color-mix(in srgb, currentColor 12%, transparent);
+  border-radius: 0.5rem;
+  background: #fff;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.08);
+}
+
+:where([data-rc~="dropdown"] [data-rc-part="menu"] a) {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.375rem;
+  color: color-mix(in srgb, currentColor 60%, transparent);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+:where([data-rc~="dropdown"] [data-rc-part="menu"] a:hover),
+:where([data-rc~="dropdown"] [data-rc-part="menu"] a:focus-visible) {
+  background: color-mix(in srgb, currentColor 6%, transparent);
+  color: inherit;
+  outline: none;
+}
+
+:where([data-rc~="dropdown"] [data-rc-part="menu"] a[aria-current="page"]) {
+  color: inherit;
+  pointer-events: none;
+}
+
+/* LOOK — the button's caret turns while open. */
+:where([data-rc~="dropdown"] [data-rc-part="caret"]) {
+  transition: rotate 0.2s ease;
+}
+
+:where([data-rc~="dropdown"][data-rc-state="open"] [data-rc-part="caret"]) {
+  rotate: 180deg;
+}
