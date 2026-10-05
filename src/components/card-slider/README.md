@@ -74,13 +74,52 @@ Section            [data-rc="card-slider"]                 ← kök (role/aria-l
 - Kartın içi serbest: görsel, kategori, başlık, özet. Görsele hover büyütme
   Designer'da (görsel class'ının Hover durumu).
 
+## Hero kullanımı (blog girişi)
+
+Kart başına bir slayt (`--rc-card-slider-per-view: 1`), tam genişlik, solan
+komşular, otomatik geçiş ve başlıklı segment şeridi:
+
+```
+Section  [data-rc="card-slider"] data-rc-bleed data-rc-spotlight data-rc-autoplay
+  … slayt satırı (Collection List, track) …
+  Div şerit
+    Collection List Wrapper
+      Collection List  [data-rc-part="segments"]   ← aynı kaynak, filtre, sıralama, limit
+        Collection Item                            ← n. segment n. slayta ait
+          Link Block (yazı linki) › kısa başlık
+    DOM button [data-rc-part="toggle"] aria-label="Otomatik geçiş" aria-pressed="false"
+      Span [data-rc-part="icon-pause"] aria-hidden="true"   ← "❚❚" ya da ikon
+      Span [data-rc-part="icon-play"]  aria-hidden="true"   ← "▶"
+    önceki / sonraki düğmeleri
+```
+
+- **`data-rc-autoplay`** (saniye, değersiz 12): aktif slaytın saati dolunca
+  bir sonrakine geçer, sondan başa döner. Durur: imleç ya da odak bölümün
+  içindeyken, sekme arka plandayken, bölüm ekran dışındayken, `toggle`'a
+  basılınca (`aria-pressed="true"`). Reduced motion'da hiç dönmez, `toggle`
+  gizlenir. Elle her geçiş saati sıfırlar.
+- **`segments`:** her segmentin üst kenarında bir çizgi; aktif slaydınki
+  saatle dolar, öncekiler dolu, sonrakiler boş (Ramp'teki çizgiler). Aktif
+  segment `data-rc-state="active"`, diğerleri soluk. Segmentin üstüne gelmek
+  ya da odaklanmak slaydı getirir, tıklamak yazıya gider: bütün öne çıkan
+  başlıklar her an görünür birer linktir. İki listenin sayısı tutmazsa kod
+  konsola uyarır. Çizgi kalınlığı `--rc-card-slider-line` (1px).
+- **`data-rc-spotlight`:** aktif slayt dışındakiler soluk (0.35) ve gri,
+  görselleri biraz büyük; aktif olan yerine oturur. Değerler sıfır
+  specificity'de, Item class'ı kazanır.
+- Aktif slayt ve segmenti `data-rc-state="active"` taşır.
+- İlk slaydın görselini Designer'da **Load: Eager** yap (sayfanın en büyük
+  görseli; geç gelirse LCP düşer).
+
 ## Ayarlar (kökte)
 
-| Attribute       | Değer                   | Ne                                                                                                                                                                                                                                                                                                                  |
-| --------------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `data-rc-fade`  | uzunluk ya da `%`, `10` | Kenar solmasının genişliği; varsayılan `min(10%, 7rem)`; `0` kapatır                                                                                                                                                                                                                                                |
-| `data-rc-bleed` | —                       | Tam genişlik: satır viewport'un iki kenarına taşar, ilk kart container'ın kenarından başlar ve her kart oraya oturur; container yalnız başlangıç çizgisi. Kart genişlikleri yine container'a göre. Solma bu modda container dışındaki boşlukta kalır (`clamp(1.5rem, boşluk, 7rem)`), içerideki kartlar tam görünür |
-| `data-rc-eager` | —                       | Görünüre girmeyi beklemeden yükle                                                                                                                                                                                                                                                                                   |
+| Attribute           | Değer                   | Ne                                                                                                                                                                                                                                                                                                                  |
+| ------------------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `data-rc-fade`      | uzunluk ya da `%`, `10` | Kenar solmasının genişliği; varsayılan `min(10%, 7rem)`; `0` kapatır                                                                                                                                                                                                                                                |
+| `data-rc-bleed`     | —                       | Tam genişlik: satır viewport'un iki kenarına taşar, ilk kart container'ın kenarından başlar ve her kart oraya oturur; container yalnız başlangıç çizgisi. Kart genişlikleri yine container'a göre. Solma bu modda container dışındaki boşlukta kalır (`clamp(1.5rem, boşluk, 7rem)`), içerideki kartlar tam görünür |
+| `data-rc-autoplay`  | saniye, `12`            | Otomatik geçiş (hero kullanımı)                                                                                                                                                                                                                                                                                     |
+| `data-rc-spotlight` | —                       | Aktif kart dışındakileri soldurur, griye çevirir                                                                                                                                                                                                                                                                    |
+| `data-rc-eager`     | —                       | Görünüre girmeyi beklemeden yükle                                                                                                                                                                                                                                                                                   |
 
 CSS değişkenleri (kökte, sıfır specificity'de varsayılanlar):
 `--rc-card-slider-per-view`, `--rc-card-slider-gap`, `--rc-card-slider-fade`.

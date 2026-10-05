@@ -23,7 +23,15 @@
  *     `static` when every card fits, `empty` when no card is left — and the
  *     CSS fades the edges from it, so a faded edge always means "there is
  *     more this way". An empty row takes its section with it;
- *   - an optional `progress` part shows how far along the row is.
+ *   - an optional `progress` part shows how far along the row is;
+ *   - hero use (one card per view): `data-rc-autoplay` moves on by itself
+ *     every 12 s (or the seconds given) — paused while the pointer or the
+ *     focus is inside, the tab is hidden or the row is off screen, never
+ *     with reduced motion, and by the `toggle` button; a `segments` list
+ *     (a second Collection List, same items in the same order) shows each
+ *     card's title over a line that fills while it is up; pointing at a
+ *     segment brings its card, clicking follows its link; `data-rc-spotlight`
+ *     dims and greys every card but the active one.
  *
  * Every gesture ends on a card: past a small threshold it moves on to the
  * next one in its direction, so a short swipe back goes back.
@@ -34,8 +42,17 @@
  * Structure and options: README.md in this folder.
  */
 
-import { FOCUSABLE, option, part, setState } from "../../runtime/dom.js";
-import { prefersReducedMotion } from "../../runtime/motion.js";
+import {
+  FOCUSABLE,
+  numberOption,
+  option,
+  part,
+  setState,
+} from "../../runtime/dom.js";
+import {
+  onMotionPreferenceChange,
+  prefersReducedMotion,
+} from "../../runtime/motion.js";
 import { warn } from "../../runtime/log.js";
 
 /** A press that travels less than this stays a click. */
@@ -58,6 +75,9 @@ const COMMIT = 0.12;
 
 /** Milliseconds a glide may take before snapping returns regardless. */
 const GLIDE_LIMIT = 1200;
+
+/** Seconds a card stays when `data-rc-autoplay` is set without a value. */
+const AUTOPLAY = 12;
 
 /** A clicked card showing less than this share is brought in instead. */
 const MOSTLY_VISIBLE = 0.6;
@@ -258,8 +278,47 @@ export default function cardSlider(root) {
     return Math.max(0, right - left) / (widths[index] || 1);
   }
 
+  // The active card (first in view) and its segment. The segments list is
+  // a second Collection List with the same items in the same order: the
+  // n-th segment belongs to the n-th card.
+  const segmentList = part(root, "segments");
+  const segments = segmentList ? Array.from(segmentList.children) : [];
+  if (segmentList && segments.length !== track.children.length) {
+    warn(
+      `card-slider: ${segments.length} segments for ${track.children.length} cards — give both lists the same source, filter, sort and limit.`,
+      root,
+    );
+  }
+  Array.from(track.children).forEach((card, index) => {
+    if (card.hidden && segments[index]) segments[index].hidden = true;
+  });
+  const segmentOf = (card) =>
+    segments[Array.prototype.indexOf.call(track.children, card)] ?? null;
+  let active = null;
+  /** Mark card `index` (among the visible ones) active; reset its clock. */
+  function setActive(list, index) {
+    const card = list[index] ?? null;
+    if (card === active) return;
+    for (const other of list) {
+      if (other !== card && other.getAttribute("data-rc-state") === "active") {
+        setState(other, null);
+      }
+    }
+    if (card) setState(card, "active");
+    const order = list.indexOf(card);
+    list.forEach((other, i) => {
+      const segment = segmentOf(other);
+      if (!segment) return;
+      setState(segment, other === card ? "active" : null);
+      segment.style.setProperty("--rc-card-slider-fill", i < order ? "1" : "0");
+    });
+    active = card;
+    elapsed = 0;
+  }
+
   // Where the row stands, written only when it changes.
   let frame = 0;
+  let elapsed = 0;
   function update() {
     frame = 0;
     const max = maxScroll();
@@ -278,8 +337,12 @@ export default function cardSlider(root) {
     const still = state === "static" || state === "empty";
     previous?.setAttribute("aria-disabled", String(still || state === "start"));
     next?.setAttribute("aria-disabled", String(still || state === "end"));
+    const geometry = measure();
+    if (geometry.list.length > 0) {
+      setActive(geometry.list, indexAt(geometry.starts, x));
+    }
     if (progress) {
-      const { view } = measure();
+      const { view } = geometry;
       const total = view + max;
       root.style.setProperty(
         "--rc-card-slider-progress",
@@ -365,6 +428,134 @@ export default function cardSlider(root) {
   });
 
   initWheel(track, settle, maxScroll, interrupt);
+
+  // Pointing at a segment (or focusing its link) brings its card in; the
+  // click follows the link.
+  segments.forEach((segment, index) => {
+    const card = track.children[index];
+    const bring = () => {
+      if (!card || card.hidden || card === active) return;
+      scrollToIndex(cards().indexOf(card));
+    };
+    segment.addEventListener("pointerenter", (event) => {
+      if (event.pointerType === "mouse") bring();
+    });
+    segment.addEventListener("focusin", bring);
+  });
+
+  initAutoplay();
+
+  /**
+   * Autoplay: the active card's clock runs while nothing holds it, fills
+   * its segment, and moves the row on when it runs out — back to the first
+   * card after the last. Any other move restarts the clock (setActive).
+   */
+  function initAutoplay() {
+    const toggle = part(root, "toggle");
+    const seconds = root.hasAttribute("data-rc-autoplay")
+      ? numberOption(root, "autoplay", AUTOPLAY)
+      : 0;
+    if (!(seconds > 0)) {
+      if (toggle) toggle.hidden = true;
+      return;
+    }
+    const duration = seconds * 1000;
+    let reduced = prefersReducedMotion();
+    let userPaused = false;
+    // The page may load with the pointer already over the row.
+    let hovered = root.matches(":hover");
+    let advancing = false;
+    let advancingFrom = null;
+    let focused = false;
+    let onScreen = false;
+    let tick = 0;
+    let last = 0;
+
+    const playing = () =>
+      !reduced &&
+      !userPaused &&
+      !hovered &&
+      !focused &&
+      onScreen &&
+      !document.hidden &&
+      cards().length > 1;
+
+    function run(now) {
+      tick = 0;
+      if (!playing()) return;
+      // After the clock runs out the row glides on; the clock waits for the
+      // next card to become active (setActive restarts it).
+      if (advancing && active === advancingFrom) {
+        last = now;
+        tick = requestAnimationFrame(run);
+        return;
+      }
+      advancing = false;
+      elapsed += now - last;
+      last = now;
+      const segment = active ? segmentOf(active) : null;
+      segment?.style.setProperty(
+        "--rc-card-slider-fill",
+        Math.min(1, elapsed / duration).toFixed(4),
+      );
+      if (elapsed >= duration) {
+        const list = cards();
+        const index = list.indexOf(active);
+        const atEnd =
+          index >= list.length - 1 || track.scrollLeft >= maxScroll() - EDGE;
+        advancing = true;
+        advancingFrom = active;
+        scrollToIndex(atEnd ? 0 : index + 1);
+      }
+      tick = requestAnimationFrame(run);
+    }
+    function sync() {
+      if (toggle) {
+        toggle.hidden = reduced;
+        toggle.setAttribute("aria-pressed", String(userPaused));
+      }
+      if (playing() && !tick) {
+        last = performance.now();
+        tick = requestAnimationFrame(run);
+      } else if (!playing() && tick) {
+        cancelAnimationFrame(tick);
+        tick = 0;
+      }
+    }
+
+    toggle?.setAttribute("aria-controls", track.id);
+    toggle?.addEventListener("click", (event) => {
+      event.preventDefault();
+      userPaused = !userPaused;
+      sync();
+    });
+    root.addEventListener("pointerenter", (event) => {
+      if (event.pointerType !== "mouse") return;
+      hovered = true;
+      sync();
+    });
+    root.addEventListener("pointerleave", () => {
+      hovered = false;
+      sync();
+    });
+    root.addEventListener("focusin", () => {
+      focused = true;
+      sync();
+    });
+    root.addEventListener("focusout", (event) => {
+      focused = root.contains(event.relatedTarget);
+      sync();
+    });
+    document.addEventListener("visibilitychange", sync);
+    onMotionPreferenceChange((matches) => {
+      reduced = matches;
+      sync();
+    });
+    new IntersectionObserver(([entry]) => {
+      onScreen = entry.isIntersecting;
+      sync();
+    }).observe(root);
+  }
 }
 
 /**

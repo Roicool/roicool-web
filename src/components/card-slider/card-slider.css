@@ -236,3 +236,104 @@
   border-radius: 2px;
   background: color-mix(in srgb, currentColor 15%, transparent);
 }
+
+/* LOOK — data-rc-spotlight: every card but the active one rests dimmed and
+   grey, its picture a touch larger; the active card settles in. Designer's
+   values on the Item's class win. Nothing dims before the code runs. */
+:where([data-rc~="card-slider"][data-rc-spotlight][data-rc-state])
+  [data-rc-part="track"]
+  > * {
+  transition:
+    opacity 0.5s ease,
+    filter 0.5s ease;
+}
+
+:where([data-rc~="card-slider"][data-rc-spotlight][data-rc-state])
+  [data-rc-part="track"]
+  > :not([data-rc-state="active"]) {
+  opacity: 0.35;
+  filter: grayscale(1);
+}
+
+:where([data-rc~="card-slider"][data-rc-spotlight][data-rc-state])
+  [data-rc-part="track"]
+  img {
+  transition: scale 0.9s cubic-bezier(0.19, 1, 0.22, 1);
+}
+
+:where([data-rc~="card-slider"][data-rc-spotlight][data-rc-state])
+  [data-rc-part="track"]
+  > :not([data-rc-state="active"])
+  img {
+  scale: 1.04;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :where([data-rc~="card-slider"][data-rc-spotlight]) [data-rc-part="track"] *,
+  :where([data-rc~="card-slider"][data-rc-spotlight])
+    [data-rc-part="track"]
+    > * {
+    transition: none;
+  }
+}
+
+/* MECHANIC — segments: each one carries a line along its top edge that
+   fills while its card is up (--rc-card-slider-fill, 0–1, set by the code;
+   earlier cards full, later ones empty). */
+[data-rc~="card-slider"] [data-rc-part="segments"] > * {
+  position: relative;
+}
+
+[data-rc~="card-slider"] [data-rc-part="segments"] > *::before,
+[data-rc~="card-slider"] [data-rc-part="segments"] > *::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--rc-card-slider-line, 1px);
+  pointer-events: none;
+}
+
+[data-rc~="card-slider"] [data-rc-part="segments"] > *::after {
+  transform: scaleX(var(--rc-card-slider-fill, 0));
+  transform-origin: left;
+}
+
+/* LOOK — the segment's line and resting fade; Designer's padding, colour
+   and type win. */
+:where([data-rc~="card-slider"] [data-rc-part="segments"] > *) {
+  padding-top: 0.875rem;
+  transition: opacity 0.3s ease;
+}
+
+:where([data-rc~="card-slider"] [data-rc-part="segments"] > *)::before {
+  background: color-mix(in srgb, currentColor 18%, transparent);
+}
+
+:where([data-rc~="card-slider"] [data-rc-part="segments"] > *)::after {
+  background: currentColor;
+}
+
+:where(
+  [data-rc~="card-slider"][data-rc-state]
+    [data-rc-part="segments"]
+    > :not([data-rc-state="active"])
+) {
+  opacity: 0.55;
+}
+
+/* MECHANIC — the toggle shows the icon for what a press will do: pause
+   while playing, play while paused (aria-pressed="true"). */
+[data-rc~="card-slider"]
+  [data-rc-part="toggle"][aria-pressed="true"]
+  [data-rc-part="icon-pause"],
+[data-rc~="card-slider"]
+  [data-rc-part="toggle"]:not([aria-pressed="true"])
+  [data-rc-part="icon-play"] {
+  display: none;
+}
+
+[data-rc~="card-slider"] [data-rc-part="toggle"][hidden] {
+  display: none;
+}
