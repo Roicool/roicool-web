@@ -34,6 +34,11 @@
   }
 }
 
+/* `data-rc-per-view="1"`: one slide per view at every width (the hero). */
+:where([data-rc~="card-slider"][data-rc-per-view="1"]) {
+  --rc-card-slider-per-view: 1;
+}
+
 :where([data-rc~="card-slider"] [data-rc-part="track"]) {
   gap: var(--rc-card-slider-gap);
 }

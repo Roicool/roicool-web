@@ -76,11 +76,11 @@ Section            [data-rc="card-slider"]                 ← kök (role/aria-l
 
 ## Hero kullanımı (blog girişi)
 
-Kart başına bir slayt (`--rc-card-slider-per-view: 1`), tam genişlik, solan
+Kart başına bir slayt (`data-rc-per-view="1"`), tam genişlik, solan
 komşular, otomatik geçiş ve başlıklı segment şeridi:
 
 ```
-Section  [data-rc="card-slider"] data-rc-bleed data-rc-spotlight data-rc-autoplay
+Section  [data-rc="card-slider"] data-rc-per-view="1" data-rc-bleed data-rc-spotlight data-rc-autoplay
   … slayt satırı (Collection List, track) …
   Div şerit
     Collection List Wrapper
@@ -117,6 +117,7 @@ Section  [data-rc="card-slider"] data-rc-bleed data-rc-spotlight data-rc-autopla
 | ------------------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `data-rc-fade`      | uzunluk ya da `%`, `10` | Kenar solmasının genişliği; varsayılan `min(10%, 7rem)`; `0` kapatır                                                                                                                                                                                                                                                |
 | `data-rc-bleed`     | —                       | Tam genişlik: satır viewport'un iki kenarına taşar, ilk kart container'ın kenarından başlar ve her kart oraya oturur; container yalnız başlangıç çizgisi. Kart genişlikleri yine container'a göre. Solma bu modda container dışındaki boşlukta kalır (`clamp(1.5rem, boşluk, 7rem)`), içerideki kartlar tam görünür |
+| `data-rc-per-view`  | `1`                     | Her genişlikte tek kart (hero); başka sayılar için `--rc-card-slider-per-view`                                                                                                                                                                                                                                      |
 | `data-rc-autoplay`  | saniye, `12`            | Otomatik geçiş (hero kullanımı)                                                                                                                                                                                                                                                                                     |
 | `data-rc-spotlight` | —                       | Aktif kart dışındakileri soldurur, griye çevirir                                                                                                                                                                                                                                                                    |
 | `data-rc-eager`     | —                       | Görünüre girmeyi beklemeden yükle                                                                                                                                                                                                                                                                                   |
